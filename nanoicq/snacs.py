@@ -1,4 +1,13 @@
 
+#
+# $Id: snacs.py,v 1.2 2005/11/17 13:28:06 lightdruid Exp $
+#
+# $Log: snacs.py,v $
+# Revision 1.2  2005/11/17 13:28:06  lightdruid
+# Id/Log tags added
+#
+#
+
 SNAC_GENERIC    = 0x0001    #  Generic service controls           
 SNAC_LOCATION   = 0x0002    #  Location services          
 SNAC_BUDDY_LIST = 0x0003    #  Buddy List management service          

@@ -1,4 +1,13 @@
 
+#
+# $Id: isocket.py,v 1.2 2005/11/17 13:28:06 lightdruid Exp $
+#
+# $Log: isocket.py,v $
+# Revision 1.2  2005/11/17 13:28:06  lightdruid
+# Id/Log tags added
+#
+#
+
 import sys
 import time
 import struct

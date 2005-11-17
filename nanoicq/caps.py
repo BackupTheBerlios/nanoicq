@@ -1,4 +1,13 @@
 
+#
+# $Id: caps.py,v 1.2 2005/11/17 13:28:06 lightdruid Exp $
+#
+# $Log: caps.py,v $
+# Revision 1.2  2005/11/17 13:28:06  lightdruid
+# Id/Log tags added
+#
+#
+
 AIM_VOICE =    "094613414C7F11D18222444553540000"  
 # Client supports voice chat. Currently used only by AIM service and AIM clients.     
 
