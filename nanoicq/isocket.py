@@ -1,8 +1,11 @@
 
 #
-# $Id: isocket.py,v 1.2 2005/11/17 13:28:06 lightdruid Exp $
+# $Id: isocket.py,v 1.3 2005/11/19 14:00:42 lightdruid Exp $
 #
 # $Log: isocket.py,v $
+# Revision 1.3  2005/11/19 14:00:42  lightdruid
+# Just a chmod +x
+#
 # Revision 1.2  2005/11/17 13:28:06  lightdruid
 # Id/Log tags added
 #
@@ -598,7 +601,6 @@ def _test():
 
         ch, b, c = p.readFLAP(buf)
         snac = p.readSNAC(c)
-#        print snac
         print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
 
         tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
