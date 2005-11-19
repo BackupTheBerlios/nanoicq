@@ -1,8 +1,12 @@
+#!/bin/env python2.4
 
 #
-# $Id: isocket.py,v 1.3 2005/11/19 14:00:42 lightdruid Exp $
+# $Id: isocket.py,v 1.4 2005/11/19 16:02:05 lightdruid Exp $
 #
 # $Log: isocket.py,v $
+# Revision 1.4  2005/11/19 16:02:05  lightdruid
+# Added ruedimentary support for user online/offline message handling
+#
 # Revision 1.3  2005/11/19 14:00:42  lightdruid
 # Just a chmod +x
 #
@@ -68,8 +72,8 @@ _messageFlags = {
 0x80:    "MFLG_MULTI",
 }
     
-username = '264025324'
-#username = '223606200'
+#username = '264025324'
+username = '223606200'
 
 class Log:
     def log(self, msg):
@@ -412,10 +416,48 @@ class Protocol:
         assert ver == 0
         print ashex(data)
 
-        nitems = int(struct.unpack('!H', data[1:3])[0])
+        nitems = int(struct.unpack('!H', data[2:4])[0])
         log.log("Items number: %d" % nitems)
         print data[3:]
 
+    def proc_2_3_12(self, data):
+        ''' Server send this when user from your contact list goes 
+        offline. See also additional information about online userinfo block.'''
+
+        pass
+
+    def proc_2_3_11(self, data):
+        ''' Server sends this snac when user from your contact list 
+        goes online. Also you'll receive this snac on user status 
+        change (in this case snac doesn't contain TLV(0xC)). 
+        See also additional information about online userinfo block. '''
+
+        uinLen = int(struct.unpack('!B', data[0])[0]) 
+        uin = data[1 : uinLen]
+        log.log("UIN length: %d, UIN: %s" % (uinLen, uin))
+
+        data = data[1 + uinLen:]
+
+        print ashex(data)
+        warningLevel = int(struct.unpack('!H', data[0:2])[0]) 
+        ntlv = int(struct.unpack('!H', data[2:4])[0]) 
+        log.log("Warning level: %d. number of TLV: %d" % (warningLevel, ntlv))
+
+        tlvs = readTLVs(data[4:])
+        userClass = int(struct.unpack('!H', tlvs[0x01])[0])
+
+        # TLV.Type(0x0C) - dc info (optional)
+        try:
+            dc = tlvs[0x0c]
+            print ashex(dc)
+
+            internalIP = int(struct.unpack('!L', dc[0 : 4])[0])
+            internalPort = int(struct.unpack('!L', dc[4 : 8])[0])
+
+            log.log("Internal: %d:%d" % (internalIP, internalPort))
+        except:
+            raise
+ 
     def proc_2_19_15(self, data):
         raise Exception("proc_2_19_15 not implemented")
 
