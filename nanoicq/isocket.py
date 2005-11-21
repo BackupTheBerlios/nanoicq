@@ -1,9 +1,12 @@
 #!/bin/env python2.4
 
 #
-# $Id: isocket.py,v 1.4 2005/11/19 16:02:05 lightdruid Exp $
+# $Id: isocket.py,v 1.5 2005/11/21 11:09:37 lightdruid Exp $
 #
 # $Log: isocket.py,v $
+# Revision 1.5  2005/11/21 11:09:37  lightdruid
+# More parsing for user online/offline messages
+#
 # Revision 1.4  2005/11/19 16:02:05  lightdruid
 # Added ruedimentary support for user online/offline message handling
 #
@@ -15,7 +18,11 @@
 #
 #
 
+#username = '264025324'
+username = '223606200'
+
 import sys
+import os
 import time
 import struct
 import socket
@@ -29,6 +36,13 @@ def _reg(password):
     print len(lz)
     return "\0x00\0x00\0x00\0x00\0x28\0x00\0x03\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x9e\0x27\0x00\0x00\0x9e\0x27\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00" + lz + "\0x9e\0x27\0x00\0x00\0x00\0x00\0x00\0x00\0x03\0x02"
 
+_directConnectionType = {
+0x0000: "DC_DISABLED",       # Direct connection disabled / auth required    
+0x0001: "DC_HTTPS",          # Direct connection thru firewall or https proxy    
+0x0002: "DC_SOCKS",          # Direct connection thru socks4/5 proxy server  
+0x0004: "DC_NORMAL",         # Normal direct connection (without proxy/firewall) 
+0x0006: "DC_WEB",            # Web client - no direct connection
+}
 
 _userClasses = {
 0x0001: "CLASS_UNCONFIRMED",
@@ -71,9 +85,27 @@ _messageFlags = {
 0x03:    "MFLAG_AUTO",
 0x80:    "MFLG_MULTI",
 }
+
+_userStatusP1 = {
+  0x0001:      "STATUS_WEBAWARE", #     Status webaware flag  
+  0x0002:      "STATUS_SHOWIP", #       Status show ip flag   
+  0x0008:      "STATUS_BIRTHDAY", #     User birthday flag    
+  0x0020:      "STATUS_WEBFRONT", #     User active webfront flag 
+  0x0100:      "STATUS_DCDISABLED", #       Direct connection not supported   
+  0x1000:      "STATUS_DCAUTH", #       Direct connection upon authorization  
+  0x2000:      "STATUS_DCCONT", #       DC only with contact users    
+}
+
+_userStatusP2 = {
+  0x0000:      "STATUS_ONLINE", #       Status is online  
+  0x0001:      "STATUS_AWAY", #     Status is away    
+  0x0002:      "STATUS_DND", #      Status is no not disturb (DND)    
+  0x0004:      "STATUS_NA", #       Status is not available (N/A) 
+  0x0010:      "STATUS_OCCUPIED", #     Status is occupied (BISY) 
+  0x0020:      "STATUS_FREE4CHAT", #        Status is free for chat   
+  0x0100:      "STATUS_INVISIBLE", #        Status is invisible
+}
     
-#username = '264025324'
-username = '223606200'
 
 class Log:
     def log(self, msg):
@@ -227,7 +259,7 @@ class Protocol:
     def sendAuth(self):
         # 264025324
         self.username = username
-        encpass = encryptPasswordICQ('zuppa197')
+        encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
 
         self.sendFLAP(0x01, '\000\000\000\001'+
             tlv(0x01,self.username)+
@@ -449,14 +481,101 @@ class Protocol:
         # TLV.Type(0x0C) - dc info (optional)
         try:
             dc = tlvs[0x0c]
-            print ashex(dc)
 
-            internalIP = int(struct.unpack('!L', dc[0 : 4])[0])
+            internalIP = socket.inet_ntoa(dc[0 : 4])
             internalPort = int(struct.unpack('!L', dc[4 : 8])[0])
 
-            log.log("Internal: %d:%d" % (internalIP, internalPort))
+            log.log("Internal IP: %s:%d" % (internalIP, internalPort))
+
+            dcType = int(struct.unpack('!B', dc[8 : 9])[0])
+            self.parseDcType(dcType)
+
+            dc = dc[9:]
+            dcProtocolVersion = int(struct.unpack('!H', dc[0 : 2])[0])
+            dcAuthCookie = int(struct.unpack('!L', dc[2 : 6])[0])
+            webFrontPort = int(struct.unpack('!L', dc[6 : 10])[0])
+            clientFutures = int(struct.unpack('!L', dc[10 : 14])[0])
+
+            log.log("dcProtocolVersion: %d, dcAuthCookie: %d, webFrontPort: %d, clientFutures: %d" % \
+                (dcProtocolVersion, dcAuthCookie, webFrontPort, clientFutures))
+
+            assert clientFutures == 0x03
+
+            lastInfoUpdate = int(struct.unpack('!L', dc[14 : 18])[0])
+            lastExtInfoUpdate = int(struct.unpack('!L', dc[18 : 22])[0])
+            lastExtStatusUpdate = int(struct.unpack('!L', dc[22 : 26])[0])
+
+#           What's format for this time? Fails.
+#            print "lastInfoUpdate: %s, lastExtInfoUpdate: %s, lastExtStatusUpdate: %s" % \
+#                (time.asctime(time.localtime(lastInfoUpdate)), time.asctime(time.localtime(lastExtInfoUpdate)), time.asctime(time.localtime(lastExtStatusUpdate)))
+
+            junk = int(struct.unpack('!H', dc[26 : 28])[0])
         except:
             raise
+
+        # TLV.Type(0x0A) - external ip address
+        externalIP = "0:0:0:0"
+        try:
+            externalIP = socket.inet_ntoa(tlvs[0x0a][0 : 4])
+        except Exception, msg:
+            pass # FIXME
+        log.log("External IP: %s" % externalIP)
+
+        # TLV.Type(0x06) - user status
+        userStatus = tlvs[0x06][0 : 4]
+        self.parseUserStatus(userStatus)
+
+        # TLV.Type(0x0D) - user capabilities
+        caps = tlvs[0x0d]
+        log.log("User capabilities: " + ashex(caps))
+
+        # TLV.Type(0x0F) - online time
+        onlineTime = int(struct.unpack('!L', tlvs[0x0f][0 : 4])[0])
+        log.log("Online time: " + time.asctime(time.localtime(onlineTime)))
+
+        # TLV.Type(0x03) - signon time
+        singonTime = int(struct.unpack('!L', tlvs[0x03][0 : 4])[0])
+        log.log("Signon time: " + time.asctime(time.localtime(singonTime)))
+
+        # TLV.Type(0x05) - member since
+        try:
+            memberSince = int(struct.unpack('!L', tlvs[0x05][0 : 4])[0])
+            log.log("Member since: " + time.asctime(time.localtime(memberSince)))
+        except KeyError, msg:
+            print "(warn) KeyError: " + str(msg)
+
+        # TLV.Type(0x11) - times updated
+        try:
+            tlv = tlvs[0x11]
+        except KeyError, msg:
+            print "(warn) KeyError: " + str(msg)
+        # FIXME: not parsed yet
+
+        # TLV.Type(0x19) - new-style capabilities list
+        caps = tlvs[0x19]
+        log.log("User (AIM) capabilities: " + ashex(caps))
+
+        # TLV.Type(0x1D) - user icon id & hash
+        icon = tlvs[0x1d]
+        iconID = struct.unpack('!H', icon[0 : 2])
+        iconFlags = struct.unpack('!B', icon[2 : 3])
+        iconHash = struct.unpack('!B', icon[3 : 4])
+
+        log.log("Icon ID: %d" % (iconID))
+
+    def parseUserStatus(self, status):
+        p1, p2 = struct.unpack('!HH', status)
+        for s in _userStatusP1:
+            if s & p1:
+                print _userStatusP1[s]
+        for s in _userStatusP2:
+            if s & p2:
+                print _userStatusP2[s]
+
+    def parseDcType(self, dcType):
+        for dc in _directConnectionType:
+            if dc & dcType:
+                print _directConnectionType[dc]
  
     def proc_2_19_15(self, data):
         raise Exception("proc_2_19_15 not implemented")
@@ -653,5 +772,4 @@ def _test():
 if __name__ == '__main__':
     _test()
 
-
-        
+# ---
