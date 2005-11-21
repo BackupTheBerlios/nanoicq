@@ -1,9 +1,12 @@
 #!/bin/env python2.4
 
 #
-# $Id: isocket.py,v 1.6 2005/11/21 14:33:52 lightdruid Exp $
+# $Id: isocket.py,v 1.7 2005/11/21 16:40:11 lightdruid Exp $
 #
 # $Log: isocket.py,v $
+# Revision 1.7  2005/11/21 16:40:11  lightdruid
+# Still unusabe, fails to parse 19,6 correctly
+#
 # Revision 1.6  2005/11/21 14:33:52  lightdruid
 # Brocken version, 19,6 doesn't work
 #
@@ -21,8 +24,8 @@
 #
 #
 
-username = '264025324'
-#username = '223606200'
+#username = '264025324'
+username = '223606200'
 
 import sys
 import os
@@ -451,7 +454,8 @@ class Protocol:
         ver = int(struct.unpack('!B', data[0:1])[0])
         assert ver == 0
 
-        nitems = int(struct.unpack('!H', data[1:3])[0])
+        print [data[1:3]]
+        nitems = int(struct.unpack('<H', data[1:3])[0])
         log.log("Items number: %d" % nitems)
         data = data[3:]
         print ashex(data)
@@ -467,7 +471,7 @@ class Protocol:
             ii += 1
 
     def parseSSIItem(self, data):
-        itemLen = int(struct.unpack('!H', data[0:2])[0])
+        itemLen = int(struct.unpack('<H', data[0:2])[0])
         name = data[2 : 2 + itemLen]
         log.log("Length: %d, %s" % (itemLen, name))
         print '>', data, ashex(data)
@@ -481,6 +485,9 @@ class Protocol:
         dataLen = int(struct.unpack('!H', data[6:8])[0])
         log.log("groupID: %d, itemID: %d, flagType: %d, dataLen: %d" % \
             (groupID, itemID, flagType, dataLen))
+
+        data = data[8 + dataLen:]
+        return data
 
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 
@@ -799,6 +806,7 @@ def _test():
         ch, b, c = p.readFLAP(buf)
         snac = p.readSNAC(c)
         print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
+        print 'for this snac: ', snac
 
         tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
         func = getattr(p, tmp)
