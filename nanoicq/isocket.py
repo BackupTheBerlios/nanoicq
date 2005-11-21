@@ -1,9 +1,12 @@
 #!/bin/env python2.4
 
 #
-# $Id: isocket.py,v 1.5 2005/11/21 11:09:37 lightdruid Exp $
+# $Id: isocket.py,v 1.6 2005/11/21 14:33:52 lightdruid Exp $
 #
 # $Log: isocket.py,v $
+# Revision 1.6  2005/11/21 14:33:52  lightdruid
+# Brocken version, 19,6 doesn't work
+#
 # Revision 1.5  2005/11/21 11:09:37  lightdruid
 # More parsing for user online/offline messages
 #
@@ -18,8 +21,8 @@
 #
 #
 
-#username = '264025324'
-username = '223606200'
+username = '264025324'
+#username = '223606200'
 
 import sys
 import os
@@ -444,13 +447,40 @@ class Protocol:
         And the "Number of items" field indicates the number of 
         items in the current packet, not the entire list. '''
 
-        ver = int(struct.unpack('!B', data[0])[0])
+        print 'PRE: ', ashex(data)
+        ver = int(struct.unpack('!B', data[0:1])[0])
         assert ver == 0
-        print ashex(data)
 
-        nitems = int(struct.unpack('!H', data[2:4])[0])
+        nitems = int(struct.unpack('!H', data[1:3])[0])
         log.log("Items number: %d" % nitems)
-        print data[3:]
+        data = data[3:]
+        print ashex(data)
+ 
+        ii = 1
+        while ii <= nitems:
+            print 'Pass #', ii
+            try:
+                data = self.parseSSIItem(data)
+            except Exception, msg:
+                print "(warn)", msg
+                break
+            ii += 1
+
+    def parseSSIItem(self, data):
+        itemLen = int(struct.unpack('!H', data[0:2])[0])
+        name = data[2 : 2 + itemLen]
+        log.log("Length: %d, %s" % (itemLen, name))
+        print '>', data, ashex(data)
+        data = data[2 + itemLen:]
+
+        print '>>', data, ashex(data)
+
+        groupID = int(struct.unpack('!H', data[0:2])[0])
+        itemID = int(struct.unpack('!H', data[2:4])[0])
+        flagType = int(struct.unpack('!H', data[4:6])[0])
+        dataLen = int(struct.unpack('!H', data[6:8])[0])
+        log.log("groupID: %d, itemID: %d, flagType: %d, dataLen: %d" % \
+            (groupID, itemID, flagType, dataLen))
 
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 
@@ -552,16 +582,22 @@ class Protocol:
         # FIXME: not parsed yet
 
         # TLV.Type(0x19) - new-style capabilities list
-        caps = tlvs[0x19]
-        log.log("User (AIM) capabilities: " + ashex(caps))
+        try:
+            caps = tlvs[0x19]
+            log.log("User (AIM) capabilities: " + ashex(caps))
+        except KeyError, msg:
+            print "(warn) KeyError: " + str(msg)
 
         # TLV.Type(0x1D) - user icon id & hash
-        icon = tlvs[0x1d]
-        iconID = struct.unpack('!H', icon[0 : 2])
-        iconFlags = struct.unpack('!B', icon[2 : 3])
-        iconHash = struct.unpack('!B', icon[3 : 4])
+        try:
+            icon = tlvs[0x1d]
+            iconID = struct.unpack('!H', icon[0 : 2])
+            iconFlags = struct.unpack('!B', icon[2 : 3])
+            iconHash = struct.unpack('!B', icon[3 : 4])
 
-        log.log("Icon ID: %d" % (iconID))
+            log.log("Icon ID: %d" % (iconID))
+        except KeyError, msg:
+            print "(warn) KeyError: " + str(msg)
 
     def parseUserStatus(self, status):
         p1, p2 = struct.unpack('!HH', status)
