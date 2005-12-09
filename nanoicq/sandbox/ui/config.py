@@ -1,6 +1,6 @@
 
 #
-# $Id: config.py,v 1.1 2005/12/09 12:09:28 lightdruid Exp $
+# $Id: config.py,v 1.2 2005/12/09 15:13:37 lightdruid Exp $
 #
 
 
@@ -13,7 +13,7 @@ class Config(SafeConfigParser):
 def _test():
     c = Config()
     c.read('sample.config')
-    print c.get('General', 'a')
+    print c.get('icq', 'icq')
 
 if __name__ == '__main__':
     _test()
