@@ -1,9 +1,12 @@
 #!/bin/env python2.4
 
 #
-# $Id: isocket.py,v 1.7 2005/11/21 16:40:11 lightdruid Exp $
+# $Id: isocket.py,v 1.8 2005/12/09 16:24:51 lightdruid Exp $
 #
 # $Log: isocket.py,v $
+# Revision 1.8  2005/12/09 16:24:51  lightdruid
+# UI experiments
+#
 # Revision 1.7  2005/11/21 16:40:11  lightdruid
 # Still unusabe, fails to parse 19,6 correctly
 #
@@ -223,10 +226,32 @@ class ISocket:
 #             00010017000000000000
 
 class Protocol:
-    def __init__(self, sock):
+    def __init__(self, sock = None):
         self._sock = sock
         self.buf = ''
         self.statusindicators = 0x0000
+
+        self._host = None
+        self._port = None
+
+    def readConfig(self, config):
+        self._host, self._port = config.get('icq', 'host').split(':')
+        self._port = int(self._port)
+
+    def connect(self, host = None, port = None):
+        if host is None:
+            host = self._host
+        if port is None:
+            port = self._port
+        self._sock = ISocket(host, port)
+        self._sock.connect()
+        log.log("Socket connected")
+
+    def disconnect(self):
+        self._sock.disconnect()
+        self._sock = None
+        self._host = None
+        self._port = None
 
     def send(self, data):
         self._sock.send(data)
@@ -473,11 +498,11 @@ class Protocol:
     def parseSSIItem(self, data):
         itemLen = int(struct.unpack('<H', data[0:2])[0])
         name = data[2 : 2 + itemLen]
-        log.log("Length: %d, %s" % (itemLen, name))
-        print '>', data, ashex(data)
+#        log.log("Length: %d, %s" % (itemLen, name))
+        print '>', ashex(data)
         data = data[2 + itemLen:]
 
-        print '>>', data, ashex(data)
+        print '>>', ashex(data)
 
         groupID = int(struct.unpack('!H', data[0:2])[0])
         itemID = int(struct.unpack('!H', data[2:4])[0])
@@ -745,7 +770,6 @@ class Protocol:
     def CLI_WHITE_PAGES_SEARCH2(self):
         log.log("CLI_WHITE_PAGES_SEARCH2")
 
-
     def getOfflineMessages(self):
         ''' Client sends this SNAC when wants to retrieve messages 
         that was sent by another user and buffered by server during 
@@ -755,13 +779,74 @@ class Protocol:
         self.sendSNAC(0x15, 0x02, 0, tlvs)
         pass
 
+    def login(self, mainLoop = False):
+        log.log('Logging in...')
+        buf = self.read()
+        log.packetin(buf)
+
+        log.log('Sending credentials')
+        self.sendAuth()
+        buf = self.read()
+        log.packetin(buf)
+
+        snac = self.readSNAC(buf)
+        i=snac[5].find("\000")
+        snac[5]=snac[5][i:]
+        tlvs=readTLVs(snac[5])
+        log.log(tlvs)
+
+        if tlvs.has_key(TLV_ErrorCode):
+            log.log("Error: " + explainError(tlvs[TLV_ErrorCode]))
+
+        server = ''
+        if tlvs.has_key(TLV_Redirect):
+            server = tlvs[TLV_Redirect]
+            log.log("Redirecting to: " + server)
+
+        self._sock.disconnect()
+
+        self._host, self._port = server.split(':')
+        self._port = int(self._port)
+
+        # ===============
+        self.connect()
+
+        # ================================
+        buf = self.read()
+        log.packetin(buf)
+
+        self.sendFLAP(0x01, '\000\000\000\001' + tlv(0x06, tlvs[TLV_Cookie]))
+        log.log('Login done')
+
+        if mainLoop:
+            log.log('Going to main loop')
+            self.mainLoop()
+
+    def mainLoop(self):
+        # self.keepGoing must be extenrally created or defined in derived class
+        while self.keepGoing:
+            buf = self.read()
+            log.packetin(buf)
+
+            ch, b, c = self.readFLAP(buf)
+            snac = self.readSNAC(c)
+            print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
+            print 'for this snac: ', snac
+
+            tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
+            func = getattr(self, tmp)
+
+            func(snac[5])
+
 
 def _test():
 
-    s = ISocket('login.icq.com', 5190)
-    s.connect()
+#    s = ISocket('login.icq.com', 5190)
+#    s.connect()
 
-    p = Protocol(s)
+    p = Protocol()
+    p.connect('login.icq.com', 5190)
+
     buf = p.read()
     log.packetin(buf)
 
@@ -783,7 +868,7 @@ def _test():
         server = tlvs[TLV_Redirect]
         log.log("Redirecting to: " + server)
 
-    s.disconnect()
+    p.disconnect()
     host, port = server.split(':')
 
     # ===============

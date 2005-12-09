@@ -1,13 +1,14 @@
 #!/usr/bin/python
 
 #
-# $Id: wxnanoicq.py,v 1.2 2005/12/09 15:13:37 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.3 2005/12/09 16:24:51 lightdruid Exp $
 #
 
 import sys
 sys.path.insert(0, '../..')
 
 import thread
+import time
 import wx
 import isocket
 import images
@@ -21,11 +22,14 @@ ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
 ID_ICQ_LOGIN = wx.NewId()
 
+ID_TEST = wx.NewId()
+
 _topMenu = (
     ("File",
         (
             (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit"),
             (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin"),
+            (ID_TEST, "Test\tF4", "test", "self.OnTest"),
         )
     ),
     ("Help",
@@ -64,7 +68,7 @@ class ICQThreaded(isocket.Protocol):
 
         self.running = False
 
-class Reactor:
+class Connector:
     _protocols = {}
 
     def setConfig(self, config):
@@ -82,6 +86,21 @@ class TopFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, title,
             pos=(150, 150), size=(350, 200))
 
+        self.createTopMenuBar()
+        self.makeStatusbar()
+
+        icon = self.prepareIcon(images.getLimeWireImage())
+        self.SetIcon(icon)
+
+        # ---
+        self.config = Config()
+        self.config.read('sample.config')
+
+        self.connector = Connector()
+        self.connector.setConfig(self.config)
+        self.connector.registerProtocol('icq', ICQThreaded())
+
+    def createTopMenuBar(self):
         self.topMenuBar = wx.MenuBar()
 
         for item in _topMenu:
@@ -95,18 +114,6 @@ class TopFrame(wx.Frame):
             self.topMenuBar.Append(menu, header)
 
         self.SetMenuBar(self.topMenuBar)
-        self.makeStatusbar()
-
-        icon = self.prepareIcon(images.getLimeWireImage())
-        self.SetIcon(icon)
-
-        # ---
-        self.config = Config()
-        self.config.read('sample.config')
-
-        self.reactor = Reactor()
-        self.reactor.setConfig(self.config)
-        self.reactor.registerProtocol('icq', ICQThreaded())
 
     def prepareIcon(self, img):
         """
@@ -137,9 +144,21 @@ class TopFrame(wx.Frame):
         evt.Skip()
 
     def OnIcqLogin(self, evt):
-        self.reactor['icq'].connect()
-        self.reactor['icq'].login()
-        self.reactor['icq'].Start()
+        self.connector['icq'].connect()
+        self.connector['icq'].login()
+        self.connector['icq'].Start()
+
+    def OnTest(self, evt):
+#        self.SetMenuBar(None)
+#        time.sleep(1)
+#        self.createTopMenuBar()
+        self.sb = None
+        self.SetStatusBar(None)
+        self.Layout()
+        self.SetSize(wx.Size(100, 200))
+        time.sleep(3)
+#        self.SetStatusBar(self.sb)
+        print 'done'
 
 class NanoApp(wx.App):
     def OnInit(self):
