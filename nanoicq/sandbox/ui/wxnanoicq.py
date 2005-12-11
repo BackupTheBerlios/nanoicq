@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #
-# $Id: wxnanoicq.py,v 1.3 2005/12/09 16:24:51 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.4 2005/12/11 12:18:26 lightdruid Exp $
 #
 
 import sys
@@ -16,7 +16,7 @@ import images
 from isocket import log
 
 from StatusBar import *
-from Config import Config
+from config import Config
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -149,15 +149,11 @@ class TopFrame(wx.Frame):
         self.connector['icq'].Start()
 
     def OnTest(self, evt):
-#        self.SetMenuBar(None)
-#        time.sleep(1)
-#        self.createTopMenuBar()
-        self.sb = None
-        self.SetStatusBar(None)
+        self.SetMenuBar(None)
         self.Layout()
-        self.SetSize(wx.Size(100, 200))
-        time.sleep(3)
-#        self.SetStatusBar(self.sb)
+        self.Refresh()
+        time.sleep(1)
+        self.createTopMenuBar()
         print 'done'
 
 class NanoApp(wx.App):
