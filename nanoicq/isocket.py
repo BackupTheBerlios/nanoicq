@@ -1,29 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: isocket.py,v 1.8 2005/12/09 16:24:51 lightdruid Exp $
-#
-# $Log: isocket.py,v $
-# Revision 1.8  2005/12/09 16:24:51  lightdruid
-# UI experiments
-#
-# Revision 1.7  2005/11/21 16:40:11  lightdruid
-# Still unusabe, fails to parse 19,6 correctly
-#
-# Revision 1.6  2005/11/21 14:33:52  lightdruid
-# Brocken version, 19,6 doesn't work
-#
-# Revision 1.5  2005/11/21 11:09:37  lightdruid
-# More parsing for user online/offline messages
-#
-# Revision 1.4  2005/11/19 16:02:05  lightdruid
-# Added ruedimentary support for user online/offline message handling
-#
-# Revision 1.3  2005/11/19 14:00:42  lightdruid
-# Just a chmod +x
-#
-# Revision 1.2  2005/11/17 13:28:06  lightdruid
-# Id/Log tags added
+# $Id: isocket.py,v 1.9 2005/12/11 12:19:45 lightdruid Exp $
 #
 #
 
