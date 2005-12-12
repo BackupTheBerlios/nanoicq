@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #
-# $Id: wxnanoicq.py,v 1.6 2005/12/12 16:36:48 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.7 2005/12/12 17:11:47 lightdruid Exp $
 #
 
 import sys
@@ -44,6 +44,9 @@ _topMenu = (
 )
 
 class ICQThreaded(isocket.Protocol):
+    def __init__(self, gui, sock = None):
+        isocket.Protocol.__init__(self, gui, sock)
+
     def Start(self):
         self.keepGoing = self.running = True
         thread.start_new_thread(self.Run, ())
@@ -162,7 +165,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.connector = Connector()
         self.connector.setConfig(self.config)
-        self.connector.registerProtocol('icq', ICQThreaded())
+        self.connector.registerProtocol('icq', ICQThreaded(gui = self))
+
+    def dispatch(self, *kw, **kws):
+        print kw, kws
 
     def createTopPanel(self):
         self.topPanel = TopPanel(self)

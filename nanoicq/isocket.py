@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: isocket.py,v 1.9 2005/12/11 12:19:45 lightdruid Exp $
+# $Id: isocket.py,v 1.10 2005/12/12 17:11:47 lightdruid Exp $
 #
 #
 
@@ -204,13 +204,19 @@ class ISocket:
 #             00010017000000000000
 
 class Protocol:
-    def __init__(self, sock = None):
+    def __init__(self, gui = None, sock = None):
         self._sock = sock
+        self._gui = gui
+
         self.buf = ''
         self.statusindicators = 0x0000
 
         self._host = None
         self._port = None
+
+    def react(self, *kw, **kws):
+        if self._gui is not None:
+            self._gui.dispatch(kw, kws)
 
     def readConfig(self, config):
         self._host, self._port = config.get('icq', 'host').split(':')
@@ -230,6 +236,8 @@ class Protocol:
         self._sock = None
         self._host = None
         self._port = None
+
+        self.react("Disconnected")
 
     def send(self, data):
         self._sock.send(data)
@@ -759,6 +767,8 @@ class Protocol:
 
     def login(self, mainLoop = False):
         log.log('Logging in...')
+        self.react('Login')
+
         buf = self.read()
         log.packetin(buf)
 
@@ -852,7 +862,7 @@ def _test():
     # ===============
     s = ISocket(host, int(port))
     s.connect()
-    p = Protocol(s)
+    p = Protocol(sock = s)
 
     # ================================
     buf = p.read()
