@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #
-# $Id: wxnanoicq.py,v 1.5 2005/12/12 16:02:24 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.6 2005/12/12 16:36:48 lightdruid Exp $
 #
 
 import sys
@@ -87,8 +87,9 @@ class Connector:
 
 
 class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, ID, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
+    def __init__(self, parent, ID, pos = wx.DefaultPosition,
+            size = wx.DefaultSize, style = 0):
+
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
@@ -126,14 +127,14 @@ class PersistenceMixin:
         self.Layout()
 
     def forceVisible(self):
-        ''' If left upper corner is out of the screen, 
-        restore win position to 0, 0. 
-        '''
-
         pos = self.GetPosition()
 
         if pos[0] < 0: pos = wx.Point(0, pos[1])
         if pos[1] < 0: pos = wx.Point(pos[0], 0)
+
+        dsize = wx.GetDisplaySize()
+        if pos[0] >= dsize[0]: pos = wx.Point(0, pos[1])
+        if pos[1] >= dsize[1]: pos = wx.Point(pos[0], 0)
 
         self.SetPosition(pos)
         self.Layout()
@@ -238,11 +239,11 @@ class TopPanel(wx.Panel):
         info.m_mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT
         info.m_image = -1
         info.m_format = 0
-        info.m_text = "Artist"
+        info.m_text = "Status"
         self.userList.InsertColumnInfo(0, info)
 
 #        info.m_format = wx.LIST_FORMAT_RIGHT
-        info.m_text = "Title"
+        info.m_text = "User"
         self.userList.InsertColumnInfo(1, info)
 
         self.sampleFill()
