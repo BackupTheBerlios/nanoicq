@@ -10,7 +10,8 @@ from wx.tools import img2py
 
 
 command_lines = [
-    "   -u -i -n LimeWire LimeWireP2P-16.ico images.py",
+    "-u -i -n LimeWire LimeWireP2P-16.ico images.py",
+    "-a -u -n Smiles -m #FFFFFF smiles2.bmp images.py",
 
     ]
 
