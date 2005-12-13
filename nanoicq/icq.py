@@ -1,11 +1,11 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.1 2005/12/13 11:19:51 lightdruid Exp $
+# $Id: icq.py,v 1.2 2005/12/13 15:25:47 lightdruid Exp $
 #
 
-#username = '264025324'
-username = '223606200'
+username = '264025324'
+#username = '223606200'
 
 import sys
 import os
@@ -182,7 +182,7 @@ def readTLVs(data):
 #             00010017000000000000
 
 class Protocol:
-    def __init__(self, gui = None, sock = None):
+    def __init__(self, gui = None, sock = None, connected = False):
         self._sock = sock
         self._gui = gui
 
@@ -191,6 +191,8 @@ class Protocol:
 
         self._host = None
         self._port = None
+
+        self._connected = connected
 
     def react(self, *kw, **kws):
         if self._gui is not None:
@@ -214,14 +216,18 @@ class Protocol:
         self._sock = None
         self._host = None
         self._port = None
+        self._connected = False
 
         self.react("Disconnected")
+
+    def isConnected(self):
+        return self._connected
 
     def send(self, data):
         self._sock.send(data)
 
     def read(self):
-        return self._sock.read(1024)
+        return self._sock.read(10240)
 
     def sendFLAP(self, ch, data):
         header = "!cBHH"
@@ -428,7 +434,8 @@ class Protocol:
 
     def proc_2_19_6(self, data):
         ''' This is the server reply to client roster 
-        requests: SNAC(13,04), SNAC(13,05).
+        requests: SNAC(13,04) - Request contact list (first time),
+        SNAC(13,05) - Contact list checkout.
 
         Server can split up the roster in several parts. This is 
         indicated with SNAC flags bit 1 as usual, however the "SSI 
@@ -437,29 +444,21 @@ class Protocol:
         items in the current packet, not the entire list. '''
 
         print 'PRE: ', ashex(data)
+        print coldump(data)
+
         ver = int(struct.unpack('!B', data[0:1])[0])
         assert ver == 0
 
-        print [data[1:3]]
         nitems = int(struct.unpack('<H', data[1:3])[0])
         log.log("Items number: %d" % nitems)
-        data = data[3:]
-        print ashex(data)
- 
-        ii = 1
-        while ii <= nitems:
-            print 'Pass #', ii
-            try:
-                data = self.parseSSIItem(data)
-            except Exception, msg:
-                print "(warn)", msg
-                break
-            ii += 1
 
     def parseSSIItem(self, data):
+        print "Parsing SSI data..."
+        coldump(data)
+
         itemLen = int(struct.unpack('<H', data[0:2])[0])
         name = data[2 : 2 + itemLen]
-#        log.log("Length: %d, %s" % (itemLen, name))
+        log.log("Length: %d, %s" % (itemLen, name))
         print '>', ashex(data)
         data = data[2 + itemLen:]
 
@@ -721,6 +720,12 @@ class Protocol:
         log.log("Sending buddylist service parameters ")
         self.sendSNAC(0x03, 0x02, 0, '')
 
+    def proc_4_9_2(self, data):
+        ''' You have been disconnected from the ICQ network because you 
+        logged on from another location using the same ICQ number. '''
+        self.disconnect()
+        log.log("You have been disconnected from the ICQ network because you logged on from another location using the same ICQ number.")
+
     def proc_1_0_0(self, data):
         print "Logging in..."
 
@@ -837,7 +842,7 @@ def _test():
     # ===============
     s = ISocket(host, int(port))
     s.connect()
-    p = Protocol(sock = s)
+    p = Protocol(sock = s, connected = True)
 
     # ================================
     buf = p.read()
@@ -847,9 +852,10 @@ def _test():
 
     # ================================
 
-    while 1:
+    while p.isConnected():
         buf = p.read()
         log.packetin(buf)
+        print coldump(buf)
 
         ch, b, c = p.readFLAP(buf)
         snac = p.readSNAC(c)

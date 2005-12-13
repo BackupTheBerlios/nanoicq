@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #
-# $Id: wxnanoicq.py,v 1.7 2005/12/12 17:11:47 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.8 2005/12/13 15:25:47 lightdruid Exp $
 #
 
 import sys
@@ -16,7 +16,8 @@ import cPickle
 
 import wx.lib.mixins.listctrl as listmix
 
-from isocket import log
+import icq
+from icq import log
 
 from StatusBar import *
 from config import Config
@@ -43,9 +44,9 @@ _topMenu = (
     ),
 )
 
-class ICQThreaded(isocket.Protocol):
+class ICQThreaded(icq.Protocol):
     def __init__(self, gui, sock = None):
-        isocket.Protocol.__init__(self, gui, sock)
+        icq.Protocol.__init__(self, gui, sock)
 
     def Start(self):
         self.keepGoing = self.running = True
