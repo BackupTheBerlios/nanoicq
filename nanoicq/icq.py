@@ -1,11 +1,11 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.2 2005/12/13 15:25:47 lightdruid Exp $
+# $Id: icq.py,v 1.3 2005/12/14 15:47:45 lightdruid Exp $
 #
 
-username = '264025324'
-#username = '223606200'
+#username = '264025324'
+username = '223606200'
 
 import sys
 import os
@@ -449,20 +449,28 @@ class Protocol:
         ver = int(struct.unpack('!B', data[0:1])[0])
         assert ver == 0
 
-        nitems = int(struct.unpack('<H', data[1:3])[0])
+        nitems = int(struct.unpack('!H', data[1:3])[0])
+        print coldump(data[1:3])
         log.log("Items number: %d" % nitems)
+
+        data = data[3:]
+        for ii in range(0, nitems):
+            data = self.parseSSIItem(data)
 
     def parseSSIItem(self, data):
         print "Parsing SSI data..."
         coldump(data)
 
         itemLen = int(struct.unpack('<H', data[0:2])[0])
-        name = data[2 : 2 + itemLen]
+        data = data[2:]
+        name = data[:itemLen]
         log.log("Length: %d, %s" % (itemLen, name))
-        print '>', ashex(data)
-        data = data[2 + itemLen:]
+        print '>'
+        print coldump(data)
+        data = data[itemLen:]
 
-        print '>>', ashex(data)
+        print '>>'
+        print coldump(data)
 
         groupID = int(struct.unpack('!H', data[0:2])[0])
         itemID = int(struct.unpack('!H', data[2:4])[0])
@@ -470,6 +478,10 @@ class Protocol:
         dataLen = int(struct.unpack('!H', data[6:8])[0])
         log.log("groupID: %d, itemID: %d, flagType: %d, dataLen: %d" % \
             (groupID, itemID, flagType, dataLen))
+
+        pre_tlvs = data[8:]
+        tlvs = readTLVs(pre_tlvs)
+        print 'TLVs:', tlvs
 
         data = data[8 + dataLen:]
         return data
