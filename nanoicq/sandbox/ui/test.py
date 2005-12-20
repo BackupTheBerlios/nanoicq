@@ -1,5 +1,16 @@
 #!/usr/bin/python
 
+#
+# Test for 2,19,6
+#
+# $Id: test.py,v 1.2 2005/12/20 12:16:37 lightdruid Exp $
+#
+# $Log: test.py,v $
+# Revision 1.2  2005/12/20 12:16:37  lightdruid
+# 2,19,6 works in test.py
+#
+#
+
 import sys
 sys.path.insert(0, '../..')
 from utils import *
@@ -25,13 +36,13 @@ nitems = int(struct.unpack('!H', data[1:3])[0])
 print coldump(data[1:3])
 log.log("Items number: %d" % nitems)
 
-data = data[7:]
+data = data[3:]
 
 for ii in range(0, nitems):
-    print "Parsing SSI data..."
-    coldump(data)
+    print '*' * 10, "Parsing SSI data..."
+    print coldump(data)
 
-    itemLen = int(struct.unpack('<H', data[0:2])[0])
+    itemLen = int(struct.unpack('>H', data[0:2])[0])
     data = data[2:]
     name = data[:itemLen]
     log.log("Length: %d, '%s'" % (itemLen, name))
