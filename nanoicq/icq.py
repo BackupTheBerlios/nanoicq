@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.3 2005/12/14 15:47:45 lightdruid Exp $
+# $Id: icq.py,v 1.4 2005/12/20 11:35:40 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -445,6 +445,11 @@ class Protocol:
 
         print 'PRE: ', ashex(data)
         print coldump(data)
+
+        import cPickle
+        f = open('string.dump', 'wb')
+        cPickle.dump(data, f)
+        f.close()
 
         ver = int(struct.unpack('!B', data[0:1])[0])
         assert ver == 0
