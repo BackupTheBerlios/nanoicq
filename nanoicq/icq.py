@@ -1,11 +1,11 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.4 2005/12/20 11:35:40 lightdruid Exp $
+# $Id: icq.py,v 1.5 2005/12/20 14:35:39 lightdruid Exp $
 #
 
-#username = '264025324'
-username = '223606200'
+username = '264025324'
+#username = '223606200'
 
 import sys
 import os
@@ -92,7 +92,43 @@ _userStatusP2 = {
   0x0020:      "STATUS_FREE4CHAT", #        Status is free for chat   
   0x0100:      "STATUS_INVISIBLE", #        Status is invisible
 }
-    
+
+SSI_ITEM_BUDDY      = 0x0000  # Buddy record (name: uin for ICQ and screenname for AIM)
+SSI_ITEM_GROUP      = 0x0001  # Group record
+SSI_ITEM_PERMIT     = 0x0002  # Permit record ("Allow" list in AIM, and "Visible" list in ICQ)
+SSI_ITEM_DENY       = 0x0003  # Deny record ("Block" list in AIM, and "Invisible" list in ICQ)
+SSI_ITEM_VISIBILITY = 0x0004  # Permit/deny settings or/and bitmask of the AIM classes
+SSI_ITEM_PRESENCE   = 0x0005  # Presence info (if others can see your idle status, etc)
+SSI_ITEM_UNKNOWN1   = 0x0009  # Unknown. ICQ2k shortcut bar items ?
+SSI_ITEM_IGNORE     = 0x000e  # Ignore list record.
+SSI_ITEM_NONICQ     = 0x0010  # Non-ICQ contact (to send SMS). Name: 1#EXT, 2#EXT, etc
+SSI_ITEM_UNKNOWN2   = 0x0011  # Unknown.
+SSI_ITEM_IMPORT     = 0x0013  # Item that contain roaster import time (name: "Import time")
+SSI_ITEM_BUDDYICON  = 0x0014  # Buddy icon info. (names: from "0" and incrementing by one)
+
+_SSIItemTypes = {
+0x0000 : 'SSI_ITEM_BUDDY',
+0x0001 : 'SSI_ITEM_GROUP',     
+0x0002 : 'SSI_ITEM_PERMIT',    
+0x0003 : 'SSI_ITEM_DENY',      
+0x0004 : 'SSI_ITEM_VISIBILITY',
+0x0005 : 'SSI_ITEM_PRESENCE',  
+0x0009 : 'SSI_ITEM_UNKNOWN1',  
+0x000e : 'SSI_ITEM_IGNORE',    
+0x0010 : 'SSI_ITEM_NONICQ',    
+0x0011 : 'SSI_ITEM_UNKNOWN2',  
+0x0013 : 'SSI_ITEM_IMPORT',    
+0x0014 : 'SSI_ITEM_BUDDYICON',
+} 
+
+def explainSSIItemType(t):
+    out = ''
+    for flag in _SSIItemTypes:
+        if t == flag: 
+            out = _SSIItemTypes[flag]
+            break
+    return out
+
 
 class Log:
     def log(self, msg):
@@ -451,6 +487,8 @@ class Protocol:
         cPickle.dump(data, f)
         f.close()
 
+#        sys.exit(0)
+
         ver = int(struct.unpack('!B', data[0:1])[0])
         assert ver == 0
 
@@ -463,33 +501,86 @@ class Protocol:
             data = self.parseSSIItem(data)
 
     def parseSSIItem(self, data):
-        print "Parsing SSI data..."
-        coldump(data)
 
-        itemLen = int(struct.unpack('<H', data[0:2])[0])
+        print '*' * 10, "Parsing SSI data..."
+        print coldump(data)
+
+        itemLen = int(struct.unpack('>H', data[0:2])[0])
         data = data[2:]
         name = data[:itemLen]
-        log.log("Length: %d, %s" % (itemLen, name))
-        print '>'
-        print coldump(data)
+        log.log("Length: %d, '%s'" % (itemLen, name))
+
         data = data[itemLen:]
-
-        print '>>'
-        print coldump(data)
-
+     
         groupID = int(struct.unpack('!H', data[0:2])[0])
         itemID = int(struct.unpack('!H', data[2:4])[0])
         flagType = int(struct.unpack('!H', data[4:6])[0])
         dataLen = int(struct.unpack('!H', data[6:8])[0])
-        log.log("groupID: %d, itemID: %d, flagType: %d, dataLen: %d" % \
-            (groupID, itemID, flagType, dataLen))
+        log.log("groupID: %d, itemID: %d, flagType: %d (%s), dataLen: %d" % \
+            (groupID, itemID, flagType, explainSSIItemType(flagType), dataLen))
 
-        pre_tlvs = data[8:]
-        tlvs = readTLVs(pre_tlvs)
-        print 'TLVs:', tlvs
+        tlvs = readTLVs(data[8 : 8 + dataLen])
+        print tlvs
 
+        for t in tlvs:
+            tmp = "parseSSIItem_%02X" % t
+            try:
+                func = getattr(self, tmp)
+                func(tlvs[t])
+            except Exception, msg:
+                print msg
+     
         data = data[8 + dataLen:]
         return data
+
+    def parseSSIItem_145(self, t):
+        '''
+        [TLV(0x0145), itype 0x00, size XX] - 
+        Date/time (unix time() format) when you send message to 
+        this you first time. Actually I noticed that ICQLite adds 
+        this TLV then you first open message dialog at this user. 
+        Also I've seen this tlv in LastUpdateDate item.
+        '''
+        t = struct.unpack('!L', t)[0]
+        log.log("First time message: %s" % time.asctime(time.localtime(t)))
+
+    def parseSSIItem_137(self, t):
+        '''
+        [TLV(0x0137), itype 0x00, size XX] - 
+        Your buddy locally assigned mail address.
+        '''
+        log.log("Buddy locally assigned mail address: %s" % t)
+
+    def parseSSIItem_131(self, t):
+        '''
+        [TLV(0x0131), itype 0x00, size XX] - 
+        This stores the name that the contact should show up as 
+        in the contact list. It should initially be set to the 
+        contact's nick name, and can be changed to anything by the client.
+        '''
+        log.log("Buddy contact list name: %s" % t)
+
+    def parseSSIItem_CA(self, t):
+        '''
+        [TLV(0x00CA), itype 0x04, size 01] - 
+        This is the byte that tells the AIM servers your privacy 
+        setting. If 1, then allow all users to see you. If 2, then 
+        block all users from seeing you. If 3, then allow only the 
+        users in the permit list. If 4, then block only the users 
+        in the deny list. If 5, then allow only users on your buddy list.
+        '''
+        pass
+
+    def parseSSIItem_C8(self, t):
+        ''' [TLV(0x00C8), itype 0x01, size XX] - 
+        If group is the master group, this contains the group 
+        ID#s of all groups in the list. If the group is a normal 
+        group, this contains the buddy ID#s of all buddies in the 
+        group. Each ID# is 2 bytes. If there are no groups in the 
+        list (if in the master group), or no buddies in the group 
+        (if in a normal group), then this TLV is not present.
+        '''
+        pass
 
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 

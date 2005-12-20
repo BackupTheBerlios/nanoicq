@@ -3,9 +3,12 @@
 #
 # Test for 2,19,6
 #
-# $Id: test.py,v 1.3 2005/12/20 12:19:46 lightdruid Exp $
+# $Id: test.py,v 1.4 2005/12/20 14:35:40 lightdruid Exp $
 #
 # $Log: test.py,v $
+# Revision 1.4  2005/12/20 14:35:40  lightdruid
+# working on 2,19,6
+#
 # Revision 1.3  2005/12/20 12:19:46  lightdruid
 # a little fix for 2,19,6 in test.py
 #
@@ -17,6 +20,8 @@
 import sys
 sys.path.insert(0, '../..')
 from utils import *
+from icq import *
+
 import struct
 
 class Log:
@@ -30,7 +35,13 @@ f = open('string.dump', 'rb')
 data = cPickle.load(f)
 f.close()
 
+# bad - 0000060001000200030000040000000000000001000600C800020001000000005
+#       0000040000000000000001000600C800020001000000005F8D0004000500CA0001040
+
+#data = '\00' + data
+
 print ashex(data)
+print len(ashex(data))
 
 ver = int(struct.unpack('!B', data[0:1])[0])
 assert ver == 0
@@ -56,8 +67,11 @@ for ii in range(0, nitems):
     itemID = int(struct.unpack('!H', data[2:4])[0])
     flagType = int(struct.unpack('!H', data[4:6])[0])
     dataLen = int(struct.unpack('!H', data[6:8])[0])
-    log.log("groupID: %d, itemID: %d, flagType: %d, dataLen: %d" % \
-        (groupID, itemID, flagType, dataLen))
+    log.log("groupID: %d, itemID: %d, flagType: %d (%s), dataLen: %d" % \
+        (groupID, itemID, flagType, explainSSIItemType(flagType), dataLen))
+
+    tlvs = readTLVs(data[8 : 8 + dataLen])
+    print tlvs
  
     data = data[8 + dataLen:]
 
