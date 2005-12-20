@@ -3,9 +3,12 @@
 #
 # Test for 2,19,6
 #
-# $Id: test.py,v 1.2 2005/12/20 12:16:37 lightdruid Exp $
+# $Id: test.py,v 1.3 2005/12/20 12:19:46 lightdruid Exp $
 #
 # $Log: test.py,v $
+# Revision 1.3  2005/12/20 12:19:46  lightdruid
+# a little fix for 2,19,6 in test.py
+#
 # Revision 1.2  2005/12/20 12:16:37  lightdruid
 # 2,19,6 works in test.py
 #
@@ -46,6 +49,8 @@ for ii in range(0, nitems):
     data = data[2:]
     name = data[:itemLen]
     log.log("Length: %d, '%s'" % (itemLen, name))
+
+    data = data[itemLen:]
  
     groupID = int(struct.unpack('!H', data[0:2])[0])
     itemID = int(struct.unpack('!H', data[2:4])[0])
