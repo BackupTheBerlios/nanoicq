@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #
-# $Id: wxnanoicq.py,v 1.8 2005/12/13 15:25:47 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.9 2005/12/21 16:23:50 lightdruid Exp $
 #
 
 import sys
@@ -228,11 +228,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].Start()
 
     def OnTest(self, evt):
-        self.SetMenuBar(None)
-        self.Layout()
-        self.Refresh()
-        time.sleep(1)
-        self.createTopMenuBar()
+        self.connector['icq'].sendMessage('264025324', 'test')
         print 'done'
 
 class TopPanel(wx.Panel):

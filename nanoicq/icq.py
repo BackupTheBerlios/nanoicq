@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.8 2005/12/21 16:08:19 lightdruid Exp $
+# $Id: icq.py,v 1.9 2005/12/21 16:23:49 lightdruid Exp $
 #
 
 username = '264025324'
@@ -1017,6 +1017,9 @@ class Protocol:
             func = getattr(self, tmp)
 
             func(snac[5])
+
+    def sendMessage(self, user, messages, thruServer = True):
+        assert 1 == 2
 
 
 def _test():
