@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.5 2005/12/20 14:35:39 lightdruid Exp $
+# $Id: icq.py,v 1.6 2005/12/21 12:08:05 lightdruid Exp $
 #
 
 username = '264025324'
@@ -512,23 +512,22 @@ class Protocol:
 
         data = data[itemLen:]
      
-        groupID = int(struct.unpack('!H', data[0:2])[0])
-        itemID = int(struct.unpack('!H', data[2:4])[0])
-        flagType = int(struct.unpack('!H', data[4:6])[0])
-        dataLen = int(struct.unpack('!H', data[6:8])[0])
+        groupID, itemID, flagType, dataLen = int(struct.unpack('!4H', data[0:8])[0])
+#        itemID = int(struct.unpack('!H', data[2:4])[0])
+#        flagType = int(struct.unpack('!H', data[4:6])[0])
+#        dataLen = int(struct.unpack('!H', data[6:8])[0])
+
+        groupID, itemID, flagType, dataLen = toints(groupID, itemID, flagType, dataLen)
+
         log.log("groupID: %d, itemID: %d, flagType: %d (%s), dataLen: %d" % \
             (groupID, itemID, flagType, explainSSIItemType(flagType), dataLen))
 
         tlvs = readTLVs(data[8 : 8 + dataLen])
-        print tlvs
 
         for t in tlvs:
             tmp = "parseSSIItem_%02X" % t
-            try:
-                func = getattr(self, tmp)
-                func(tlvs[t])
-            except Exception, msg:
-                print msg
+            func = getattr(self, tmp)
+            func(tlvs[t])
      
         data = data[8 + dataLen:]
         return data
