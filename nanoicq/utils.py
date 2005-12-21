@@ -1,8 +1,11 @@
 
 #
-# $Id: utils.py,v 1.4 2005/12/21 12:08:05 lightdruid Exp $
+# $Id: utils.py,v 1.5 2005/12/21 14:54:27 lightdruid Exp $
 #
 # $Log: utils.py,v $
+# Revision 1.5  2005/12/21 14:54:27  lightdruid
+# Added Buddy, Group's and Frozen classes
+#
 # Revision 1.4  2005/12/21 12:08:05  lightdruid
 # Added vimrc devel environment
 #
@@ -44,7 +47,9 @@ def coldump(s):
     return out
 
 def toints(*args):
-    return map(int, args)
+    if type(args[0]) == tuple:
+        args = args[0]
+    return map(int, map(None, args))
 
 if __name__ == '__main__':
     a, b, c = '1', '2', '3'
@@ -52,5 +57,10 @@ if __name__ == '__main__':
     assert a == 1
     assert b == 2
     assert c == 3
+
+    import struct
+    a, b = toints(struct.unpack('!2H', '\00\02\00\01'))
+    assert a == 2
+    assert b == 1
 
 # ---

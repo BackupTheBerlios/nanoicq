@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.6 2005/12/21 12:08:05 lightdruid Exp $
+# $Id: icq.py,v 1.7 2005/12/21 14:54:27 lightdruid Exp $
 #
 
 username = '264025324'
@@ -15,6 +15,8 @@ import socket
 from utils import *
 from snacs import *
 from isocket import ISocket
+
+from buddy import Buddy
 
 import caps
 
@@ -229,6 +231,7 @@ class Protocol:
         self._port = None
 
         self._connected = connected
+        self._groups = Group()
 
     def react(self, *kw, **kws):
         if self._gui is not None:
@@ -497,8 +500,15 @@ class Protocol:
         log.log("Items number: %d" % nitems)
 
         data = data[3:]
-        for ii in range(0, nitems):
-            data = self.parseSSIItem(data)
+
+        # FIXME: still have a problems with parsing SSI items
+        try:
+            for ii in range(0, nitems):
+                data = self.parseSSIItem(data)
+        except Exception, msg:
+            log.log("Exception while parsing SSI items:", msg)
+
+        log.log('Current list of groups: %s', self._groups)
 
     def parseSSIItem(self, data):
 
@@ -511,28 +521,33 @@ class Protocol:
         log.log("Length: %d, '%s'" % (itemLen, name))
 
         data = data[itemLen:]
-     
-        groupID, itemID, flagType, dataLen = int(struct.unpack('!4H', data[0:8])[0])
-#        itemID = int(struct.unpack('!H', data[2:4])[0])
-#        flagType = int(struct.unpack('!H', data[4:6])[0])
-#        dataLen = int(struct.unpack('!H', data[6:8])[0])
 
-        groupID, itemID, flagType, dataLen = toints(groupID, itemID, flagType, dataLen)
+        groupID, itemID, flagType, dataLen = toints(struct.unpack('!4H', data[0:8]))
 
         log.log("groupID: %d, itemID: %d, flagType: %d (%s), dataLen: %d" % \
             (groupID, itemID, flagType, explainSSIItemType(flagType), dataLen))
 
         tlvs = readTLVs(data[8 : 8 + dataLen])
 
-        for t in tlvs:
-            tmp = "parseSSIItem_%02X" % t
-            func = getattr(self, tmp)
-            func(tlvs[t])
+        # FIXME: only buddies processing 
+        if flagType == SSI_ITEM_BUDDY:
+            b = Buddy()
+            for t in tlvs:
+                tmp = "parseSSIItem_%02X" % t
+                func = getattr(self, tmp)
+                func(tlvs[t], b)
+            log.log("Got new buddy from SSI list: %s" % b)
+            self._groups.addBuddy(groupID, b)
+        else:
+            for t in tlvs:
+                tmp = "parseSSIItem_%02X" % t
+                func = getattr(self, tmp)
+                func(tlvs[t], flagType)
      
         data = data[8 + dataLen:]
         return data
 
-    def parseSSIItem_145(self, t):
+    def parseSSIItem_145(self, t, b):
         '''
         [TLV(0x0145), itype 0x00, size XX] - 
         Date/time (unix time() format) when you send message to 
@@ -541,25 +556,28 @@ class Protocol:
         Also I've seen this tlv in LastUpdateDate item.
         '''
         t = struct.unpack('!L', t)[0]
+        b.firstMessage = t
         log.log("First time message: %s" % time.asctime(time.localtime(t)))
 
-    def parseSSIItem_137(self, t):
+    def parseSSIItem_137(self, t, b):
         '''
         [TLV(0x0137), itype 0x00, size XX] - 
         Your buddy locally assigned mail address.
         '''
+        b.mail = t
         log.log("Buddy locally assigned mail address: %s" % t)
 
-    def parseSSIItem_131(self, t):
+    def parseSSIItem_131(self, t, b):
         '''
         [TLV(0x0131), itype 0x00, size XX] - 
         This stores the name that the contact should show up as 
         in the contact list. It should initially be set to the 
         contact's nick name, and can be changed to anything by the client.
         '''
+        b.name = t
         log.log("Buddy contact list name: %s" % t)
 
-    def parseSSIItem_CA(self, t):
+    def parseSSIItem_CA(self, t, flag):
         '''
         [TLV(0x00CA), itype 0x04, size 01] - 
         This is the byte that tells the AIM servers your privacy 
@@ -568,9 +586,9 @@ class Protocol:
         users in the permit list. If 4, then block only the users 
         in the deny list. If 5, then allow only users on your buddy list.
         '''
-        pass
+        log.log("AIM server privacy settings: %s" % str(t))
 
-    def parseSSIItem_C8(self, t):
+    def parseSSIItem_C8(self, t, flag):
         ''' [TLV(0x00C8), itype 0x01, size XX] - 
         If group is the master group, this contains the group 
         ID#s of all groups in the list. If the group is a normal 
@@ -579,13 +597,14 @@ class Protocol:
         list (if in the master group), or no buddies in the group 
         (if in a normal group), then this TLV is not present.
         '''
-        pass
+        log.log("Master group IDs: %s" % str(t))
 
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 
         offline. See also additional information about online userinfo block.'''
 
-        pass
+        log.log("Called 2,3,12 with data:")
+        log.log(coldump(data))
 
     def proc_2_3_11(self, data):
         ''' Server sends this snac when user from your contact list 
