@@ -1,8 +1,11 @@
 
 #
-# $Id: utils.py,v 1.5 2005/12/21 14:54:27 lightdruid Exp $
+# $Id: utils.py,v 1.6 2005/12/21 16:08:19 lightdruid Exp $
 #
 # $Log: utils.py,v $
+# Revision 1.6  2005/12/21 16:08:19  lightdruid
+# Added SNAC(04,0A)     SRV_MISSED_MESSAGE
+#
 # Revision 1.5  2005/12/21 14:54:27  lightdruid
 # Added Buddy, Group's and Frozen classes
 #
@@ -18,6 +21,18 @@
 #
 
 import string
+import cPickle
+
+def dump2file(fileName, data):
+    f = open(fileName, 'wb')
+    cPickle.dump(data, f)
+    f.close()
+
+def restoreFromFile(fileName):
+    f = open(fileName, 'rb')
+    d = cPickle.load(f)
+    f.close()
+    return d
 
 def ashex(data, sep = ''):
     out = ''

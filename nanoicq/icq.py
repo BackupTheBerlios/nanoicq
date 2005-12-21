@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.7 2005/12/21 14:54:27 lightdruid Exp $
+# $Id: icq.py,v 1.8 2005/12/21 16:08:19 lightdruid Exp $
 #
 
 username = '264025324'
@@ -17,6 +17,7 @@ from snacs import *
 from isocket import ISocket
 
 from buddy import Buddy
+from group import Group
 
 import caps
 
@@ -123,6 +124,18 @@ _SSIItemTypes = {
 0x0014 : 'SSI_ITEM_BUDDYICON',
 } 
 
+_reasons = {
+0 : "Message was invalid",
+1 : "Message was too large",
+2 : "Message rate exceeded",
+3 : "Sender too evil (sender warn level > your max_msg_sevil)",
+4 : "You are too evil (sender max_msg_revil > your warn level)",
+}
+
+def explainReason(r):
+    return _reasons[r]
+        
+
 def explainSSIItemType(t):
     out = ''
     for flag in _SSIItemTypes:
@@ -213,6 +226,22 @@ def readTLVs(data):
         d[head[0]] = data[4 : 4 + head[1]]
         data = data[4 + head[1]:]
     return d
+
+def readTLVsd(data):
+    '''
+    The same as big brother, but also return all data left after TLVs
+    FIXME: 
+        refactoring is really needed
+    '''
+    out = ''
+    d = {}
+    while data:
+        head = detlv(data)
+        d[head[0]] = data[4 : 4 + head[1]]
+        data = data[4 + head[1]:]
+        if data:
+            out = data
+    return (d, out)
 
 
 #2a020d57002a 0001001700000000001700010003000200010003000100150001000400010006000100090001000a0001
@@ -485,12 +514,11 @@ class Protocol:
         print 'PRE: ', ashex(data)
         print coldump(data)
 
-        import cPickle
-        f = open('string.dump', 'wb')
-        cPickle.dump(data, f)
-        f.close()
-
-#        sys.exit(0)
+        if __debug__:
+            import cPickle
+            f = open('string.dump', 'wb')
+            cPickle.dump(data, f)
+            f.close()
 
         ver = int(struct.unpack('!B', data[0:1])[0])
         assert ver == 0
@@ -506,9 +534,10 @@ class Protocol:
             for ii in range(0, nitems):
                 data = self.parseSSIItem(data)
         except Exception, msg:
-            log.log("Exception while parsing SSI items:", msg)
+            log.log("Exception while parsing SSI items")
+            
 
-        log.log('Current list of groups: %s', self._groups)
+        log.log('Current list of groups: %s' % self._groups)
 
     def parseSSIItem(self, data):
 
@@ -530,19 +559,28 @@ class Protocol:
         tlvs = readTLVs(data[8 : 8 + dataLen])
 
         # FIXME: only buddies processing 
+        if flagType == SSI_ITEM_GROUP:
+            self._groups.add(groupID, 'Some group')
+
         if flagType == SSI_ITEM_BUDDY:
             b = Buddy()
             for t in tlvs:
                 tmp = "parseSSIItem_%02X" % t
-                func = getattr(self, tmp)
-                func(tlvs[t], b)
-            log.log("Got new buddy from SSI list: %s" % b)
-            self._groups.addBuddy(groupID, b)
+                try:
+                    func = getattr(self, tmp)
+                    func(tlvs[t], b)
+                    log.log("Got new buddy from SSI list: %s" % b)
+                    self._groups.addBuddy(groupID, b)
+                except AttributeError, msg:
+                    log.log("Not fatal exception got: " + str(msg))
         else:
             for t in tlvs:
                 tmp = "parseSSIItem_%02X" % t
-                func = getattr(self, tmp)
-                func(tlvs[t], flagType)
+                try:
+                    func = getattr(self, tmp)
+                    func(tlvs[t], flagType)
+                except AttributeError, msg:
+                    log.log("Not fatal exception got: " + str(msg))
      
         data = data[8 + dataLen:]
         return data
@@ -564,7 +602,7 @@ class Protocol:
         [TLV(0x0137), itype 0x00, size XX] - 
         Your buddy locally assigned mail address.
         '''
-        b.mail = t
+        b.email = t
         log.log("Buddy locally assigned mail address: %s" % t)
 
     def parseSSIItem_131(self, t, b):
@@ -614,11 +652,11 @@ class Protocol:
 
         uinLen = int(struct.unpack('!B', data[0])[0]) 
         uin = data[1 : uinLen]
+        log.log("User '%s' is online" % uin)
         log.log("UIN length: %d, UIN: %s" % (uinLen, uin))
 
         data = data[1 + uinLen:]
 
-        print ashex(data)
         warningLevel = int(struct.unpack('!H', data[0:2])[0]) 
         ntlv = int(struct.unpack('!H', data[2:4])[0]) 
         log.log("Warning level: %d. number of TLV: %d" % (warningLevel, ntlv))
@@ -674,9 +712,12 @@ class Protocol:
         self.parseUserStatus(userStatus)
 
         # TLV.Type(0x0D) - user capabilities
-        caps = tlvs[0x0d]
-        log.log("User capabilities: " + ashex(caps))
-
+        try:
+            caps = tlvs[0x0d]
+            log.log("User capabilities: " + ashex(caps))
+        except KeyError, msg:
+            log.log("Unable to get user capabilities")
+            
         # TLV.Type(0x0F) - online time
         onlineTime = int(struct.unpack('!L', tlvs[0x0f][0 : 4])[0])
         log.log("Online time: " + time.asctime(time.localtime(onlineTime)))
@@ -690,21 +731,21 @@ class Protocol:
             memberSince = int(struct.unpack('!L', tlvs[0x05][0 : 4])[0])
             log.log("Member since: " + time.asctime(time.localtime(memberSince)))
         except KeyError, msg:
-            print "(warn) KeyError: " + str(msg)
+            log.log("Unable to get 'member since' information")
 
         # TLV.Type(0x11) - times updated
+        # FIXME: not parsed yet
         try:
             tlv = tlvs[0x11]
         except KeyError, msg:
-            print "(warn) KeyError: " + str(msg)
-        # FIXME: not parsed yet
+            log.log("Unable to get 'times updated' information")
 
         # TLV.Type(0x19) - new-style capabilities list
         try:
             caps = tlvs[0x19]
             log.log("User (AIM) capabilities: " + ashex(caps))
         except KeyError, msg:
-            print "(warn) KeyError: " + str(msg)
+            log.log("Unable to get user (AIM) capabilities")
 
         # TLV.Type(0x1D) - user icon id & hash
         try:
@@ -715,7 +756,7 @@ class Protocol:
 
             log.log("Icon ID: %d" % (iconID))
         except KeyError, msg:
-            print "(warn) KeyError: " + str(msg)
+            log.log("Unable to get user icon")
 
     def parseUserStatus(self, status):
         p1, p2 = struct.unpack('!HH', status)
@@ -746,6 +787,43 @@ class Protocol:
             if userClass & c: out.append(_userClasses[c])
         log.log("User class: " + ' '.join(out))
 
+    def proc_2_4_10(self, data):
+        ''' SNAC(04,0A)     SRV_MISSED_MESSAGE      
+
+        This snac mean that somebody send you a message but server 
+        can't deliver it to you for some reason. It contain information 
+        about user, who send you a message, number of missed messages and 
+        reason. Known reason types: 
+
+        0 - Message was invalid
+        1 - Message was too large
+        2 - Message rate exceeded
+        3 - Sender too evil (sender warn level > your max_msg_sevil)
+        4 - You are too evil (sender max_msg_revil > your warn level)
+        '''
+
+        log.log("Missed message")
+
+        messageType = int(struct.unpack('!H', data[0:2])[0])
+        uinLen = int(struct.unpack('!B', data[2:3])[0])
+        uin = data[3 : 3 + uinLen]
+        data = data[3 + uinLen:]
+        warningLevel = int(struct.unpack('!H', data[0:2])[0])
+        tlvNumber = int(struct.unpack('!H', data[2:4])[0])
+
+        assert tlvNumber == 4
+
+        log.log("MessageType: %d, uin: %s, Warning level: %d"\
+            % (messageType, uin, warningLevel))
+
+        tlvs, rest = readTLVsd(data[4:])
+
+        missedMessages = int(struct.unpack('!H', rest[0:2])[0])
+        reason = int(struct.unpack('!H', rest[2:4])[0])
+
+        log.log("Missed messages: %d, Reason: %s" %\
+            (missedMessages, explainReason(reason)))
+
     def proc_2_4_7(self, data):
         ''' Message received '''
         cookie = data[0:7]
@@ -767,8 +845,16 @@ class Protocol:
             userStatus = int(struct.unpack('!L', tlvs[6])[0])
         except KeyError, msg:
             log.log("Unable to fetch user status")
-        accCreationTime = int(struct.unpack('!L', tlvs[3])[0])
-        clientIdleTime = int(struct.unpack('!L', tlvs[0x0f])[0])
+
+        try:
+            accCreationTime = int(struct.unpack('!L', tlvs[3])[0])
+        except KeyError, msg:
+            log.log("Unable to fetch account creation time")
+
+        try:
+            clientIdleTime = int(struct.unpack('!L', tlvs[0x0f])[0])
+        except KeyError, msg:
+            log.log("Unable to fetch client idle time")
 
         # Dispatch on message channel
         tmp = "proc_2_4_7_%d" % messageChannel
