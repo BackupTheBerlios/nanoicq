@@ -1,23 +1,6 @@
 
 #
-# $Id: utils.py,v 1.6 2005/12/21 16:08:19 lightdruid Exp $
-#
-# $Log: utils.py,v $
-# Revision 1.6  2005/12/21 16:08:19  lightdruid
-# Added SNAC(04,0A)     SRV_MISSED_MESSAGE
-#
-# Revision 1.5  2005/12/21 14:54:27  lightdruid
-# Added Buddy, Group's and Frozen classes
-#
-# Revision 1.4  2005/12/21 12:08:05  lightdruid
-# Added vimrc devel environment
-#
-# Revision 1.3  2005/12/13 15:25:47  lightdruid
-# Trying to figure out why SNAC 13,4 doesn't work
-#
-# Revision 1.2  2005/11/17 13:28:06  lightdruid
-# Id/Log tags added
-#
+# $Id: utils.py,v 1.7 2005/12/21 16:09:31 lightdruid Exp $
 #
 
 import string
