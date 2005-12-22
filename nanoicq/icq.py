@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.11 2005/12/22 16:05:40 lightdruid Exp $
+# $Id: icq.py,v 1.12 2005/12/22 16:26:25 lightdruid Exp $
 #
 
 username = '264025324'
@@ -1108,6 +1108,7 @@ class Protocol:
         t += "\x00\x00\x03\x00" + message
 
         outMsg = data + tlv(2, t)
+        print 'BAD DATA:\n', coldump(outMsg)
         self.sendSNAC(0x04, 0x06, 0, outMsg)
         dump2file('message-bad.dump', outMsg)
 
@@ -1154,6 +1155,8 @@ class Protocol:
             data = data + tlv(6,'')
         if wantAck:
             return self.sendSNAC(0x04, 0x06, data).addCallback(self._cbSendMessageAck, user, message)
+
+        print 'GOOD DATA:\n', coldump(data)
         self.sendSNAC(0x04, 0x06, 0, data)
 
         dump2file('message-good.dump', data)
