@@ -1,11 +1,11 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.9 2005/12/21 16:23:49 lightdruid Exp $
+# $Id: icq.py,v 1.10 2005/12/22 13:19:36 lightdruid Exp $
 #
 
-username = '264025324'
-#username = '223606200'
+#username = '264025324'
+username = '223606200'
 
 import sys
 import os
@@ -21,9 +21,11 @@ from group import Group
 
 import caps
 
+# for debug only
+SLEEP = 0
+
 def _reg(password):
     lz = struct.pack(">H", len(password)) + password + '\000'
-    print len(lz)
     return "\0x00\0x00\0x00\0x00\0x28\0x00\0x03\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x9e\0x27\0x00\0x00\0x9e\0x27\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00\0x00" + lz + "\0x9e\0x27\0x00\0x00\0x00\0x00\0x00\0x00\0x03\0x02"
 
 _directConnectionType = {
@@ -154,6 +156,7 @@ class Log:
 
     def packetout(self, msg):
         self.log("-> " + ashex(msg))
+        self.log("->\n" + coldump(msg))
 
 log = Log()
 
@@ -202,6 +205,33 @@ _error_codes = {
 0x0022:      "Account suspended because of your age (age < 13)"                            ,
 }
 
+_msg_error_codes = {
+0x01:    "Invalid SNAC header",
+0x02:    "Server rate limit exceeded",    
+0x03:    "Client rate limit exceeded",    
+0x04:    "Recipient is not logged in",    
+0x05:    "Requested service unavailable", 
+0x06:    "Requested service not defined", 
+0x07:    "You sent obsolete SNAC",    
+0x08:    "Not supported by server",   
+0x09:    "Not supported by client",   
+0x0A:    "Refused by client", 
+0x0B:    "Reply too big", 
+0x0C:    "Responses lost",    
+0x0D:    "Request denied",    
+0x0E:    "Incorrect SNAC format", 
+0x0F:    "Insufficient rights",   
+0x10:    "In local permit/deny (recipient blocked)",  
+0x11:    "Sender too evil",   
+0x12:    "Receiver too evil", 
+0x13:    "User temporarily unavailable",  
+0x14:    "No match",  
+0x15:    "List overflow", 
+0x16:    "Request ambiguous", 
+0x17:    "Server queue full", 
+0x18:    "Not while on AOL",
+}        
+    
 def explainError(code):
     return _error_codes[struct.unpack("!H", code)[0]]
 
@@ -419,7 +449,7 @@ class Protocol:
         log.log("Sending connection rate limits")
         self.sendSNAC(0x01, 0x08, 0, resp)
 
-        time.sleep(1)
+        time.sleep(SLEEP)
         log.log("Sending location rights limits")
         self.sendSNAC(0x02, 0x02, 0, '') # location rights info
 
@@ -430,7 +460,7 @@ class Protocol:
         self.maxDenyList = struct.unpack("!H", tlvs[2])[0]
         log.log("Max permit list: %d, Max deny list: %d" % (self.maxPermitList, self.maxDenyList))
 
-        time.sleep(1)
+        time.sleep(SLEEP)
         log.log("Sending SSI rights info")
         self.sendSNAC(0x13, 0x02, 0, '')
 
@@ -439,7 +469,7 @@ class Protocol:
         log.log("Sending changed default ICBM parameters command")
         self.sendSNAC(0x04, 0x02, 0, '\x00\x00\x00\x00\x00\x0b\x1f@\x03\xe7\x03\xe7\x00\x00\x00\x00')
 
-        time.sleep(1)
+        time.sleep(SLEEP)
         log.log("Sending PRM service limitations")
         self.sendSNAC(0x09, 0x02, 0, '')
 
@@ -477,7 +507,6 @@ class Protocol:
         d = ''
         for fam in self.serverFamilies:
             if sf.has_key(fam):
-                print sf[fam]
                 version, toolID, toolVersion = sf[fam]
                 d = d + struct.pack('!4H', fam, version, toolID, toolVersion)
         self.sendSNAC(0x01, 0x02, 0, d)
@@ -487,10 +516,10 @@ class Protocol:
 
         uinLen = int(struct.unpack('!B', data[0])[0])
         uin = str(data[1 : uinLen + 1])
-        print uin
 
         warningLevel, tlvNumber = struct.unpack('!HH', data[uinLen + 1: uinLen + 1 + 4])
-        print warningLevel, tlvNumber
+        log.log('Got my status report: uin: %s, warning level: %d' %\
+            (uin, warningLevel))
 
         tlvs = readTLVs(data[uinLen + 1 + 4:])
         self.parseSelfStatus(tlvs)
@@ -547,7 +576,7 @@ class Protocol:
         itemLen = int(struct.unpack('>H', data[0:2])[0])
         data = data[2:]
         name = data[:itemLen]
-        log.log("Length: %d, '%s'" % (itemLen, name))
+        log.log("Length: %d, '%s'" % (itemLen, asPrintable(name)))
 
         data = data[itemLen:]
 
@@ -674,7 +703,8 @@ class Protocol:
             log.log("Internal IP: %s:%d" % (internalIP, internalPort))
 
             dcType = int(struct.unpack('!B', dc[8 : 9])[0])
-            self.parseDcType(dcType)
+            t = self.parseDcType(dcType)
+            log.log("DC type: %s" % t)
 
             dc = dc[9:]
             dcProtocolVersion = int(struct.unpack('!H', dc[0 : 2])[0])
@@ -709,7 +739,8 @@ class Protocol:
 
         # TLV.Type(0x06) - user status
         userStatus = tlvs[0x06][0 : 4]
-        self.parseUserStatus(userStatus)
+        status = self.parseUserStatus(userStatus)
+        log.log("User status: %s" % status)
 
         # TLV.Type(0x0D) - user capabilities
         try:
@@ -759,18 +790,22 @@ class Protocol:
             log.log("Unable to get user icon")
 
     def parseUserStatus(self, status):
+        st = []
         p1, p2 = struct.unpack('!HH', status)
         for s in _userStatusP1:
             if s & p1:
-                print _userStatusP1[s]
+                st.append(_userStatusP1[s])
         for s in _userStatusP2:
             if s & p2:
-                print _userStatusP2[s]
+                st.append(_userStatusP2[s])
+        return ', '.join(st)
 
     def parseDcType(self, dcType):
+        t = []
         for dc in _directConnectionType:
             if dc & dcType:
-                print _directConnectionType[dc]
+                t.append(_directConnectionType[dc])
+        return ', '.join(t)
  
     def proc_2_19_15(self, data):
         raise Exception("proc_2_19_15 not implemented")
@@ -786,6 +821,32 @@ class Protocol:
         for c in _userClasses:
             if userClass & c: out.append(_userClasses[c])
         log.log("User class: " + ' '.join(out))
+
+    def proc_2_4_1(self, data):
+        '''
+        SNAC(04,01)     SRV_ICBM_ERROR      
+
+        This snac mean that server can't send your message to recipient 
+        because it invalid, too large, wrong type or not supported by 
+        receiver. See also SNAC(04,0A), SNAC(04,0C) for more info. 
+        Most used error types:
+
+        0x04 - you are trying to send message to offline client ("")
+        0x09 - message not supported by client
+        0x0E - your message is invalid (incorrectly formated)
+        0x10 - receiver/sender blocked
+        '''
+        errorCode = int(struct.unpack('!H', data[0:2])[0])
+        tlvs = readTLVs(data[2:])
+
+        subErrorCode = 0
+        try:
+            subErrorCode = int(struct.unpack('!H', tlvs[0x08])[0])
+        except KeyError, msg:
+            log.log("No error subcode found")
+
+        log.log("Can't send your message to recipient (%d, %d) (%s)" %\
+            (errorCode, subErrorCode, _msg_error_codes[errorCode]))
 
     def proc_2_4_10(self, data):
         ''' SNAC(04,0A)     SRV_MISSED_MESSAGE      
@@ -928,7 +989,7 @@ class Protocol:
         # Client use this SNAC to request buddylist service parameters 
         # and limitations. Server should reply via SNAC(03,03).
 
-        time.sleep(0.1)
+        time.sleep(SLEEP)
         log.log("Sending buddylist service parameters ")
         self.sendSNAC(0x03, 0x02, 0, '')
 
@@ -939,7 +1000,7 @@ class Protocol:
         log.log("You have been disconnected from the ICQ network because you logged on from another location using the same ICQ number.")
 
     def proc_1_0_0(self, data):
-        print "Logging in..."
+        log.log("Logging in...")
 
     def CLI_FIND_BY_UIN2(self):
         log.log("CLI_FIND_BY_UIN2")
@@ -955,7 +1016,6 @@ class Protocol:
 
         tlvs = tlv(0x01, '\x00\x08' + struct.pack("<L", int(username)) + '\x3c\x00\x02\x00')
         self.sendSNAC(0x15, 0x02, 0, tlvs)
-        pass
 
     def login(self, mainLoop = False):
         log.log('Logging in...')
@@ -1010,16 +1070,45 @@ class Protocol:
 
             ch, b, c = self.readFLAP(buf)
             snac = self.readSNAC(c)
-            print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
-            print 'for this snac: ', snac
+            log.log('going to call proc_%d_%d_%d' % (ch, snac[0], snac[1]))
+            log.log('for this snac: ' + snac)
 
             tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
             func = getattr(self, tmp)
 
             func(snac[5])
 
-    def sendMessage(self, user, messages, thruServer = True):
-        assert 1 == 2
+    def sendMessage(self, user, message, thruServer = True):
+
+        user = '177033621'
+
+        # Channel 1       Channel 1 message format (plain-text messages) 
+        # Channel 2       Channel 2 message format (rtf messages, rendezvous)    
+        # Channel 4       Channel 4 message format (typed old-style messages)
+
+        channel = 1
+        channel = struct.pack('!H', channel)
+        data = genCookie() + channel + struct.pack('!H', len(user)) + user
+
+        # 05      byte        fragment identifier (array of required capabilities)    
+        # 01     byte        fragment version    
+        # xx xx      word        Length of rest data 
+        # xx ...     array       byte array of required capabilities (1 - text)
+
+        # 01      byte        fragment identifier (text message)  
+        # 01     byte        fragment version    
+        # xx xx      word        Length of rest data
+        t =  "\x05\x01"
+        t += "\x00\x01\x01"
+        t += "\x01\x01\x00\x00"
+
+        # 00 00      word        Message charset number  
+        # ff ff      word        Message language number 
+        # xx ..      string (ascii)      Message text string
+        t += "\x00\x00\x03\x00" + 'test'
+
+        outMsg = data + tlv(2, t) + tlv(6, '')
+        self.sendSNAC(0x04, 0x06, 0, outMsg)
 
 
 def _test():

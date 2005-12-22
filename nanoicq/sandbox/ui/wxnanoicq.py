@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 #
-# $Id: wxnanoicq.py,v 1.9 2005/12/21 16:23:50 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.10 2005/12/22 13:19:37 lightdruid Exp $
 #
 
-import sys
+import sys, traceback
 sys.path.insert(0, '../..')
 
 import thread
@@ -60,18 +60,29 @@ class ICQThreaded(icq.Protocol):
 
     def Run(self):
         while self.keepGoing:
-            buf = self.read()
-            log.packetin(buf)
 
-            ch, b, c = self.readFLAP(buf)
-            snac = self.readSNAC(c)
-            print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
-            print 'for this snac: ', snac
+            try:
+                buf = self.read()
+                log.packetin(buf)
 
-            tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
-            func = getattr(self, tmp)
+                ch, b, c = self.readFLAP(buf)
+                snac = self.readSNAC(c)
+                print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
+                print 'for this snac: ', snac
 
-            func(snac[5])
+                tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
+                func = getattr(self, tmp)
+
+                func(snac[5])
+            except:
+                typ, value, tb = sys.exc_info()
+                list = traceback.format_tb(tb, None) + \
+                    traceback.format_exception_only(type, value)
+                print "%s %s" % (
+                    "".join(list[:-1]),
+                    list[-1],
+                )
+                print 'KEEP RUNNING'
 
         self.running = False
 

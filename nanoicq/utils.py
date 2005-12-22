@@ -1,10 +1,21 @@
 
 #
-# $Id: utils.py,v 1.7 2005/12/21 16:09:31 lightdruid Exp $
+# $Id: utils.py,v 1.8 2005/12/22 13:19:37 lightdruid Exp $
 #
 
 import string
 import cPickle
+import time, random
+
+def asPrintable(s):
+    out = ''
+    for c in s:
+        if c is not string.printable: c = '.'
+        out += c
+    return out
+
+def genCookie():
+    return ''.join([chr(random.randrange(0, 127)) for i in range(8)])
 
 def dump2file(fileName, data):
     f = open(fileName, 'wb')
@@ -60,5 +71,7 @@ if __name__ == '__main__':
     a, b = toints(struct.unpack('!2H', '\00\02\00\01'))
     assert a == 2
     assert b == 1
+
+    assert len(genCookie()) == 8
 
 # ---
