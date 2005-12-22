@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.10 2005/12/22 13:19:37 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.11 2005/12/22 16:05:40 lightdruid Exp $
 #
 
 import sys, traceback
@@ -239,7 +240,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].Start()
 
     def OnTest(self, evt):
-        self.connector['icq'].sendMessage('264025324', 'test')
+        self.connector['icq'].sendMessage('177033621', 'abcdef')
+        self.connector['icq'].sendMessage1('177033621', 'abcdef')
         print 'done'
 
 class TopPanel(wx.Panel):

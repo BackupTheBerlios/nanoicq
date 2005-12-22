@@ -1,17 +1,19 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.10 2005/12/22 13:19:36 lightdruid Exp $
+# $Id: icq.py,v 1.11 2005/12/22 16:05:40 lightdruid Exp $
 #
 
-#username = '264025324'
-username = '223606200'
+username = '264025324'
+#username = '223606200'
 
 import sys
 import os
 import time
 import struct
 import socket
+import types
+
 from utils import *
 from snacs import *
 from isocket import ISocket
@@ -1078,9 +1080,7 @@ class Protocol:
 
             func(snac[5])
 
-    def sendMessage(self, user, message, thruServer = True):
-
-        user = '177033621'
+    def sendMessage1(self, user, message, thruServer = True):
 
         # Channel 1       Channel 1 message format (plain-text messages) 
         # Channel 2       Channel 2 message format (rtf messages, rendezvous)    
@@ -1088,7 +1088,7 @@ class Protocol:
 
         channel = 1
         channel = struct.pack('!H', channel)
-        data = genCookie() + channel + struct.pack('!H', len(user)) + user
+        data = genCookie() + channel + struct.pack('!B', len(user)) + user
 
         # 05      byte        fragment identifier (array of required capabilities)    
         # 01     byte        fragment version    
@@ -1100,15 +1100,63 @@ class Protocol:
         # xx xx      word        Length of rest data
         t =  "\x05\x01"
         t += "\x00\x01\x01"
-        t += "\x01\x01\x00\x00"
+        t += "\x01" + struct.pack("!H", len(data) + 4)
 
         # 00 00      word        Message charset number  
         # ff ff      word        Message language number 
         # xx ..      string (ascii)      Message text string
-        t += "\x00\x00\x03\x00" + 'test'
+        t += "\x00\x00\x03\x00" + message
 
-        outMsg = data + tlv(2, t) + tlv(6, '')
+        outMsg = data + tlv(2, t)
         self.sendSNAC(0x04, 0x06, 0, outMsg)
+        dump2file('message-bad.dump', outMsg)
+
+    def sendMessage(self, user, message, wantAck = 0, autoResponse = 0, offline = 0 ):  \
+                    #haveIcon = 0, ):
+        """
+        send a message to user (not an OSCARUseR).
+        message can be a string, or a multipart tuple.
+        if wantAck, we return a Deferred that gets a callback when the message is sent.
+        if autoResponse, this message is an autoResponse, as if from an away message.
+        if offline, this is an offline message (ICQ only, I think)
+        """
+
+        data = genCookie()
+        data = data + '\x00\x01' + chr(len(user)) + user
+        if not type(message) in (types.TupleType, types.ListType):
+            message = [[message,]]
+            if type(message[0][0]) == types.UnicodeType:
+                message[0].append('unicode')
+        messageData = ''
+        for part in message:
+            charSet = 0
+            if 'unicode' in part[1:]:
+                charSet = 2
+                part[0] = part[0].encode('utf-8')
+            elif 'iso-8859-1' in part[1:]:
+                charSet = 3
+                part[0] = part[0].encode('iso-8859-1')
+            elif 'none' in part[1:]:
+                charSet = 0xffff
+            if 'macintosh' in part[1:]:
+                charSubSet = 0xb
+            else:
+                charSubSet = 0
+            messageData = messageData + '\x01\x01' + \
+                          struct.pack('!3H',len(part[0])+4,charSet,charSubSet)
+            messageData = messageData + part[0]
+        data = data + tlv(2, '\x05\x01\x00\x03\x01\x01\x02'+messageData)
+        if wantAck:
+            data = data + tlv(3,'')
+        if autoResponse:
+            data = data + tlv(4,'')
+        if offline:
+            data = data + tlv(6,'')
+        if wantAck:
+            return self.sendSNAC(0x04, 0x06, data).addCallback(self._cbSendMessageAck, user, message)
+        self.sendSNAC(0x04, 0x06, 0, data)
+
+        dump2file('message-good.dump', data)
 
 
 def _test():
