@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.13 2005/12/27 13:48:17 lightdruid Exp $
+# $Id: icq.py,v 1.14 2005/12/27 16:58:57 lightdruid Exp $
 #
 
 username = '264025324'
@@ -602,6 +602,9 @@ class Protocol:
                     func(tlvs[t], b)
                     log.log("Got new buddy from SSI list: %s" % b)
                     self._groups.addBuddy(groupID, b)
+
+                    # OK, let's pass new buddy upto gui
+                    self.react("New buddy", buddy = b)
                 except AttributeError, msg:
                     log.log("Not fatal exception got: " + str(msg))
         else:

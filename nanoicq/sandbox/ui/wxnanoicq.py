@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.12 2005/12/27 13:48:17 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.13 2005/12/27 16:58:57 lightdruid Exp $
 #
 
 
@@ -20,6 +20,7 @@ import wx
 import isocket
 import images
 import cPickle
+import string
 
 import wx.lib.mixins.listctrl as listmix
 
@@ -191,7 +192,26 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print result
 
     def dispatch(self, *kw, **kws):
-        print kw, kws
+        print 'GUI dispatcher: ', kw, kws
+
+        print kw[0][0]
+
+        # Convert all spaces to underscores to get method name
+        fn = 'event_' + kw[0][0].replace(' ', '_')
+        func = getattr(self, fn, None)
+        print 'going to call ' + fn
+
+        func(kw, kws)
+
+    def event_New_buddy(self, kw, kws):
+        print 'Called event_New_Buddy with '
+        print str(kw)
+        print str(kws)
+
+    def event_Login(self, kw, kws):
+        print 'Called event_Login with '
+        print str(kw)
+        print str(kws)
 
     def createTopPanel(self):
         self.topPanel = TopPanel(self)
