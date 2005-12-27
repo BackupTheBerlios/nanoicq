@@ -2,10 +2,16 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.11 2005/12/22 16:05:40 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.12 2005/12/27 13:48:17 lightdruid Exp $
 #
 
-import sys, traceback
+
+import sys
+import traceback
+
+if sys.platform == 'win32':
+    import win32con
+
 sys.path.insert(0, '../..')
 
 import thread
@@ -180,6 +186,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector.setConfig(self.config)
         self.connector.registerProtocol('icq', ICQThreaded(gui = self))
 
+        # ---
+        result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
+        print result
+
     def dispatch(self, *kw, **kws):
         print kw, kws
 
@@ -240,8 +250,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].Start()
 
     def OnTest(self, evt):
-        self.connector['icq'].sendMessage('177033621', 'abcdef')
-        self.connector['icq'].sendMessage1('177033621', 'abcdef')
+        self.connector['icq'].sendMessage1('177033621', 
+            'Msg:' + time.asctime(time.localtime()), autoResponse = True)
         print 'done'
 
 class TopPanel(wx.Panel):
@@ -268,7 +278,6 @@ class TopPanel(wx.Panel):
 
         # ---
         self.topPanelSizer.Add(self.userList, 1, wx.ALL | wx.EXPAND, 1)
-
         self.SetSizer(self.topPanelSizer)
 
     def sampleFill(self):

@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.1 2005/12/21 14:54:26 lightdruid Exp $
+# $Id: group.py,v 1.2 2005/12/27 13:48:17 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -18,6 +18,7 @@ class Group:
         assert gid in self._g.keys()
         b.gid = gid
         self._b[b.name] = b
+        print 'bud: ', self._b
 
     def getBuddies(self, gid = None):
         if gid is None: return self._b.values()
