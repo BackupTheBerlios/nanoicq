@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.13 2005/12/27 16:58:57 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.14 2005/12/28 11:33:59 lightdruid Exp $
 #
 
 
@@ -29,6 +29,8 @@ from icq import log
 
 from StatusBar import *
 from config import Config
+
+from logger import log, LogException
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -71,7 +73,7 @@ class ICQThreaded(icq.Protocol):
 
             try:
                 buf = self.read()
-                log.packetin(buf)
+                log().packetin(buf)
 
                 ch, b, c = self.readFLAP(buf)
                 snac = self.readSNAC(c)
@@ -292,7 +294,7 @@ class TopPanel(wx.Panel):
         info.m_text = "User"
         self.userList.InsertColumnInfo(1, info)
 
-        self.sampleFill()
+#        self.sampleFill()
         self.userList.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.userList.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 

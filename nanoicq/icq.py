@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.14 2005/12/27 16:58:57 lightdruid Exp $
+# $Id: icq.py,v 1.15 2005/12/28 11:33:59 lightdruid Exp $
 #
 
 username = '264025324'
@@ -22,6 +22,7 @@ from buddy import Buddy
 from group import Group
 
 import caps
+from logger import log, LogException
 
 # for debug only
 SLEEP = 0
@@ -147,20 +148,6 @@ def explainSSIItemType(t):
             out = _SSIItemTypes[flag]
             break
     return out
-
-
-class Log:
-    def log(self, msg):
-        print "LOG:", msg
-
-    def packetin(self, msg):
-        self.log("<- " + ashex(msg))
-
-    def packetout(self, msg):
-        self.log("-> " + ashex(msg))
-        self.log("->\n" + coldump(msg))
-
-log = Log()
 
 TLV_ErrorURL = 0x0004
 TLV_Redirect = 0x0005
@@ -309,7 +296,7 @@ class Protocol:
             port = self._port
         self._sock = ISocket(host, port)
         self._sock.connect()
-        log.log("Socket connected")
+        log().log("Socket connected")
 
     def disconnect(self):
         self._sock.disconnect()
@@ -337,7 +324,7 @@ class Protocol:
         head = struct.pack(header,'*', ch, self.seqnum, len(data))
 
         data = head + str(data)
-        log.packetout(data)
+        log().packetout(data)
         self.send(data)
 
     def readFLAP(self, buf):
@@ -408,10 +395,10 @@ class Protocol:
     def proc_2_1_7(self, data):
         ''' Rate info '''
 
-        log.packetin(data)
+        log().packetin(data)
 
         count = struct.unpack('!H', data[0:2])[0]
-        log.log('Received %d rate groups' % count)
+        log().log('Received %d rate groups' % count)
 
         self.outRateInfo = {}
         self.outRateTable = {}
@@ -432,12 +419,12 @@ class Protocol:
                 'last_time'         : info[8],
                 'current_state'     : info[9],
                 }
-            log.log("Class ID: " + str(info))
+            log().log("Class ID: " + str(info))
             dt = dt[35:]
 
         for ii in range(count):
             rgd, npair = struct.unpack('!HH', dt[:4])
-            log.log("For family %d server has %d pairs" % (rgd, npair))
+            log().log("For family %d server has %d pairs" % (rgd, npair))
 
             # We want to send it back to server
             resp += struct.pack('!H', rgd)
@@ -448,11 +435,11 @@ class Protocol:
                 self.outRateTable[family] = subfamily
                 dt = dt[4:]
 
-        log.log("Sending connection rate limits")
+        log().log("Sending connection rate limits")
         self.sendSNAC(0x01, 0x08, 0, resp)
 
         time.sleep(SLEEP)
-        log.log("Sending location rights limits")
+        log().log("Sending location rights limits")
         self.sendSNAC(0x02, 0x02, 0, '') # location rights info
 
     def proc_2_9_3(self, data):
@@ -460,19 +447,19 @@ class Protocol:
         tlvs = readTLVs(data)
         self.maxPermitList = struct.unpack("!H", tlvs[1])[0]
         self.maxDenyList = struct.unpack("!H", tlvs[2])[0]
-        log.log("Max permit list: %d, Max deny list: %d" % (self.maxPermitList, self.maxDenyList))
+        log().log("Max permit list: %d, Max deny list: %d" % (self.maxPermitList, self.maxDenyList))
 
         time.sleep(SLEEP)
-        log.log("Sending SSI rights info")
+        log().log("Sending SSI rights info")
         self.sendSNAC(0x13, 0x02, 0, '')
 
     def proc_2_4_5(self, data):
         ''' ICBM parameters '''
-        log.log("Sending changed default ICBM parameters command")
+        log().log("Sending changed default ICBM parameters command")
         self.sendSNAC(0x04, 0x02, 0, '\x00\x00\x00\x00\x00\x0b\x1f@\x03\xe7\x03\xe7\x00\x00\x00\x00')
 
         time.sleep(SLEEP)
-        log.log("Sending PRM service limitations")
+        log().log("Sending PRM service limitations")
         self.sendSNAC(0x09, 0x02, 0, '')
 
     def proc_2_3_3(self, data):
@@ -480,9 +467,9 @@ class Protocol:
         tlvs = readTLVs(data)
         self.maxBuddies = struct.unpack("!H", tlvs[1])[0]
         self.maxWatchers = struct.unpack("!H", tlvs[2])[0]
-        log.log("Max buddies: %d, Max watchers: %d" % (self.maxBuddies, self.maxWatchers))
+        log().log("Max buddies: %d, Max watchers: %d" % (self.maxBuddies, self.maxWatchers))
 
-        log.log("Sending ICBM service parameters")
+        log().log("Sending ICBM service parameters")
         self.sendSNAC(0x04,0x04,0,'') # ICBM parms
 
     def proc_2_19_3(self, data):
@@ -520,13 +507,13 @@ class Protocol:
         uin = str(data[1 : uinLen + 1])
 
         warningLevel, tlvNumber = struct.unpack('!HH', data[uinLen + 1: uinLen + 1 + 4])
-        log.log('Got my status report: uin: %s, warning level: %d' %\
+        log().log('Got my status report: uin: %s, warning level: %d' %\
             (uin, warningLevel))
 
         tlvs = readTLVs(data[uinLen + 1 + 4:])
         self.parseSelfStatus(tlvs)
 
-        log.log("Retrieving server-side contact list")
+        log().log("Retrieving server-side contact list")
         self.sendSNAC(0x13, 0x04, 0, '')
 #        self.getOfflineMessages()
 #        self.sendSNAC(0x13, 0x05, 0, struct.pack('!LH', 0, 0))
@@ -556,7 +543,7 @@ class Protocol:
 
         nitems = int(struct.unpack('!H', data[1:3])[0])
         print coldump(data[1:3])
-        log.log("Items number: %d" % nitems)
+        log().log("Items number: %d" % nitems)
 
         data = data[3:]
 
@@ -565,10 +552,10 @@ class Protocol:
             for ii in range(0, nitems):
                 data = self.parseSSIItem(data)
         except Exception, msg:
-            log.log("Exception while parsing SSI items")
+            log().log("Exception while parsing SSI items")
             
 
-        log.log('Current list of groups: %s' % self._groups)
+        log().log('Current list of groups: %s' % self._groups)
 
     def parseSSIItem(self, data):
 
@@ -578,13 +565,13 @@ class Protocol:
         itemLen = int(struct.unpack('>H', data[0:2])[0])
         data = data[2:]
         name = data[:itemLen]
-        log.log("Length: %d, '%s'" % (itemLen, asPrintable(name)))
+        log().log("Length: %d, '%s'" % (itemLen, asPrintable(name)))
 
         data = data[itemLen:]
 
         groupID, itemID, flagType, dataLen = toints(struct.unpack('!4H', data[0:8]))
 
-        log.log("groupID: %d, itemID: %d, flagType: %d (%s), dataLen: %d" % \
+        log().log("groupID: %d, itemID: %d, flagType: %d (%s), dataLen: %d" % \
             (groupID, itemID, flagType, explainSSIItemType(flagType), dataLen))
 
         tlvs = readTLVs(data[8 : 8 + dataLen])
@@ -600,13 +587,13 @@ class Protocol:
                 try:
                     func = getattr(self, tmp)
                     func(tlvs[t], b)
-                    log.log("Got new buddy from SSI list: %s" % b)
+                    log().log("Got new buddy from SSI list: %s" % b)
                     self._groups.addBuddy(groupID, b)
 
                     # OK, let's pass new buddy upto gui
                     self.react("New buddy", buddy = b)
                 except AttributeError, msg:
-                    log.log("Not fatal exception got: " + str(msg))
+                    log().log("Not fatal exception got: " + str(msg))
         else:
             for t in tlvs:
                 tmp = "parseSSIItem_%02X" % t
@@ -614,7 +601,7 @@ class Protocol:
                     func = getattr(self, tmp)
                     func(tlvs[t], flagType)
                 except AttributeError, msg:
-                    log.log("Not fatal exception got: " + str(msg))
+                    log().log("Not fatal exception got: " + str(msg))
      
         data = data[8 + dataLen:]
         return data
@@ -629,7 +616,7 @@ class Protocol:
         '''
         t = struct.unpack('!L', t)[0]
         b.firstMessage = t
-        log.log("First time message: %s" % time.asctime(time.localtime(t)))
+        log().log("First time message: %s" % time.asctime(time.localtime(t)))
 
     def parseSSIItem_137(self, t, b):
         '''
@@ -637,7 +624,7 @@ class Protocol:
         Your buddy locally assigned mail address.
         '''
         b.email = t
-        log.log("Buddy locally assigned mail address: %s" % t)
+        log().log("Buddy locally assigned mail address: %s" % t)
 
     def parseSSIItem_131(self, t, b):
         '''
@@ -647,7 +634,7 @@ class Protocol:
         contact's nick name, and can be changed to anything by the client.
         '''
         b.name = t
-        log.log("Buddy contact list name: %s" % t)
+        log().log("Buddy contact list name: %s" % t)
 
     def parseSSIItem_CA(self, t, flag):
         '''
@@ -658,7 +645,7 @@ class Protocol:
         users in the permit list. If 4, then block only the users 
         in the deny list. If 5, then allow only users on your buddy list.
         '''
-        log.log("AIM server privacy settings: %s" % str(t))
+        log().log("AIM server privacy settings: %s" % str(t))
 
     def parseSSIItem_C8(self, t, flag):
         ''' [TLV(0x00C8), itype 0x01, size XX] - 
@@ -669,14 +656,14 @@ class Protocol:
         list (if in the master group), or no buddies in the group 
         (if in a normal group), then this TLV is not present.
         '''
-        log.log("Master group IDs: %s" % str(t))
+        log().log("Master group IDs: %s" % str(t))
 
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 
         offline. See also additional information about online userinfo block.'''
 
-        log.log("Called 2,3,12 with data:")
-        log.log(coldump(data))
+        log().log("Called 2,3,12 with data:")
+        log().log(coldump(data))
 
     def proc_2_3_11(self, data):
         ''' Server sends this snac when user from your contact list 
@@ -686,14 +673,14 @@ class Protocol:
 
         uinLen = int(struct.unpack('!B', data[0])[0]) 
         uin = data[1 : uinLen]
-        log.log("User '%s' is online" % uin)
-        log.log("UIN length: %d, UIN: %s" % (uinLen, uin))
+        log().log("User '%s' is online" % uin)
+        log().log("UIN length: %d, UIN: %s" % (uinLen, uin))
 
         data = data[1 + uinLen:]
 
         warningLevel = int(struct.unpack('!H', data[0:2])[0]) 
         ntlv = int(struct.unpack('!H', data[2:4])[0]) 
-        log.log("Warning level: %d. number of TLV: %d" % (warningLevel, ntlv))
+        log().log("Warning level: %d. number of TLV: %d" % (warningLevel, ntlv))
 
         tlvs = readTLVs(data[4:])
         userClass = int(struct.unpack('!H', tlvs[0x01])[0])
@@ -705,11 +692,11 @@ class Protocol:
             internalIP = socket.inet_ntoa(dc[0 : 4])
             internalPort = int(struct.unpack('!L', dc[4 : 8])[0])
 
-            log.log("Internal IP: %s:%d" % (internalIP, internalPort))
+            log().log("Internal IP: %s:%d" % (internalIP, internalPort))
 
             dcType = int(struct.unpack('!B', dc[8 : 9])[0])
             t = self.parseDcType(dcType)
-            log.log("DC type: %s" % t)
+            log().log("DC type: %s" % t)
 
             dc = dc[9:]
             dcProtocolVersion = int(struct.unpack('!H', dc[0 : 2])[0])
@@ -717,7 +704,7 @@ class Protocol:
             webFrontPort = int(struct.unpack('!L', dc[6 : 10])[0])
             clientFutures = int(struct.unpack('!L', dc[10 : 14])[0])
 
-            log.log("dcProtocolVersion: %d, dcAuthCookie: %d, webFrontPort: %d, clientFutures: %d" % \
+            log().log("dcProtocolVersion: %d, dcAuthCookie: %d, webFrontPort: %d, clientFutures: %d" % \
                 (dcProtocolVersion, dcAuthCookie, webFrontPort, clientFutures))
 
             assert clientFutures == 0x03
@@ -740,48 +727,48 @@ class Protocol:
             externalIP = socket.inet_ntoa(tlvs[0x0a][0 : 4])
         except Exception, msg:
             pass # FIXME
-        log.log("External IP: %s" % externalIP)
+        log().log("External IP: %s" % externalIP)
 
         # TLV.Type(0x06) - user status
         userStatus = tlvs[0x06][0 : 4]
         status = self.parseUserStatus(userStatus)
-        log.log("User status: %s" % status)
+        log().log("User status: %s" % status)
 
         # TLV.Type(0x0D) - user capabilities
         try:
             caps = tlvs[0x0d]
-            log.log("User capabilities: " + ashex(caps))
+            log().log("User capabilities: " + ashex(caps))
         except KeyError, msg:
-            log.log("Unable to get user capabilities")
+            log().log("Unable to get user capabilities")
             
         # TLV.Type(0x0F) - online time
         onlineTime = int(struct.unpack('!L', tlvs[0x0f][0 : 4])[0])
-        log.log("Online time: " + time.asctime(time.localtime(onlineTime)))
+        log().log("Online time: " + time.asctime(time.localtime(onlineTime)))
 
         # TLV.Type(0x03) - signon time
         singonTime = int(struct.unpack('!L', tlvs[0x03][0 : 4])[0])
-        log.log("Signon time: " + time.asctime(time.localtime(singonTime)))
+        log().log("Signon time: " + time.asctime(time.localtime(singonTime)))
 
         # TLV.Type(0x05) - member since
         try:
             memberSince = int(struct.unpack('!L', tlvs[0x05][0 : 4])[0])
-            log.log("Member since: " + time.asctime(time.localtime(memberSince)))
+            log().log("Member since: " + time.asctime(time.localtime(memberSince)))
         except KeyError, msg:
-            log.log("Unable to get 'member since' information")
+            log().log("Unable to get 'member since' information")
 
         # TLV.Type(0x11) - times updated
         # FIXME: not parsed yet
         try:
             tlv = tlvs[0x11]
         except KeyError, msg:
-            log.log("Unable to get 'times updated' information")
+            log().log("Unable to get 'times updated' information")
 
         # TLV.Type(0x19) - new-style capabilities list
         try:
             caps = tlvs[0x19]
-            log.log("User (AIM) capabilities: " + ashex(caps))
+            log().log("User (AIM) capabilities: " + ashex(caps))
         except KeyError, msg:
-            log.log("Unable to get user (AIM) capabilities")
+            log().log("Unable to get user (AIM) capabilities")
 
         # TLV.Type(0x1D) - user icon id & hash
         try:
@@ -790,9 +777,9 @@ class Protocol:
             iconFlags = struct.unpack('!B', icon[2 : 3])
             iconHash = struct.unpack('!B', icon[3 : 4])
 
-            log.log("Icon ID: %d" % (iconID))
+            log().log("Icon ID: %d" % (iconID))
         except KeyError, msg:
-            log.log("Unable to get user icon")
+            log().log("Unable to get user icon")
 
     def parseUserStatus(self, status):
         st = []
@@ -825,7 +812,7 @@ class Protocol:
         out = []
         for c in _userClasses:
             if userClass & c: out.append(_userClasses[c])
-        log.log("User class: " + ' '.join(out))
+        log().log("User class: " + ' '.join(out))
 
     def proc_2_4_1(self, data):
         '''
@@ -848,9 +835,9 @@ class Protocol:
         try:
             subErrorCode = int(struct.unpack('!H', tlvs[0x08])[0])
         except KeyError, msg:
-            log.log("No error subcode found")
+            log().log("No error subcode found")
 
-        log.log("Can't send your message to recipient (%d, %d) (%s)" %\
+        log().log("Can't send your message to recipient (%d, %d) (%s)" %\
             (errorCode, subErrorCode, _msg_error_codes[errorCode]))
 
     def proc_2_4_10(self, data):
@@ -868,7 +855,7 @@ class Protocol:
         4 - You are too evil (sender max_msg_revil > your warn level)
         '''
 
-        log.log("Missed message")
+        log().log("Missed message")
 
         messageType = int(struct.unpack('!H', data[0:2])[0])
         uinLen = int(struct.unpack('!B', data[2:3])[0])
@@ -879,7 +866,7 @@ class Protocol:
 
         assert tlvNumber == 4
 
-        log.log("MessageType: %d, uin: %s, Warning level: %d"\
+        log().log("MessageType: %d, uin: %s, Warning level: %d"\
             % (messageType, uin, warningLevel))
 
         tlvs, rest = readTLVsd(data[4:])
@@ -887,7 +874,7 @@ class Protocol:
         missedMessages = int(struct.unpack('!H', rest[0:2])[0])
         reason = int(struct.unpack('!H', rest[2:4])[0])
 
-        log.log("Missed messages: %d, Reason: %s" %\
+        log().log("Missed messages: %d, Reason: %s" %\
             (missedMessages, explainReason(reason)))
 
     def proc_2_4_7(self, data):
@@ -898,7 +885,7 @@ class Protocol:
         sname = data[11:11 + snameLen]
         data = data[11 + snameLen:]
 
-        log.log('Got message, channel: %d, from: %s' % 
+        log().log('Got message, channel: %d, from: %s' % 
             (messageChannel, sname))
 
         senderWarningLevel = int(struct.unpack('!H', data[0:2])[0])
@@ -910,17 +897,17 @@ class Protocol:
         try:
             userStatus = int(struct.unpack('!L', tlvs[6])[0])
         except KeyError, msg:
-            log.log("Unable to fetch user status")
+            log().log("Unable to fetch user status")
 
         try:
             accCreationTime = int(struct.unpack('!L', tlvs[3])[0])
         except KeyError, msg:
-            log.log("Unable to fetch account creation time")
+            log().log("Unable to fetch account creation time")
 
         try:
             clientIdleTime = int(struct.unpack('!L', tlvs[0x0f])[0])
         except KeyError, msg:
-            log.log("Unable to fetch client idle time")
+            log().log("Unable to fetch client idle time")
 
         # Dispatch on message channel
         tmp = "proc_2_4_7_%d" % messageChannel
@@ -934,19 +921,19 @@ class Protocol:
         data = data[8:]
         ln = int(struct.unpack('!B', data[0])[0])
         uin = str(data[1:])
-        log.log("You-were-added from " + uin)
+        log().log("You-were-added from " + uin)
 
     def parseMessageType(self, mtype):
         out = []
         for t in _messageTypes:
             if t & mtype: out.append(_messageTypes[t])
-        log.log("Message type: " + " ".join(out))
+        log().log("Message type: " + " ".join(out))
 
     def parseMessageFlags(self, mflags):
         out = []
         for t in _messageFlags:
             if t & mflags: out.append(_messageFlags[t])
-        log.log("Message flags: " + " ".join(out))
+        log().log("Message flags: " + " ".join(out))
 
     def proc_2_4_7_4(self, tlvs):
         '''  Channel 4 message format (plain-text messages) '''
@@ -957,7 +944,7 @@ class Protocol:
         ln = int(struct.unpack('<H', t[6:8])[0])
         msg = t[8:]
 
-        log.log("Message type 4, UIN: %d, length: %d, contents: %s"
+        log().log("Message type 4, UIN: %d, length: %d, contents: %s"
             % (uin, ln, str(msg)))
 
         self.parseMessageType(mtype)
@@ -974,45 +961,45 @@ class Protocol:
         sub_charset = int(struct.unpack('!H', t[4:6])[0])
         msg = t[6:]
 
-        log.log('Message type 1: ' + str(msg))
+        log().log('Message type 1: ' + str(msg))
 
     def proc_2_2_3(self, data):
         ''' Client service parameters request '''
         tlvs = readTLVs(data)
         self.maxProfileLength = struct.unpack('!H', tlvs[1])[0]
         self.maxCapabilities = struct.unpack('!H', tlvs[2])[0]
-        log.log("MaxProfileLength: %d, MaxCapabilities: %d" %
+        log().log("MaxProfileLength: %d, MaxCapabilities: %d" %
             (self.maxProfileLength, self.maxCapabilities))
 
         self.capabilities = [caps.ICQ, caps.RELAY, caps.UTF8]
 
         tlvs = tlv(5, ''.join(self.capabilities))
 
-        log.log("Sending client capabilities")
+        log().log("Sending client capabilities")
         self.sendSNAC(0x02, 0x04, 0, tlvs)
 
         # Client use this SNAC to request buddylist service parameters 
         # and limitations. Server should reply via SNAC(03,03).
 
         time.sleep(SLEEP)
-        log.log("Sending buddylist service parameters ")
+        log().log("Sending buddylist service parameters ")
         self.sendSNAC(0x03, 0x02, 0, '')
 
     def proc_4_9_2(self, data):
         ''' You have been disconnected from the ICQ network because you 
         logged on from another location using the same ICQ number. '''
         self.disconnect()
-        log.log("You have been disconnected from the ICQ network because you logged on from another location using the same ICQ number.")
+        log().log("You have been disconnected from the ICQ network because you logged on from another location using the same ICQ number.")
 
     def proc_1_0_0(self, data):
-        log.log("Logging in...")
+        log().log("Logging in...")
 
     def CLI_FIND_BY_UIN2(self):
-        log.log("CLI_FIND_BY_UIN2")
+        log().log("CLI_FIND_BY_UIN2")
         tlvs = tlv(0x01, struct.pack())
 
     def CLI_WHITE_PAGES_SEARCH2(self):
-        log.log("CLI_WHITE_PAGES_SEARCH2")
+        log().log("CLI_WHITE_PAGES_SEARCH2")
 
     def getOfflineMessages(self):
         ''' Client sends this SNAC when wants to retrieve messages 
@@ -1023,30 +1010,30 @@ class Protocol:
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
     def login(self, mainLoop = False):
-        log.log('Logging in...')
+        log().log('Logging in...')
         self.react('Login')
 
         buf = self.read()
-        log.packetin(buf)
+        log().packetin(buf)
 
-        log.log('Sending credentials')
+        log().log('Sending credentials')
         self.sendAuth()
         buf = self.read()
-        log.packetin(buf)
+        log().packetin(buf)
 
         snac = self.readSNAC(buf)
         i=snac[5].find("\000")
         snac[5]=snac[5][i:]
         tlvs=readTLVs(snac[5])
-        log.log(tlvs)
+        log().log(tlvs)
 
         if tlvs.has_key(TLV_ErrorCode):
-            log.log("Error: " + explainError(tlvs[TLV_ErrorCode]))
+            log().log("Error: " + explainError(tlvs[TLV_ErrorCode]))
 
         server = ''
         if tlvs.has_key(TLV_Redirect):
             server = tlvs[TLV_Redirect]
-            log.log("Redirecting to: " + server)
+            log().log("Redirecting to: " + server)
 
         self._sock.disconnect()
 
@@ -1058,25 +1045,25 @@ class Protocol:
 
         # ================================
         buf = self.read()
-        log.packetin(buf)
+        log().packetin(buf)
 
         self.sendFLAP(0x01, '\000\000\000\001' + tlv(0x06, tlvs[TLV_Cookie]))
-        log.log('Login done')
+        log().log('Login done')
 
         if mainLoop:
-            log.log('Going to main loop')
+            log().log('Going to main loop')
             self.mainLoop()
 
     def mainLoop(self):
         # self.keepGoing must be extenrally created or defined in derived class
         while self.keepGoing:
             buf = self.read()
-            log.packetin(buf)
+            log().packetin(buf)
 
             ch, b, c = self.readFLAP(buf)
             snac = self.readSNAC(c)
-            log.log('going to call proc_%d_%d_%d' % (ch, snac[0], snac[1]))
-            log.log('for this snac: ' + snac)
+            log().log('going to call proc_%d_%d_%d' % (ch, snac[0], snac[1]))
+            log().log('for this snac: ' + snac)
 
             tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
             func = getattr(self, tmp)
@@ -1134,25 +1121,25 @@ def _test():
     p.connect('login.icq.com', 5190)
 
     buf = p.read()
-    log.packetin(buf)
+    log().packetin(buf)
 
     p.sendAuth()
     buf = p.read()
-    log.packetin(buf)
+    log().packetin(buf)
 
     snac = p.readSNAC(buf)
     i=snac[5].find("\000")
     snac[5]=snac[5][i:]
     tlvs=readTLVs(snac[5])
-    log.log(tlvs)
+    log().log(tlvs)
 
     if tlvs.has_key(TLV_ErrorCode):
-        log.log("Error: " + explainError(tlvs[TLV_ErrorCode]))
+        log().log("Error: " + explainError(tlvs[TLV_ErrorCode]))
 
     server = ''
     if tlvs.has_key(TLV_Redirect):
         server = tlvs[TLV_Redirect]
-        log.log("Redirecting to: " + server)
+        log().log("Redirecting to: " + server)
 
     p.disconnect()
     host, port = server.split(':')
@@ -1164,7 +1151,7 @@ def _test():
 
     # ================================
     buf = p.read()
-    log.packetin(buf)
+    log().packetin(buf)
 
     p.sendFLAP(0x01, '\000\000\000\001' + tlv(0x06, tlvs[TLV_Cookie]))
 
@@ -1172,7 +1159,7 @@ def _test():
 
     while p.isConnected():
         buf = p.read()
-        log.packetin(buf)
+        log().packetin(buf)
         print coldump(buf)
 
         ch, b, c = p.readFLAP(buf)
