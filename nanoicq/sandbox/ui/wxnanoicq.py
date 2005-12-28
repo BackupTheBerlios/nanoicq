@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.14 2005/12/28 11:33:59 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.15 2005/12/28 13:02:39 lightdruid Exp $
 #
 
 
@@ -24,12 +24,13 @@ import string
 
 import wx.lib.mixins.listctrl as listmix
 
+from buddy import Buddy
 import icq
 from icq import log
 
 from StatusBar import *
 from config import Config
-
+import guidebug
 from logger import log, LogException
 
 ID_HELP = wx.NewId()
@@ -193,6 +194,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
         print result
 
+        # ---
+
     def dispatch(self, *kw, **kws):
         print 'GUI dispatcher: ', kw, kws
 
@@ -203,17 +206,36 @@ class TopFrame(wx.Frame, PersistenceMixin):
         func = getattr(self, fn, None)
         print 'going to call ' + fn
 
-        func(kw, kws)
+        guidebug.message(str(kw[1:][0]))
+        func(kw[1:][0])
 
-    def event_New_buddy(self, kw, kws):
+    def event_New_buddy(self, kw):
         print 'Called event_New_Buddy with '
         print str(kw)
-        print str(kws)
 
-    def event_Login(self, kw, kws):
+        b = kw['buddy']
+        guidebug.message(str(b))
+
+        try:
+            self.addBuddy(b)
+        except Exception, v:
+            wx.MessageBox(str(v), "Exception Message")
+
+    def event_Login(self, kw):
         print 'Called event_Login with '
         print str(kw)
-        print str(kws)
+
+    def addBuddy(self, b):
+        self.il = wx.ImageList(16, 16)
+        self.idx1 = self.il.Add(images.getSmilesBitmap())
+        self.topPanel.userList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
+        index = self.topPanel.userList.InsertImageStringItem(sys.maxint, '', self.idx1)
+        self.topPanel.userList.SetStringItem(index, 1, b.name)
+        self.topPanel.userList.SetItemData(index, b.gid)
+
+        self.topPanel.userList.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self.topPanel.userList.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     def createTopPanel(self):
         self.topPanel = TopPanel(self)
