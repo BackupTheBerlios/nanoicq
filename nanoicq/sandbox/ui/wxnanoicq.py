@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.15 2005/12/28 13:02:39 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.16 2005/12/29 12:25:22 lightdruid Exp $
 #
 
 
@@ -32,6 +32,7 @@ from StatusBar import *
 from config import Config
 import guidebug
 from logger import log, LogException
+from messagedialog import MessageDialog
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -190,11 +191,18 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector.setConfig(self.config)
         self.connector.registerProtocol('icq', ICQThreaded(gui = self))
 
+        self.updateStatusBar('Disconnected')
+
         # ---
         result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
         print result
 
+        self.OnTest(1)
+
         # ---
+
+    def updateStatusBar(self, msg):
+        self.sb.SetStatusText(msg, 0)
 
     def dispatch(self, *kw, **kws):
         print 'GUI dispatcher: ', kw, kws
@@ -221,9 +229,15 @@ class TopFrame(wx.Frame, PersistenceMixin):
         except Exception, v:
             wx.MessageBox(str(v), "Exception Message")
 
+    def event_Login_done(self, kw):
+        print 'Called event_Login_done with '
+        print str(kw)
+        self.updateStatusBar('Online')
+
     def event_Login(self, kw):
         print 'Called event_Login with '
         print str(kw)
+        self.updateStatusBar('Logging in...')
 
     def addBuddy(self, b):
         self.il = wx.ImageList(16, 16)
@@ -294,8 +308,15 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].Start()
 
     def OnTest(self, evt):
-        self.connector['icq'].sendMessage1('177033621', 
-            'Msg:' + time.asctime(time.localtime()), autoResponse = True)
+#        self.connector['icq'].sendMessage1('177033621', 
+#            'Msg:' + time.asctime(time.localtime()), autoResponse = True)
+
+        d = MessageDialog(self, -1, 'aaa')
+        icon = d.GetParent().prepareIcon(images.getLimeWireImage())
+        d.SetIcon(icon)
+        d.Show()
+        d.SetFocus()
+
         print 'done'
 
 class TopPanel(wx.Panel):

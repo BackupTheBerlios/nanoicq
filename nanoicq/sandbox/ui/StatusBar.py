@@ -4,7 +4,8 @@ import wx
 class CustomStatusBar(wx.StatusBar):
     def __init__(self, parent):
         wx.StatusBar.__init__(self, parent, -1)
-        self.SetFieldsCount(3)
+        self.SetFieldsCount(2)
+        self.SetStatusWidths([-2, -1])
 
     def setFileName(self, fn):
         path, fileName = os.path.split(fn)

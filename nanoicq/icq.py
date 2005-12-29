@@ -1,11 +1,12 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.15 2005/12/28 11:33:59 lightdruid Exp $
+# $Id: icq.py,v 1.16 2005/12/29 12:25:22 lightdruid Exp $
 #
 
-username = '264025324'
-#username = '223606200'
+#username = '264025324'
+username = '223606200'
+#username = '177033621'
 
 import sys
 import os
@@ -378,6 +379,27 @@ class Protocol:
             self.serverFamilies.append(struct.unpack("!H", data[:2])[0])
             data = data[2:]
 
+    def registrationRequest(self, password):
+        '''
+        SNAC(17,04)     CLI_REGISTRATION_REQUEST 
+        Use this snac when you need new ICQ account (uin/password). 
+        Server should reply with SNAC(17,05) containing new uin. 
+        This snac mean that registration finished succesfully. 
+        Server also can reply with SNAC(17,01) if it can't create new 
+        user account.
+        '''
+
+        # 00 00 00 00     dword       just zeros  
+        # 28 00      word        subcmd (request new uin)    
+        # 03 00      word        sequence    
+        # 00 00 00 00        dword       just zeros  
+        # 00 00 00 00        dword       just zeros  
+        # xx xx xx xx        dword       registration cookie 
+        # xx xx xx xx        dword       registration cookie (the same)
+
+        req =  "\x00\x00\x00\x00\x28\x00\x03\x00"
+        req += "\x00\x00\x00\x00\x00\x00\x00\x00"
+
     def proc_2_1_3(self, data):
         self.parseFamilies(data)
         self.families = supported
@@ -582,18 +604,29 @@ class Protocol:
 
         if flagType == SSI_ITEM_BUDDY:
             b = Buddy()
+
+            # Setup it's GID right now
+            b.gid = groupID
+
             for t in tlvs:
                 tmp = "parseSSIItem_%02X" % t
                 try:
                     func = getattr(self, tmp)
                     func(tlvs[t], b)
                     log().log("Got new buddy from SSI list: %s" % b)
-                    self._groups.addBuddy(groupID, b)
 
                     # OK, let's pass new buddy upto gui
                     self.react("New buddy", buddy = b)
                 except AttributeError, msg:
                     log().log("Not fatal exception got: " + str(msg))
+
+                    # Bad buddy, mark it as Null, do not add to list
+                    b = None
+                    break
+
+            if b is not None:
+                self._groups.addBuddy(groupID, b)
+
         else:
             for t in tlvs:
                 tmp = "parseSSIItem_%02X" % t
@@ -1048,7 +1081,9 @@ class Protocol:
         log().packetin(buf)
 
         self.sendFLAP(0x01, '\000\000\000\001' + tlv(0x06, tlvs[TLV_Cookie]))
+
         log().log('Login done')
+        self.react('Login done')
 
         if mainLoop:
             log().log('Going to main loop')
