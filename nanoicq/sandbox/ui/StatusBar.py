@@ -1,3 +1,9 @@
+
+#
+# $Id: StatusBar.py,v 1.3 2006/01/04 12:24:57 lightdruid Exp $
+#
+
+
 import os.path
 import wx
 
@@ -20,3 +26,4 @@ class CustomStatusBar(wx.StatusBar):
         else:
             self.SetStatusText(" ", 2)
 
+# ---
