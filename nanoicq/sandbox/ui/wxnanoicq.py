@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.19 2006/01/04 13:51:21 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.20 2006/01/04 15:10:10 lightdruid Exp $
 #
 
 
@@ -35,6 +35,7 @@ from logger import log, LogException
 from messagedialog import MessageDialog
 from persistence import PersistenceMixin
 from utils import *
+from events import *
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -156,10 +157,23 @@ class TopFrame(wx.Frame, PersistenceMixin):
         result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
         print result
 
-        self.dialogs = []
+        self._dialogs = []
         self.OnTest(1)
 
+        self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
+
         # ---
+
+    def dialogClose(self, evt):
+        print evt, evt.getVal()
+        ii = 0
+        for d in self._dialogs:
+            print d.GetId()
+            if d.GetId() == evt.getVal():
+                del self._dialogs[ii]
+                return
+            ii += 1
+        raise Exception("dialog not found")
 
     def updateStatusBar(self, msg):
         self.sb.SetStatusText(msg, 0)
@@ -250,8 +264,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def OnClose(self, evt):
         self.storeGeometry()
-        print 'storing...'
-        for d in self.dialogs:
+        for d in self._dialogs:
             d.storeWidgets()
         evt.Skip()
 
@@ -276,13 +289,15 @@ class TopFrame(wx.Frame, PersistenceMixin):
 #        self.connector['icq'].sendMessage1('177033621', 
 #            'Msg:' + time.asctime(time.localtime()), autoResponse = True)
 
-        d = MessageDialog(self, -1, 'aaa')
+        import random
+        d = MessageDialog(self, -1, str(random.random()))
         icon = d.GetParent().prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
         d.Show()
         d.SetFocus()
 
-        self.dialogs.append(d)
+        print 'appending dialog', d.GetId()
+        self._dialogs.append(d)
 
         print 'done'
 

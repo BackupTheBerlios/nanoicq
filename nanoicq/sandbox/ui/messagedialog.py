@@ -1,11 +1,15 @@
 
 #
-# $Id: messagedialog.py,v 1.2 2006/01/04 13:51:20 lightdruid Exp $
+# $Id: messagedialog.py,v 1.3 2006/01/04 15:10:10 lightdruid Exp $
 #
 
+import sys
 import wx
 
 from persistence import PersistenceMixin
+
+sys.path.insert(0, '../..')
+from events import *
 
 class MySplitter(wx.SplitterWindow):
     def __init__(self, parent, ID):
@@ -20,6 +24,8 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
         wx.Dialog.__init__(self, parent, ID, title, size = size, style = style)
         PersistenceMixin.__init__(self, 'test.save')
+
+        self._parent = parent
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -40,35 +46,33 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         box2 = wx.StaticBox(self, -1)
         self.boxSizer2 = wx.StaticBoxSizer(box2, wx.HORIZONTAL)
 
-#        self._incoming = wx.TextCtrl(self, -1, "If supported by the native control, this is red, and this is a different font.",
-#            size=(200, 100), style=wx.TE_MULTILINE|wx.TE_RICH2)
-
         self.splitter = MySplitter(self, ID_SPLITTER)
 
-        frame1 = wx.Panel(self.splitter, style=0)
-        frame1sizer = wx.BoxSizer(wx.VERTICAL)
-        self._incoming = wx.TextCtrl(frame1, -1, "If supported by the native control, this is red, and this is a different font.",
+        self.incoming = wx.Panel(self.splitter, style=0)
+        self.incomingSizer = wx.BoxSizer(wx.VERTICAL)
+        self._incoming = wx.TextCtrl(self.incoming, -1, "If supported by the native control, this is red, and this is a different font.",
             style=wx.TE_MULTILINE|wx.TE_RICH2|wx.CLIP_CHILDREN)
-        frame1sizer.Add(self._incoming, 1, wx.EXPAND, 1)
-        frame1.SetSizer(frame1sizer)
-        frame1.SetAutoLayout(True)
-        frame1.SetBackgroundColour("pink")
-        frame1sizer.Fit(frame1)
+        self.incomingSizer.Add(self._incoming, 1, wx.EXPAND, 1)
+        self.incoming.SetSizer(self.incomingSizer)
+        self.incoming.SetAutoLayout(True)
+        self.incoming.SetBackgroundColour("pink")
+        self.incomingSizer.Fit(self.incoming)
 
-        frame2 = wx.Panel(self.splitter, style=0)
-        frame2sizer = wx.BoxSizer(wx.VERTICAL)
-        self._outgoing = wx.TextCtrl(frame2, -1, "If supported by the native control, this is red, and this is a different font.",
+        self.outgoing = wx.Panel(self.splitter, style=0)
+        self.outgoingSizer = wx.BoxSizer(wx.VERTICAL)
+        self._outgoing = wx.TextCtrl(self.outgoing, -1, "If supported by the native control, this is red, and this is a different font.",
             size=wx.DefaultSize, style=wx.TE_MULTILINE|wx.TE_RICH2)
-        frame2sizer.Add(self._outgoing, 1, wx.EXPAND, 1)
-        frame2.SetSizer(frame2sizer)
-        frame2.SetAutoLayout(True)
-        frame2.SetBackgroundColour("sky blue")
-        frame2sizer.Fit(frame1)
+        self.outgoingSizer.Add(self._outgoing, 1, wx.EXPAND, 1)
+        self.outgoing.SetSizer(self.outgoingSizer)
+        self.outgoing.SetAutoLayout(True)
+        self.outgoing.SetBackgroundColour("sky blue")
+        self.outgoingSizer.Fit(self.incoming)
 
         self.splitter.SetMinimumPaneSize(20)
-        self.splitter.SplitHorizontally(frame1, frame2, -100)
+        self.splitter.SplitHorizontally(self.incoming, self.outgoing, -100)
 
         self._pane = self.splitter
+        self.outgoing.SetFocus()
 
         self.boxSizer2.Add(self._pane, 1, wx.EXPAND)
 
@@ -82,27 +86,33 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.sizer.Add(self.boxSizer3, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
+
         # ---
         self._userName = ''
+        # In this case title = username
+        self.setUserName(title)
+        self.setTitle(title)
 
         try:
-            self.restoreObjects([self.GetId(), wx.ID_OK, ID_SPLITTER])
+            self.restoreObjects([self.GetId(), wx.ID_OK, ID_SPLITTER],
+                name = self._userName)
         except Exception, e:
             print e.__class__, e
 
         # ---
-        self.setUserName('123')
-        self.setTitle('123')
 
-        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Bind(wx.EVT_BUTTON, self.OnOk, id = wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id = wx.ID_CANCEL)
-#        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
         self.SetAutoLayout(True)
 
     def storeWidgets(self):
-        self.storeObjects([self, self.buttonOk, self.splitter])
+        self.storeObjects([self, self.buttonOk, self.splitter],
+            name = self._userName)
+
+        evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
+        evt.setVal(self.GetId())
+        self._parent.GetEventHandler().ProcessEvent(evt)
 
     def OnCancel(self, evt):
         print 'OnCancel'
@@ -111,11 +121,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
     def OnOk(self, evt):
         print 'OnOk'
-        self.storeWidgets()
-        evt.Skip()
-
-    def OnCloseWindow(self, evt):
-        print 'OnCloseWindow'
         self.storeWidgets()
         evt.Skip()
 
