@@ -1,14 +1,52 @@
 
 #
-# $Id: persistence.py,v 1.1 2005/12/29 13:12:24 lightdruid Exp $
+# $Id: persistence.py,v 1.2 2006/01/04 12:22:36 lightdruid Exp $
 #
 
 import wx
 import cPickle
 
 class PersistenceMixin:
-    def __init__(self, fileName):
+    def __init__(self, fileName, objs = []):
         self._fileName = fileName
+
+        # objs is a list of objects we want to store too
+        # ATTENTION: all their IDs must be unique and DEFINED explicitly
+        self._objs = objs
+
+    def setObjects(self, olist):
+        self._objs = olist
+
+    def storeObjects(self, objs = None):
+        if objs is None: objs = self._objs
+        d = {}
+
+        for o in objs:
+            ids = o.GetId()
+            print 'Processing', o.__class__, ids
+
+            pos = self.FindWindowById(ids).GetPosition()
+            size = self.FindWindowById(ids).GetSize()
+
+            d[ids] = (pos, size)
+
+        fn = self._fileName + '.widgets'
+        fp = open(fn, "wb")
+        cPickle.dump(d, fp)
+        fp.close()
+
+    def restoreObjects(self, ids):
+        fn = self._fileName + '.widgets'
+        fp = open(fn, "rb")
+        d = cPickle.load(fp)
+        fp.close()
+
+        for ids in d:
+            pos, size = d[ids]
+
+            self.FindWindowById(ids).SetPosition(pos)
+            self.FindWindowById(ids).SetSize(size)
+            self.FindWindowById(ids).Layout()
 
     def storeGeometry(self):
         fp = open(self._fileName, "wb")
@@ -50,5 +88,35 @@ class PersistenceMixin:
 
         self.SetPosition(pos)
         self.Layout()
+
+
+def _test():
+    ID_PANEL = wx.NewId()
+    ID_BUTTON = wx.NewId()
+
+    class MyFrame(wx.Frame, PersistenceMixin):
+        def __init__(self, parent):
+            wx.Frame.__init__(self, parent, -1)
+            PersistenceMixin.__init__(self, 'test.save')
+            p = wx.Panel(self, ID_PANEL)
+            b = wx.Button(p, ID_BUTTON)
+
+            self.setObjects([p, b])
+            self.storeObjects()
+            self.restoreObjects([ID_PANEL, ID_BUTTON])
+            self.Layout()
+
+    class MyApp(wx.App):
+        def OnInit(self):
+            frame = MyFrame(None)
+            self.SetTopWindow(frame)
+            frame.Show(True)
+            return True
+
+    app = MyApp(0)
+    app.MainLoop()
+
+if __name__ == '__main__':
+    _test()
 
 # ---

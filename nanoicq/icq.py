@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.16 2005/12/29 12:25:22 lightdruid Exp $
+# $Id: icq.py,v 1.17 2006/01/04 12:22:36 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -287,7 +287,8 @@ class Protocol:
             self._gui.dispatch(kw, kws)
 
     def readConfig(self, config):
-        self._host, self._port = config.get('icq', 'host').split(':')
+        self._config = config
+        self._host, self._port = self._config.get('icq', 'host').split(':')
         self._port = int(self._port)
 
     def connect(self, host = None, port = None):
@@ -345,23 +346,24 @@ class Protocol:
     def readSNAC(self, data):
         return list(struct.unpack("!HHBBL", data[:10])) + [data[10:]]
 
-    def sendAuth(self):
-        # 264025324
+    def sendAuth(self, username = None):
+        if username is None:
+            username = self._config.get('icq', 'username')
         self.username = username
         encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
 
         self.sendFLAP(0x01, '\000\000\000\001'+
-            tlv(0x01,self.username)+
-            tlv(0x02,encpass)+
-            tlv(0x03,'ICQ Inc. - Product of ICQ (TM).2001b.5.18.1.3659.85')+
-            tlv(0x16,"\x01\x0a")+
-            tlv(0x17,"\x00\x05")+
-            tlv(0x18,"\x00\x12")+
-            tlv(0x19,"\000\001")+
-            tlv(0x1a,"\x0eK")+
-            tlv(0x14,"\x00\x00\x00U")+
-            tlv(0x0f,"en")+
-            tlv(0x0e,"us"))
+            tlv(0x01, self.username)+
+            tlv(0x02, encpass)+
+            tlv(0x03, 'ICQ Inc. - Product of ICQ (TM).2001b.5.18.1.3659.85')+
+            tlv(0x16, "\x01\x0a")+
+            tlv(0x17, "\x00\x05")+
+            tlv(0x18, "\x00\x12")+
+            tlv(0x19, "\000\001")+
+            tlv(0x1a, "\x0eK")+
+            tlv(0x14, "\x00\x00\x00U")+
+            tlv(0x0f, "en")+
+            tlv(0x0e, "us"))
 
     def dispatch(self, ch):
         sfunc = "proc_%d_0_0" % ch
@@ -1158,7 +1160,7 @@ def _test():
     buf = p.read()
     log().packetin(buf)
 
-    p.sendAuth()
+    p.sendAuth(username)
     buf = p.read()
     log().packetin(buf)
 

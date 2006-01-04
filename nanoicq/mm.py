@@ -2,7 +2,7 @@
 #
 # Multimethods
 #
-# $Id: mm.py,v 1.1 2006/01/04 11:08:44 lightdruid Exp $
+# $Id: mm.py,v 1.2 2006/01/04 12:22:36 lightdruid Exp $
 #
 
 # This code is from http://www.artima.com/forums/flat.jsp?forum=106&thread=101605 
@@ -59,6 +59,7 @@ def symmetric_mm(*types):
 
 if __name__ == '__main__':
     import unittest
+
     @symmetric_mm(int, float)
     def test(a, b):
         return a * b

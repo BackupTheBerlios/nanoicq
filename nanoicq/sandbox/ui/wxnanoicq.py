@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.17 2005/12/29 13:12:24 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.18 2006/01/04 12:22:36 lightdruid Exp $
 #
 
 
@@ -34,6 +34,7 @@ import guidebug
 from logger import log, LogException
 from messagedialog import MessageDialog
 from persistence import PersistenceMixin
+from utils import *
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -91,10 +92,12 @@ class ICQThreaded(icq.Protocol):
                 typ, value, tb = sys.exc_info()
                 list = traceback.format_tb(tb, None) + \
                     traceback.format_exception_only(type, value)
-                print "%s %s" % (
+                err = "%s %s" % (
                     "".join(list[:-1]),
                     list[-1],
                 )
+                print 'ERROR: ', msg
+                guidebug.message(msg)
                 print 'KEEP RUNNING'
 
         self.running = False
@@ -170,7 +173,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         func = getattr(self, fn, None)
         print 'going to call ' + fn
 
-        guidebug.message(str(kw[1:][0]))
+        #guidebug.message(str(kw[1:][0]))
         func(kw[1:][0])
 
     def event_New_buddy(self, kw):
@@ -178,22 +181,28 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print str(kw)
 
         b = kw['buddy']
-        guidebug.message(str(b))
+        #guidebug.message(str(b))
 
         try:
             self.addBuddy(b)
         except Exception, v:
             wx.MessageBox(str(v), "Exception Message")
 
+    @dtrace
     def event_Login_done(self, kw):
         print 'Called event_Login_done with '
         print str(kw)
         self.updateStatusBar('Online')
 
+    @dtrace
     def event_Login(self, kw):
         print 'Called event_Login with '
         print str(kw)
         self.updateStatusBar('Logging in...')
+
+    @dtrace
+    def event_Logoff(self, kw):
+        self.updateStatusBar('Offline')
 
     def addBuddy(self, b):
         self.il = wx.ImageList(16, 16)
