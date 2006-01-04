@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.20 2006/01/04 15:10:10 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.21 2006/01/04 16:38:30 lightdruid Exp $
 #
 
 
@@ -124,6 +124,27 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
+        self._parent = parent
+
+        self.currentItem = -1
+
+        self.Bind(wx.EVT_LEFT_DCLICK, self.onDoubleClick)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self)
+
+    def getColumnText(self, index, col):
+        item = self.GetItem(index, col)
+        return item.GetText()
+
+    def onItemSelected(self, evt):
+        self.currentItem = evt.m_itemIndex
+
+    def onDoubleClick(self, evt):
+        print "OnDoubleClick item %d:%s\n" % (self.currentItem, self.getColumnText(self.currentItem, 1))
+        evt.Skip()
+
+        evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
+        evt.setVal((self.currentItem, self.getColumnText(self.currentItem, 1)))
+        self._parent.GetEventHandler().ProcessEvent(evt)
 
 
 class TopFrame(wx.Frame, PersistenceMixin):
@@ -158,18 +179,27 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print result
 
         self._dialogs = []
-        self.OnTest(1)
+#        self.OnTest(1)
 
         self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
+        self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
 
         # ---
+
+    def onMessagePrepare(self, evt):
+        evt.Skip()
+        print 'onMessagePrepare', evt.getVal()
+
+        currentItem, userName = evt.getVal()
+        self.showMessage(userName)
 
     def dialogClose(self, evt):
         print evt, evt.getVal()
         ii = 0
         for d in self._dialogs:
-            print d.GetId()
+            
             if d.GetId() == evt.getVal():
+                print 'DELETE:', d.GetId()
                 del self._dialogs[ii]
                 return
             ii += 1
@@ -263,10 +293,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.SetStatusBar(self.sb)
 
     def OnClose(self, evt):
+        evt.Skip()
         self.storeGeometry()
         for d in self._dialogs:
+            print 'storing: ', d.GetName()
             d.storeWidgets()
-        evt.Skip()
 
     def OnExit(self, *evts):
         self.storeGeometry()
@@ -288,9 +319,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def OnTest(self, evt):
 #        self.connector['icq'].sendMessage1('177033621', 
 #            'Msg:' + time.asctime(time.localtime()), autoResponse = True)
-
         import random
-        d = MessageDialog(self, -1, str(random.random()))
+        self.showMessage(str(random.random()))
+
+    def showMessage(self, userName, message = None):
+
+        d = MessageDialog(self, -1, userName)
         icon = d.GetParent().prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
         d.Show()
@@ -298,6 +332,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         print 'appending dialog', d.GetId()
         self._dialogs.append(d)
+        print self._dialogs
 
         print 'done'
 
@@ -319,7 +354,7 @@ class TopPanel(wx.Panel):
         info.m_text = "User"
         self.userList.InsertColumnInfo(1, info)
 
-#        self.sampleFill()
+        self.sampleFill()
         self.userList.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.userList.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 

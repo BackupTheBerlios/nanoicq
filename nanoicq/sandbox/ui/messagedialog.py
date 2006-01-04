@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.3 2006/01/04 15:10:10 lightdruid Exp $
+# $Id: messagedialog.py,v 1.4 2006/01/04 16:38:30 lightdruid Exp $
 #
 
 import sys
@@ -12,17 +12,20 @@ sys.path.insert(0, '../..')
 from events import *
 
 class MySplitter(wx.SplitterWindow):
-    def __init__(self, parent, ID):
+    def __init__(self, parent, ID, name):
         wx.SplitterWindow.__init__(self, parent, ID,
-            style = wx.SP_LIVE_UPDATE)
+            style = wx.SP_LIVE_UPDATE, name = name)
 
 ID_SPLITTER = 8000
 
 class MessageDialog(wx.Dialog, PersistenceMixin):
-    def __init__(self, parent, ID, title, size = wx.DefaultSize, 
+    def __init__(self, parent, ID, userName, message = '', size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
-        wx.Dialog.__init__(self, parent, ID, title, size = size, style = style)
+
+        wx.Dialog.__init__(self, parent, ID, userName, size = size,
+            style = style, name = 'message_dialog_' + userName)
+
         PersistenceMixin.__init__(self, 'test.save')
 
         self._parent = parent
@@ -46,11 +49,12 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         box2 = wx.StaticBox(self, -1)
         self.boxSizer2 = wx.StaticBoxSizer(box2, wx.HORIZONTAL)
 
-        self.splitter = MySplitter(self, ID_SPLITTER)
+        self.splitter = MySplitter(self, ID_SPLITTER,
+            name = 'splitter_' + userName)
 
         self.incoming = wx.Panel(self.splitter, style=0)
         self.incomingSizer = wx.BoxSizer(wx.VERTICAL)
-        self._incoming = wx.TextCtrl(self.incoming, -1, "If supported by the native control, this is red, and this is a different font.",
+        self._incoming = wx.TextCtrl(self.incoming, -1, "",
             style=wx.TE_MULTILINE|wx.TE_RICH2|wx.CLIP_CHILDREN)
         self.incomingSizer.Add(self._incoming, 1, wx.EXPAND, 1)
         self.incoming.SetSizer(self.incomingSizer)
@@ -58,9 +62,11 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.incoming.SetBackgroundColour("pink")
         self.incomingSizer.Fit(self.incoming)
 
+        self._incoming.SetValue(message)
+
         self.outgoing = wx.Panel(self.splitter, style=0)
         self.outgoingSizer = wx.BoxSizer(wx.VERTICAL)
-        self._outgoing = wx.TextCtrl(self.outgoing, -1, "If supported by the native control, this is red, and this is a different font.",
+        self._outgoing = wx.TextCtrl(self.outgoing, -1, "",
             size=wx.DefaultSize, style=wx.TE_MULTILINE|wx.TE_RICH2)
         self.outgoingSizer.Add(self._outgoing, 1, wx.EXPAND, 1)
         self.outgoing.SetSizer(self.outgoingSizer)
@@ -78,7 +84,8 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         box3 = wx.StaticBox(self, -1)
         self.boxSizer3 = wx.StaticBoxSizer(box3, wx.HORIZONTAL)
-        self.buttonOk = wx.Button(self, wx.ID_OK, 'Send')
+        self.buttonOk = wx.Button(self, wx.ID_OK, 'Send',
+            name = 'buttonOk_' + userName)
         self.boxSizer3.Add(self.buttonOk, 0, wx.ALIGN_RIGHT)
 
         # -- wrap up
@@ -88,10 +95,9 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
 
         # ---
-        self._userName = ''
         # In this case title = username
-        self.setUserName(title)
-        self.setTitle(title)
+        self.setUserName(userName)
+        self.setTitle(userName)
 
         try:
             self.restoreObjects([self.GetId(), wx.ID_OK, ID_SPLITTER],
@@ -100,7 +106,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
             print e.__class__, e
 
         # ---
-
         self.Bind(wx.EVT_BUTTON, self.OnOk, id = wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id = wx.ID_CANCEL)
 
