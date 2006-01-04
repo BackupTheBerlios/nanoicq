@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.18 2006/01/04 12:22:36 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.19 2006/01/04 13:51:21 lightdruid Exp $
 #
 
 
@@ -156,6 +156,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
         print result
 
+        self.dialogs = []
         self.OnTest(1)
 
         # ---
@@ -190,14 +191,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     @dtrace
     def event_Login_done(self, kw):
-        print 'Called event_Login_done with '
-        print str(kw)
         self.updateStatusBar('Online')
 
     @dtrace
     def event_Login(self, kw):
-        print 'Called event_Login with '
-        print str(kw)
         self.updateStatusBar('Logging in...')
 
     @dtrace
@@ -253,6 +250,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def OnClose(self, evt):
         self.storeGeometry()
+        print 'storing...'
+        for d in self.dialogs:
+            d.storeWidgets()
         evt.Skip()
 
     def OnExit(self, *evts):
@@ -281,6 +281,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         d.SetIcon(icon)
         d.Show()
         d.SetFocus()
+
+        self.dialogs.append(d)
 
         print 'done'
 

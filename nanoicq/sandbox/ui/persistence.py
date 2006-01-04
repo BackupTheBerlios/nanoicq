@@ -1,6 +1,6 @@
 
 #
-# $Id: persistence.py,v 1.2 2006/01/04 12:22:36 lightdruid Exp $
+# $Id: persistence.py,v 1.3 2006/01/04 13:51:21 lightdruid Exp $
 #
 
 import wx
@@ -17,7 +17,7 @@ class PersistenceMixin:
     def setObjects(self, olist):
         self._objs = olist
 
-    def storeObjects(self, objs = None):
+    def storeObjects(self, objs = None, name = 'COMMON'):
         if objs is None: objs = self._objs
         d = {}
 
@@ -28,24 +28,32 @@ class PersistenceMixin:
             pos = self.FindWindowById(ids).GetPosition()
             size = self.FindWindowById(ids).GetSize()
 
-            d[ids] = (pos, size)
+            try:
+                sash = self.FindWindowById(ids).GetSashPosition()
+            except:
+                sash = None
 
-        fn = self._fileName + '.widgets'
+            d[ids] = (pos, size, sash)
+
+        fn = self._fileName + '.' + name + '.widgets'
         fp = open(fn, "wb")
         cPickle.dump(d, fp)
         fp.close()
 
-    def restoreObjects(self, ids):
-        fn = self._fileName + '.widgets'
+    def restoreObjects(self, ids, name = 'COMMON'):
+        fn = self._fileName + '.' + name + '.widgets'
         fp = open(fn, "rb")
         d = cPickle.load(fp)
         fp.close()
 
         for ids in d:
-            pos, size = d[ids]
+            pos, size, sash = d[ids]
+            print 'restoring', ids, pos, size, sash, self.FindWindowById(ids)
 
             self.FindWindowById(ids).SetPosition(pos)
             self.FindWindowById(ids).SetSize(size)
+            if sash is not None:
+                self.FindWindowById(ids).SetSashPosition(sash)
             self.FindWindowById(ids).Layout()
 
     def storeGeometry(self):

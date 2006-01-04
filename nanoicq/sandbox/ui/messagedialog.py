@@ -1,20 +1,25 @@
 
 #
-# $Id: messagedialog.py,v 1.1 2006/01/04 12:24:57 lightdruid Exp $
+# $Id: messagedialog.py,v 1.2 2006/01/04 13:51:20 lightdruid Exp $
 #
 
 import wx
 
+from persistence import PersistenceMixin
+
 class MySplitter(wx.SplitterWindow):
     def __init__(self, parent, ID):
         wx.SplitterWindow.__init__(self, parent, ID,
-                                   style = wx.SP_LIVE_UPDATE
-                                   )
-class MessageDialog(wx.Dialog):
+            style = wx.SP_LIVE_UPDATE)
+
+ID_SPLITTER = 8000
+
+class MessageDialog(wx.Dialog, PersistenceMixin):
     def __init__(self, parent, ID, title, size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
         wx.Dialog.__init__(self, parent, ID, title, size = size, style = style)
+        PersistenceMixin.__init__(self, 'test.save')
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -38,7 +43,7 @@ class MessageDialog(wx.Dialog):
 #        self._incoming = wx.TextCtrl(self, -1, "If supported by the native control, this is red, and this is a different font.",
 #            size=(200, 100), style=wx.TE_MULTILINE|wx.TE_RICH2)
 
-        self.splitter = MySplitter(self, -1)
+        self.splitter = MySplitter(self, ID_SPLITTER)
 
         frame1 = wx.Panel(self.splitter, style=0)
         frame1sizer = wx.BoxSizer(wx.VERTICAL)
@@ -69,19 +74,50 @@ class MessageDialog(wx.Dialog):
 
         box3 = wx.StaticBox(self, -1)
         self.boxSizer3 = wx.StaticBoxSizer(box3, wx.HORIZONTAL)
-        self.boxSizer3.Add(wx.Button(self, -1, 'Send'), 0, wx.ALIGN_RIGHT)
+        self.buttonOk = wx.Button(self, wx.ID_OK, 'Send')
+        self.boxSizer3.Add(self.buttonOk, 0, wx.ALIGN_RIGHT)
 
         # -- wrap up
         self.sizer.Add(self.boxSizer2, 4, wx.EXPAND)
-        self.sizer.Add(self.boxSizer3, 1, wx.EXPAND)
+        self.sizer.Add(self.boxSizer3, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
         # ---
         self._userName = ''
 
+        try:
+            self.restoreObjects([self.GetId(), wx.ID_OK, ID_SPLITTER])
+        except Exception, e:
+            print e.__class__, e
+
         # ---
         self.setUserName('123')
         self.setTitle('123')
+
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, id = wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, id = wx.ID_CANCEL)
+#        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+        self.SetAutoLayout(True)
+
+    def storeWidgets(self):
+        self.storeObjects([self, self.buttonOk, self.splitter])
+
+    def OnCancel(self, evt):
+        print 'OnCancel'
+        self.storeWidgets()
+        evt.Skip()
+
+    def OnOk(self, evt):
+        print 'OnOk'
+        self.storeWidgets()
+        evt.Skip()
+
+    def OnCloseWindow(self, evt):
+        print 'OnCloseWindow'
+        self.storeWidgets()
+        evt.Skip()
 
     def setTitle(self, title):
         self.SetTitle(title)
