@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.22 2006/01/05 14:41:38 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.23 2006/01/05 16:31:34 lightdruid Exp $
 #
 
 
@@ -128,7 +128,8 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self._parent = parent
 
         self.currentItem = -1
-
+        self.buddies = {}
+ 
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDoubleClick)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self)
 
@@ -373,12 +374,14 @@ class TopPanel(wx.Panel):
         self.userList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
         # Here we need to setup a list data
-        error
 
         items = musicdata.items()
         for key, data in items:
             index = self.userList.InsertImageStringItem(sys.maxint, data[0], self.idx1)
             self.userList.SetStringItem(index, 1, data[1])
+            b = Buddy()
+            b.name = str(key)
+            self.userList.buddies[key] = b
             self.userList.SetItemData(index, key)
 
 
@@ -388,7 +391,7 @@ class NanoApp(wx.App):
         self.SetTopWindow(frame)
         frame.Show(True)
         return True
-        
+
 app = NanoApp(redirect = False)
 app.MainLoop()
 
