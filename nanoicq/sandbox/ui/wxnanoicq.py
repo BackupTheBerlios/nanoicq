@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.21 2006/01/04 16:38:30 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.22 2006/01/05 14:41:38 lightdruid Exp $
 #
 
 
@@ -36,6 +36,7 @@ from messagedialog import MessageDialog
 from persistence import PersistenceMixin
 from utils import *
 from events import *
+from message import Message
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -191,19 +192,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'onMessagePrepare', evt.getVal()
 
         currentItem, userName = evt.getVal()
-        self.showMessage(userName)
+        message = Message(0, '')
+        self.showMessage(userName, message)
 
     def dialogClose(self, evt):
-        print evt, evt.getVal()
-        ii = 0
-        for d in self._dialogs:
-            
-            if d.GetId() == evt.getVal():
-                print 'DELETE:', d.GetId()
-                del self._dialogs[ii]
-                return
-            ii += 1
-        raise Exception("dialog not found")
+        print 'dialog close data:', evt, evt.getVal()
+        print 'self._dialogs: ', self._dialogs
 
     def updateStatusBar(self, msg):
         self.sb.SetStatusText(msg, 0)
@@ -322,9 +316,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         import random
         self.showMessage(str(random.random()))
 
-    def showMessage(self, userName, message = None):
+    def showMessage(self, userName, message):
 
-        d = MessageDialog(self, -1, userName)
+        d = MessageDialog(self, -1, userName, message)
         icon = d.GetParent().prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
         d.Show()
@@ -377,6 +371,9 @@ class TopPanel(wx.Panel):
         self.il = wx.ImageList(16, 16)
         self.idx1 = self.il.Add(images.getSmilesBitmap())
         self.userList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
+        # Here we need to setup a list data
+        error
 
         items = musicdata.items()
         for key, data in items:

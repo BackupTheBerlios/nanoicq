@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.4 2006/01/04 16:38:30 lightdruid Exp $
+# $Id: messagedialog.py,v 1.5 2006/01/05 14:41:38 lightdruid Exp $
 #
 
 import sys
@@ -10,6 +10,7 @@ from persistence import PersistenceMixin
 
 sys.path.insert(0, '../..')
 from events import *
+from message import Message
 
 class MySplitter(wx.SplitterWindow):
     def __init__(self, parent, ID, name):
@@ -17,9 +18,10 @@ class MySplitter(wx.SplitterWindow):
             style = wx.SP_LIVE_UPDATE, name = name)
 
 ID_SPLITTER = 8000
+ID_BUTTON_SEND = 8001
 
 class MessageDialog(wx.Dialog, PersistenceMixin):
-    def __init__(self, parent, ID, userName, message = '', size = wx.DefaultSize, 
+    def __init__(self, parent, ID, userName, message, size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
 
@@ -28,6 +30,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         PersistenceMixin.__init__(self, 'test.save')
 
+        assert isinstance(message, Message)
         self._parent = parent
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -62,7 +65,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.incoming.SetBackgroundColour("pink")
         self.incomingSizer.Fit(self.incoming)
 
-        self._incoming.SetValue(message)
+        self._incoming.SetValue(message.getContents())
 
         self.outgoing = wx.Panel(self.splitter, style=0)
         self.outgoingSizer = wx.BoxSizer(wx.VERTICAL)
@@ -84,7 +87,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         box3 = wx.StaticBox(self, -1)
         self.boxSizer3 = wx.StaticBoxSizer(box3, wx.HORIZONTAL)
-        self.buttonOk = wx.Button(self, wx.ID_OK, 'Send',
+        self.buttonOk = wx.Button(self, ID_BUTTON_SEND, 'Send',
             name = 'buttonOk_' + userName)
         self.boxSizer3.Add(self.buttonOk, 0, wx.ALIGN_RIGHT)
 
@@ -93,21 +96,20 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.sizer.Add(self.boxSizer3, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
-
         # ---
         # In this case title = username
         self.setUserName(userName)
         self.setTitle(userName)
 
         try:
-            self.restoreObjects([self.GetId(), wx.ID_OK, ID_SPLITTER],
+            self.restoreObjects([self.GetId(), ID_BUTTON_SEND, ID_SPLITTER],
                 name = self._userName)
         except Exception, e:
             print e.__class__, e
 
         # ---
-        self.Bind(wx.EVT_BUTTON, self.OnOk, id = wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnCancel, id = wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.onSendMessage, id = ID_BUTTON_SEND)
+        self.Bind(wx.EVT_BUTTON, self.onCancel, id = wx.ID_CANCEL)
 
         self.SetAutoLayout(True)
 
@@ -115,18 +117,26 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.storeObjects([self, self.buttonOk, self.splitter],
             name = self._userName)
 
+        print 'Sending close event for dialog...', self.GetId()
         evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
         evt.setVal(self.GetId())
         self._parent.GetEventHandler().ProcessEvent(evt)
+        print 'Close event sent', self.GetId()
 
-    def OnCancel(self, evt):
-        print 'OnCancel'
+    def onCancel(self, evt):
+        print 'onCancel'
         self.storeWidgets()
         evt.Skip()
 
-    def OnOk(self, evt):
-        print 'OnOk'
-        self.storeWidgets()
+    def onSendMessage(self, evt):
+        print 'onSendMessage()'
+        print 'Sending send message event for dialog...', self.GetId()
+
+        message = Message()
+
+        evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
+        evt.setVal(self.GetId())
+        wx.GetApp().GetTopWindow().GetEventHandler().ProcessEvent(evt)
         evt.Skip()
 
     def setTitle(self, title):
