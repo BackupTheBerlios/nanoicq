@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.23 2006/01/05 16:31:34 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.24 2006/01/08 19:40:19 lightdruid Exp $
 #
 
 
@@ -98,8 +98,8 @@ class ICQThreaded(icq.Protocol):
                     "".join(list[:-1]),
                     list[-1],
                 )
-                print 'ERROR: ', msg
-                guidebug.message(msg)
+                print 'ERROR: ', err
+                guidebug.message(err)
                 print 'KEEP RUNNING'
 
         self.running = False
@@ -185,15 +185,25 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
         self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
+        self.Bind(EVT_SEND_MESSAGE, self.onSendMessage)
 
         # ---
+
+    def onSendMessage(self, evt):
+        print 'GUI got message: ', evt
+        ids, message = evt.getVal()
+#        print "From %d id and contents are (%s) '%s'" %\
+#            (ids, type(message), punicode(str(message)))
+
+        # FIXME: only icq handled
+        self.connector['icq'].sendMessage(message)
 
     def onMessagePrepare(self, evt):
         evt.Skip()
         print 'onMessagePrepare', evt.getVal()
 
         currentItem, userName = evt.getVal()
-        message = Message(0, '')
+        message = Message(0, '', '')
         self.showMessage(userName, message)
 
     def dialogClose(self, evt):

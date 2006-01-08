@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.5 2006/01/05 14:41:38 lightdruid Exp $
+# $Id: messagedialog.py,v 1.6 2006/01/08 19:40:19 lightdruid Exp $
 #
 
 import sys
@@ -132,10 +132,11 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         print 'onSendMessage()'
         print 'Sending send message event for dialog...', self.GetId()
 
-        message = Message()
+        message = Message(Message.ICQ_MESSAGE,
+            self._userName, self._outgoing.GetValue())
 
         evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
-        evt.setVal(self.GetId())
+        evt.setVal( (self.GetId(), message) )
         wx.GetApp().GetTopWindow().GetEventHandler().ProcessEvent(evt)
         evt.Skip()
 

@@ -1,11 +1,19 @@
 
 #
-# $Id: utils.py,v 1.9 2006/01/04 12:22:36 lightdruid Exp $
+# $Id: utils.py,v 1.10 2006/01/08 19:40:19 lightdruid Exp $
 #
 
 import string
 import cPickle
-import time, random
+import sys, codecs, time, random
+
+if sys.platform == 'win32':
+    _enc, _dec, _srdr, _swtr = codecs.lookup('cp1251')
+else:
+    raise Exception('Codecs are not yet tuned for platform other than Win32')
+
+def punicode(s):
+    return unicode(_dec(s))
 
 def dtrace(f, name = None):
     '''

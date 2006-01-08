@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.17 2006/01/04 12:22:36 lightdruid Exp $
+# $Id: icq.py,v 1.18 2006/01/08 19:40:19 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1107,12 +1107,18 @@ class Protocol:
 
             func(snac[5])
 
-    def sendMessage1(self, user, message, thruServer = True, ack = False,
+    def sendMessage(self, message, thruServer = True, ack = False,
         autoResponse = False, offline = False):
 
         # Channel 1       Channel 1 message format (plain-text messages) 
         # Channel 2       Channel 2 message format (rtf messages, rendezvous)    
         # Channel 4       Channel 4 message format (typed old-style messages)
+
+        user = message.getUser()
+
+#        print '*************************'
+#        print 'sending to 177033621 istead of', user
+#        user = '177033621'
 
         channel = 1
         channel = struct.pack('!H', channel)
@@ -1134,8 +1140,8 @@ class Protocol:
 
         charSet = 3
         charSubSet = 0
-        t += '\x01\x01' + struct.pack('!3H', len(message)+4, charSet, charSubSet)
-        t += message
+        t += '\x01\x01' + struct.pack('!3H', len(message.getContents()) + 4, charSet, charSubSet)
+        t += message.getContents()
 
         outMsg = data + tlv(2, t)
 
