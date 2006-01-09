@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.24 2006/01/08 19:40:19 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.25 2006/01/09 16:22:49 lightdruid Exp $
 #
 
 
@@ -141,7 +141,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self.currentItem = evt.m_itemIndex
 
     def onDoubleClick(self, evt):
-        print "OnDoubleClick item %d:%s\n" % (self.currentItem, self.getColumnText(self.currentItem, 1))
+        print "nDoubleClick item %d:%s" % (self.currentItem, self.getColumnText(self.currentItem, 1))
         evt.Skip()
 
         evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())

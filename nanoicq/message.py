@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.2 2006/01/08 19:40:19 lightdruid Exp $
+# $Id: message.py,v 1.3 2006/01/09 16:22:49 lightdruid Exp $
 #
 
 from utils import *
@@ -23,10 +23,46 @@ class Message:
         return "Class Message (type: %d, dest: %s, content: %s)" %\
             (self._typ, str(self._user), punicode(str(self._content)))
 
+    def __eq__(self, m):
+        return self._typ == m._typ and self._user == m._user and self._content == m._content
+
+class ICQMessage(Message):
+
+    def __init__(self, user, uin, content):
+        Message.__init__(self, Message.ICQ_MESSAGE, user, content)
+        assert type(uin) == type('')
+        self._uin = uin
+
+    def getUIN(self): return self._uin
+
+    def __repr__(self):
+        return "Class ICQMessage (type: %d, dest: %s, uin: %s, content: %s)" %\
+            (self._typ, str(self._user), self._uin, punicode(str(self._content)))
+
+    def __eq__(self, m):
+        return self._uin == m._uin and Message.__eq__(self, m)
+
+def messageFactory(typ, *kw, **kws):
+    if type(typ) == type(Message.ICQ_MESSAGE):
+        assert typ in [Message.ICQ_MESSAGE]
+        if typ == Message.ICQ_MESSAGE:
+            return ICQMessage(*kw, **kws)
+    if type(typ) == type(''):
+        assert typ in ["icq"]
+        if typ == "icq":
+            return ICQMessage(*kw, **kws)
+
+    raise Exception("Unknown messaeg type: " + str(typ))
 
 def _test():
-    m = Message(Message.ICQ_MESSAGE, '', 'ôûâ')
+    m = Message(Message.ICQ_MESSAGE, '', 'aaa')
     print m
+    im = ICQMessage('user', '12345', 'text')
+    print im
+    assert im.getContents() == 'text'
+
+    mm = messageFactory("icq", 'user', '12345', 'text')
+    assert mm == im
 
 if __name__ == '__main__':
     _test()

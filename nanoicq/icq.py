@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.19 2006/01/09 15:08:34 lightdruid Exp $
+# $Id: icq.py,v 1.20 2006/01/09 16:22:49 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -234,7 +234,11 @@ def encryptPasswordICQ(password):
     return r
 
 def tlv(typ, val):
-    return struct.pack("!HH", typ, len(val)) + str(val)
+#    try:
+#        sval = unicode(val)
+#    except:
+#        sval = str(val)
+    return struct.pack("!HH", typ, len(val)) + val
 
 def detlv(data):
     return struct.unpack("!HH", data[:4])
@@ -322,10 +326,10 @@ class Protocol:
         header = "!cBHH"
         if (not hasattr(self, "seqnum")):
             self.seqnum = 0
-        self.seqnum = (self.seqnum+1)%0xFFFF
+        self.seqnum = (self.seqnum + 1) % 0xFFFF
         head = struct.pack(header,'*', ch, self.seqnum, len(data))
 
-        data = head + str(data)
+        data = head + data
         log().packetout(data)
         self.send(data)
 
@@ -576,10 +580,45 @@ class Protocol:
             for ii in range(0, nitems):
                 data = self.parseSSIItem(data)
         except Exception, msg:
-            log().log("Exception while parsing SSI items")
+            log().log("Exception while parsing SSI items (%s)" % str(msg))
             
 
         log().log('Current list of groups: %s' % self._groups)
+
+    def parseSSIBuddy(self, groupID, name, tlvs):
+        '''
+        Requires group ID, default user name and list of TLV
+        '''
+
+        b = Buddy()
+
+        # Setup it's GID and UIN right now
+        b.gid = groupID
+        b.uin = name
+
+        for t in tlvs:
+            tmp = "parseSSIItem_%02X" % t
+            try:
+                func = getattr(self, tmp)
+                func(tlvs[t], b)
+
+                if b.name is None:
+                    log().log("Buddy name is missing, replacing with UID (%s)" %\
+                        name)
+                    b.name = name
+
+            except AttributeError, msg:
+                log().log("Not fatal exception got: " + str(msg))
+
+                # Bad buddy, mark it as Null, do not add to list
+                b = None
+                break
+
+        if b is not None:
+            # OK, let's pass new buddy upto gui
+            log().log("Got new buddy from SSI list: %s" % b)
+            self.react("New buddy", buddy = b)
+            self._groups.addBuddy(groupID, b)
 
     def parseSSIItem(self, data):
 
@@ -605,35 +644,7 @@ class Protocol:
             self._groups.add(groupID, 'Some group')
 
         if flagType == SSI_ITEM_BUDDY:
-            b = Buddy()
-
-            # Setup it's GID right now
-            b.gid = groupID
-
-            for t in tlvs:
-                tmp = "parseSSIItem_%02X" % t
-                try:
-                    func = getattr(self, tmp)
-                    func(tlvs[t], b)
-
-                    if b.name is None:
-                        log().log("Buddy name is missing, replacing with UID")
-                        b.name = name
-
-                    log().log("Got new buddy from SSI list: %s" % b)
-
-                    # OK, let's pass new buddy upto gui
-                    self.react("New buddy", buddy = b)
-                except AttributeError, msg:
-                    log().log("Not fatal exception got: " + str(msg))
-
-                    # Bad buddy, mark it as Null, do not add to list
-                    b = None
-                    break
-
-            if b is not None:
-                self._groups.addBuddy(groupID, b)
-
+            self.parseSSIBuddy(groupID, name, tlvs)
         else:
             for t in tlvs:
                 tmp = "parseSSIItem_%02X" % t
@@ -1165,7 +1176,7 @@ class Protocol:
         charSet = 3
         charSubSet = 0
         t += '\x01\x01' + struct.pack('!3H', len(message.getContents()) + 4, charSet, charSubSet)
-        t += message.getContents()
+        t += unicode(message.getContents())
 
         outMsg = data + tlv(2, t)
 

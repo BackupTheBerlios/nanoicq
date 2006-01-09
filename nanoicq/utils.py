@@ -1,6 +1,6 @@
 
 #
-# $Id: utils.py,v 1.11 2006/01/09 15:08:34 lightdruid Exp $
+# $Id: utils.py,v 1.12 2006/01/09 16:22:49 lightdruid Exp $
 #
 
 import string
@@ -16,7 +16,7 @@ else:
     raise Exception('Codecs are not tuned yet for platform other than Win32 (ActiveState)')
 
 def punicode(s):
-    return unicode(_dec(s))
+    return unicode(_dec(s)[0])
 
 def dtrace(f, name = None):
     '''
@@ -47,7 +47,7 @@ def dtrace2(f, name = None):
 def asPrintable(s):
     out = ''
     for c in s:
-        if c is not string.printable: c = '.'
+        if c not in string.printable: c = '.'
         out += c
     return out
 
@@ -124,5 +124,7 @@ if __name__ == '__main__':
     test2(1)
     test2(2)
     test2(3)
+
+    assert "Light Druid" == asPrintable("Light Druid")
 
 # ---
