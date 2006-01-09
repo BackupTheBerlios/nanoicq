@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.6 2006/01/08 19:40:19 lightdruid Exp $
+# $Id: messagedialog.py,v 1.7 2006/01/09 16:52:34 lightdruid Exp $
 #
 
 import sys
@@ -11,6 +11,7 @@ from persistence import PersistenceMixin
 sys.path.insert(0, '../..')
 from events import *
 from message import Message
+from history import History
 
 class MySplitter(wx.SplitterWindow):
     def __init__(self, parent, ID, name):
@@ -21,7 +22,7 @@ ID_SPLITTER = 8000
 ID_BUTTON_SEND = 8001
 
 class MessageDialog(wx.Dialog, PersistenceMixin):
-    def __init__(self, parent, ID, userName, message, size = wx.DefaultSize, 
+    def __init__(self, parent, ID, userName, message, history, size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
 
@@ -32,6 +33,9 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         assert isinstance(message, Message)
         self._parent = parent
+
+        assert isinstance(history, History)
+        self._history = history
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -131,6 +135,8 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
     def onSendMessage(self, evt):
         print 'onSendMessage()'
         print 'Sending send message event for dialog...', self.GetId()
+
+        self._history.append(History.Outgoing, self._outgoing.GetValue())
 
         message = Message(Message.ICQ_MESSAGE,
             self._userName, self._outgoing.GetValue())

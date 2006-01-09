@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.25 2006/01/09 16:22:49 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.26 2006/01/09 16:52:34 lightdruid Exp $
 #
 
 
@@ -37,6 +37,7 @@ from persistence import PersistenceMixin
 from utils import *
 from events import *
 from message import Message
+from history import History
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -329,7 +330,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def showMessage(self, userName, message):
 
-        d = MessageDialog(self, -1, userName, message)
+        h = History()
+        d = MessageDialog(self, -1, userName, message, h)
         icon = d.GetParent().prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
         d.Show()
