@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.18 2006/01/08 19:40:19 lightdruid Exp $
+# $Id: icq.py,v 1.19 2006/01/09 15:08:34 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -615,6 +615,11 @@ class Protocol:
                 try:
                     func = getattr(self, tmp)
                     func(tlvs[t], b)
+
+                    if b.name is None:
+                        log().log("Buddy name is missing, replacing with UID")
+                        b.name = name
+
                     log().log("Got new buddy from SSI list: %s" % b)
 
                     # OK, let's pass new buddy upto gui
@@ -640,6 +645,24 @@ class Protocol:
      
         data = data[8 + dataLen:]
         return data
+
+    def parseSSIItem_6D(self, t, b):
+        '''
+        Unknown
+        '''
+        log().log('Called unknown handler parseSSIItem_6D')
+
+    def parseSSIItem_66(self, t, b):
+        '''
+        [TLV(0x0066), itype 0x00, size 00] - Signifies that you are 
+        awaiting authorization for this buddy. The client is in charge 
+        of putting this TLV, but you will not receiving status 
+        updates for the contact until they authorize you, regardless 
+        if this is here or not. Meaning, this is only here to tell 
+        your client that you are waiting for authorization for the 
+        person. This TLV is always empty.
+        '''
+        log().log("This client not yet authorized you")
 
     def parseSSIItem_145(self, t, b):
         '''
@@ -1115,6 +1138,7 @@ class Protocol:
         # Channel 4       Channel 4 message format (typed old-style messages)
 
         user = message.getUser()
+        log().log("Sending message to " + user)
 
 #        print '*************************'
 #        print 'sending to 177033621 istead of', user

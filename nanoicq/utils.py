@@ -1,16 +1,19 @@
 
 #
-# $Id: utils.py,v 1.10 2006/01/08 19:40:19 lightdruid Exp $
+# $Id: utils.py,v 1.11 2006/01/09 15:08:34 lightdruid Exp $
 #
 
 import string
 import cPickle
 import sys, codecs, time, random
+import warnings
 
 if sys.platform == 'win32':
+    if sys.getwindowsversion()[0] < 5:
+        warnings.warn('Windows prior to XP/2000/2003 are not tested')
     _enc, _dec, _srdr, _swtr = codecs.lookup('cp1251')
 else:
-    raise Exception('Codecs are not yet tuned for platform other than Win32')
+    raise Exception('Codecs are not tuned yet for platform other than Win32 (ActiveState)')
 
 def punicode(s):
     return unicode(_dec(s))
