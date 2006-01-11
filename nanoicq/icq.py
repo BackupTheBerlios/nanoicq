@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.20 2006/01/09 16:22:49 lightdruid Exp $
+# $Id: icq.py,v 1.21 2006/01/11 13:55:00 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -300,7 +300,15 @@ class Protocol:
             host = self._host
         if port is None:
             port = self._port
-        self._sock = ISocket(host, port)
+
+        default_charset = None
+        try:
+            default_charset = self._config.get('icq', 'default_charset')
+        except AttributeError, msg:
+            # We don't have config, use default values
+            pass
+
+        self._sock = ISocket(host, port, default_charset)
         self._sock.connect()
         log().log("Socket connected")
 
@@ -1223,7 +1231,7 @@ def _test():
     host, port = server.split(':')
 
     # ===============
-    s = ISocket(host, int(port))
+    s = ISocket(host, int(port), 'cp1251')
     s.connect()
     p = Protocol(sock = s, connected = True)
 
