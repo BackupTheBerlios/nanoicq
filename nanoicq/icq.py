@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.21 2006/01/11 13:55:00 lightdruid Exp $
+# $Id: icq.py,v 1.22 2006/01/11 14:30:36 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -628,6 +628,9 @@ class Protocol:
             self.react("New buddy", buddy = b)
             self._groups.addBuddy(groupID, b)
 
+    def getBuddy(self, userName):
+        return self._groups.getBuddy(userName)
+
     def parseSSIItem(self, data):
 
         print '*' * 10, "Parsing SSI data..."
@@ -1134,7 +1137,7 @@ class Protocol:
             self.mainLoop()
 
     def mainLoop(self):
-        # self.keepGoing must be extenrally created or defined in derived class
+        # self.keepGoing must be externally created or defined in derived class
         while self.keepGoing:
             buf = self.read()
             log().packetin(buf)
@@ -1157,7 +1160,8 @@ class Protocol:
         # Channel 4       Channel 4 message format (typed old-style messages)
 
         user = message.getUser()
-        log().log("Sending message to " + user)
+        uin = message.getUIN()
+        log().log("Sending message to %s (%s)" % (user, uin))
 
 #        print '*************************'
 #        print 'sending to 177033621 istead of', user
@@ -1165,7 +1169,7 @@ class Protocol:
 
         channel = 1
         channel = struct.pack('!H', channel)
-        data = genCookie() + channel + struct.pack('!B', len(user)) + user
+        data = genCookie() + channel + struct.pack('!B', len(uin)) + uin
 
         # 05      byte        fragment identifier (array of required capabilities)    
         # 01     byte        fragment version    

@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.2 2005/12/27 13:48:17 lightdruid Exp $
+# $Id: group.py,v 1.3 2006/01/11 14:30:36 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -24,6 +24,9 @@ class Group:
         if gid is None: return self._b.values()
         assert gid in self._g.keys()
         return [self._b[x] for x in self._b if self._b[x].gid == gid]
+
+    def getBuddy(self, name):
+        return self._b[name]
 
     def __getitem__(self, key):
         return self._g[key]

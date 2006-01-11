@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.7 2006/01/09 16:52:34 lightdruid Exp $
+# $Id: messagedialog.py,v 1.8 2006/01/11 14:30:36 lightdruid Exp $
 #
 
 import sys
@@ -10,8 +10,9 @@ from persistence import PersistenceMixin
 
 sys.path.insert(0, '../..')
 from events import *
-from message import Message
+from message import Message, messageFactory
 from history import History
+from buddy import Buddy
 
 class MySplitter(wx.SplitterWindow):
     def __init__(self, parent, ID, name):
@@ -22,14 +23,18 @@ ID_SPLITTER = 8000
 ID_BUTTON_SEND = 8001
 
 class MessageDialog(wx.Dialog, PersistenceMixin):
-    def __init__(self, parent, ID, userName, message, history, size = wx.DefaultSize, 
+    def __init__(self, parent, ID, user, message, history, size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
 
-        wx.Dialog.__init__(self, parent, ID, userName, size = size,
-            style = style, name = 'message_dialog_' + userName)
+        wx.Dialog.__init__(self, parent, ID, user.name, size = size,
+            style = style, name = 'message_dialog_' + user.name)
 
         PersistenceMixin.__init__(self, 'test.save')
+
+        assert isinstance(user, Buddy)
+        self._user = user
+        userName = self._user.name
 
         assert isinstance(message, Message)
         self._parent = parent
@@ -42,8 +47,8 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         box1 = wx.StaticBox(self, -1)
         self.boxSizer1 = wx.StaticBoxSizer(box1, wx.HORIZONTAL)
 
-        self._user = wx.StaticText(self, -1, '')
-        self.boxSizer1.Add(self._user, 0, wx.ALIGN_LEFT)
+        self._userText = wx.StaticText(self, -1, '')
+        self.boxSizer1.Add(self._userText, 0, wx.ALIGN_LEFT)
 
         self.boxSizer1.Add((60, 20), 0, wx.EXPAND)
 
@@ -138,8 +143,11 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         self._history.append(History.Outgoing, self._outgoing.GetValue())
 
-        message = Message(Message.ICQ_MESSAGE,
-            self._userName, self._outgoing.GetValue())
+#        message = Message(Message.ICQ_MESSAGE,
+#            self._userName, self._outgoing.GetValue())
+
+        message = messageFactory("icq",
+            self._user.name, self._user.uin, self._outgoing.GetValue())
 
         evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
         evt.setVal( (self.GetId(), message) )
@@ -151,6 +159,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
     def setUserName(self, userName):
         self._userName = userName
-        self._user.SetLabel(userName)
+        self._userText.SetLabel(userName)
 
 # ---

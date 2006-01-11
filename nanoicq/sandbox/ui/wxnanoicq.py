@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.26 2006/01/09 16:52:34 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.27 2006/01/11 14:30:36 lightdruid Exp $
 #
 
 
@@ -142,11 +142,12 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self.currentItem = evt.m_itemIndex
 
     def onDoubleClick(self, evt):
-        print "nDoubleClick item %d:%s" % (self.currentItem, self.getColumnText(self.currentItem, 1))
+        userName = self.getColumnText(self.currentItem, 1)
+        print "nDoubleClick item %d:%s" % (self.currentItem, userName)
         evt.Skip()
 
         evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
-        evt.setVal((self.currentItem, self.getColumnText(self.currentItem, 1)))
+        evt.setVal((self.currentItem, userName))
         self._parent.GetEventHandler().ProcessEvent(evt)
 
 
@@ -204,6 +205,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'onMessagePrepare', evt.getVal()
 
         currentItem, userName = evt.getVal()
+        user = self.connector['icq'].getBuddy(userName)
+
         message = Message(0, '', '')
         self.showMessage(userName, message)
 
@@ -331,7 +334,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def showMessage(self, userName, message):
 
         h = History()
-        d = MessageDialog(self, -1, userName, message, h)
+        d = MessageDialog(self, -1, self.connector["icq"].getBuddy(userName), message, h)
         icon = d.GetParent().prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
         d.Show()
