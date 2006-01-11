@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.22 2006/01/11 14:30:36 lightdruid Exp $
+# $Id: icq.py,v 1.23 2006/01/11 15:25:41 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -652,7 +652,7 @@ class Protocol:
 
         # FIXME: only buddies processing 
         if flagType == SSI_ITEM_GROUP:
-            self._groups.add(groupID, 'Some group')
+            self._groups.add(groupID, name)
 
         if flagType == SSI_ITEM_BUDDY:
             self.parseSSIBuddy(groupID, name, tlvs)
@@ -673,6 +673,24 @@ class Protocol:
         Unknown
         '''
         log().log('Called unknown handler parseSSIItem_6D')
+
+
+    def parseSSIItem_D4(self, t, b):
+        '''
+         [TLV(0x00D4), itype 0x13, size 04] - TLV for import time 
+        item (type 0x0013). Contains timestamp in unix_t format 
+        (seconds since 1.1.1970) when the buddylist has been first 
+        time uploaded to the server
+        '''
+        t = struct.unpack('!L', t)[0]
+        log().log("Buddy list was first upload to server at %s" % time.asctime(time.localtime(t)))
+
+    def parseSSIItem_13A(self, t, b):
+        '''
+        [TLV(0x013A), itype 0x00, size XX] - Your buddy locally 
+        assigned SMS number.
+        '''
+        log().log("Client's SMS number: %s" % str(t))
 
     def parseSSIItem_66(self, t, b):
         '''
