@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 /*****************************************************************************************
 
 ***     MD5Checksum.cpp: implementation of the MD5Checksum class.

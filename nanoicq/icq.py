@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.23 2006/01/11 15:25:41 lightdruid Exp $
+# $Id: icq.py,v 1.24 2006/01/12 13:56:55 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -24,6 +24,7 @@ from group import Group
 
 import caps
 from logger import log, LogException
+from message import ICQMessage
 
 # for debug only
 SLEEP = 0
@@ -301,14 +302,14 @@ class Protocol:
         if port is None:
             port = self._port
 
-        default_charset = None
+        self.default_charset = None
         try:
-            default_charset = self._config.get('icq', 'default_charset')
+            self.default_charset = self._config.get('icq', 'default_charset')
         except AttributeError, msg:
             # We don't have config, use default values
             pass
 
-        self._sock = ISocket(host, port, default_charset)
+        self._sock = ISocket(host, port, self.default_charset)
         self._sock.connect()
         log().log("Socket connected")
 
@@ -325,7 +326,12 @@ class Protocol:
         return self._connected
 
     def send(self, data):
-        self._sock.send(data)
+        print 'self.send'
+        try:
+            self._sock.send(data)
+        except:
+            print 'self.send got exception'
+            raise
 
     def read(self):
         return self._sock.read(10240)
@@ -337,7 +343,11 @@ class Protocol:
         self.seqnum = (self.seqnum + 1) % 0xFFFF
         head = struct.pack(header,'*', ch, self.seqnum, len(data))
 
-        data = head + data
+        try:
+            data = head + data
+        except UnicodeEncodeError, msg:
+            data = head + data.encode(self.default_charset)
+
         log().packetout(data)
         self.send(data)
 
@@ -983,8 +993,8 @@ class Protocol:
         sname = data[11:11 + snameLen]
         data = data[11 + snameLen:]
 
-        log().log('Got message, channel: %d, from: %s' % 
-            (messageChannel, sname))
+        log().log('Got message from %s, channel: %d, from: %s' % 
+            (sname, messageChannel, sname))
 
         senderWarningLevel = int(struct.unpack('!H', data[0:2])[0])
         tlvNumber = int(struct.unpack('!H', data[2:4])[0])
@@ -1010,7 +1020,21 @@ class Protocol:
         # Dispatch on message channel
         tmp = "proc_2_4_7_%d" % messageChannel
         func = getattr(self, tmp)
-        func(tlvs)
+        msg = func(tlvs)
+
+        try:
+            if msg == 'winamp':
+                from thirdparty.WinampInfo import WinampInfo
+                w = WinampInfo()
+                reply = "Andrey Sidorenko's WinAmp status:"  + " "
+                reply += w.getPlayingStatus() + " "
+                reply += w.getCurrentTrackName() + " "
+                print reply
+                msg = ICQMessage(sname, sname, reply)
+                self.sendMessage(msg)
+        except Exception, msg:
+            print msg
+            pass
 
     # 13 1C / 19 28
 
@@ -1060,6 +1084,8 @@ class Protocol:
         msg = t[6:]
 
         log().log('Message type 1: ' + str(msg))
+        return msg
+
 
     def proc_2_2_3(self, data):
         ''' Client service parameters request '''
@@ -1203,10 +1229,17 @@ class Protocol:
         # ff ff      word        Message language number 
         # xx ..      string (ascii)      Message text string
 
+        log().log("Sending %d '%s'" % (len(message.getContents()), message.getContents()))
+        print coldump(message.getContents())
+
         charSet = 3
         charSubSet = 0
+
+        print 'pass 1'
         t += '\x01\x01' + struct.pack('!3H', len(message.getContents()) + 4, charSet, charSubSet)
+        print 'pass 2'
         t += unicode(message.getContents())
+        print 'pass 3'
 
         outMsg = data + tlv(2, t)
 
@@ -1217,6 +1250,7 @@ class Protocol:
         if offline:
             outMsg = outMsg + tlv(6, '')
 
+        print 'pass 4'
         self.sendSNAC(0x04, 0x06, 0, outMsg)
 
 
