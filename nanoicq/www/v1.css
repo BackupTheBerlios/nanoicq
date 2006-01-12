@@ -1,0 +1,153 @@
+body {
+  font-family: Verdana, Helvetica, Arial, Sans;
+  background-color: #EEE;
+  padding: 0;
+  margin: 0;
+  font-size: 9pt;
+  color: #444; 
+}
+
+#header {
+  margin: 12pt 0 0 0;
+  padding: 0;
+}
+
+#header h1 {
+  margin: 0;
+  padding: 0;
+}
+
+#page {
+  margin: 20px 60px 0 60px;
+}
+
+#header {
+  background-color: #FFF;
+  margin: 0;
+  width: 600px;
+  padding: 20px 40px 0px 40px;
+  border-top: 1px solid #DDD;
+  border-right: 1px solid #DDD;
+  border-left: 1px solid #DDD;
+}
+
+#content {
+  background-color: #FFF;
+  width: 600px;
+  padding: 5px 40px 40px 40px;
+  border-right: 1px solid #DDD;
+  border-left: 1px solid #DDD;
+  border-bottom: 1px solid #DDD;
+  padding-bottom: 18pt;
+}
+
+#footer {
+  width: 600px;
+  padding: 5px 40px 40px 40px;
+  border-right: 1px solid #EEE;
+  border-left: 1px solid #EEE;
+  border-bottom: 1px solid #EEE;
+  padding-bottom: 18pt;  
+}
+
+#byline {
+  margin-bottom: 12pt;
+  color: #999;
+}
+
+#navigationhead {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+#navigation {
+  margin-top: 3pt;
+  padding-top: 0;
+}
+
+#copyrightline {
+  padding-top: 12pt;
+  color: #999;
+  font-size: 8pt;
+}
+
+#copyrightline a {
+  color: #999;
+}
+
+h1 {
+  font-size: 16pt;
+}
+
+h2 {
+  font-size: 13pt;
+}
+
+h3 {
+  font-size: 11pt;
+}
+
+
+p {
+  line-height: 12pt;
+}
+
+code {
+  font-family: "Courier New", Courier, mono;
+  font-size: 10pt;
+  color: #955;
+}
+
+pre, div.code {
+  font-size: 9pt;
+  font-family: "Courier New", Courier, mono;
+  padding: 0 12pt 0 12pt;
+  margin: 12pt 0 12pt 0;
+  color: #955;
+  border-left: 1px solid #CCC;
+}
+
+a {
+  text-decoration: none;
+  color: #44c;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+
+div.essumtitle {
+  font-size: 10pt;
+}
+
+div.essumdate {
+  color: #AAA;
+  font-size: 7pt;
+  margin-bottom: 3pt;
+}
+
+div.essumdesc {
+  line-height: 12pt;
+  padding-bottom: 3pt;
+}
+
+div.lnktitle {
+  font-size: 9pt;
+}
+
+div.lnkdate {
+  color: #AAA;
+  font-size: 7pt;
+  padding-bottom: 2pt;
+}
+
+div.lnkdesc {
+  font-size: 8pt;
+  line-height: 10pt;
+  margin-bottom: 2pt;
+}
+
+span.userinput {
+  font-weight: bold;
+}
