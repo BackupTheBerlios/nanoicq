@@ -1,0 +1,163 @@
+
+#include <iostream>
+#include <list>
+
+#include <windows.h>
+
+using namespace std;
+
+#define ZZ cerr << __FILE__ << ":" << __LINE__ << endl;
+
+//typedef struct _WIN32_FIND_DATA {
+//  DWORD dwFileAttributes;
+//  FILETIME ftCreationTime;
+//  FILETIME ftLastAccessTime;
+//  FILETIME ftLastWriteTime;
+//  DWORD nFileSizeHigh;
+//  DWORD nFileSizeLow;
+//  DWORD dwReserved0;
+//  DWORD dwReserved1;
+//  TCHAR cFileName[MAX_PATH];
+//  TCHAR cAlternateFileName[14];
+//} WIN32_FIND_DATA, 
+//*PWIN32_FIND_DATA, 
+//*LPWIN32_FIND_DATA;
+
+class A {
+    WIN32_FIND_DATA findData;
+
+public:
+    void dumpList(const list<string>& lst) {
+        cout << "Directories:" << endl;
+        for(list<string>::const_iterator it = lst.begin(); it != lst.end(); it++) {
+            cout << (*it).c_str() << endl;
+        }
+    }
+
+    HANDLE ff(LPCTSTR curdir) {
+        static HANDLE hFind = FindFirstFile(curdir, &findData);
+        if (hFind == INVALID_HANDLE_VALUE) {
+            printf("Invalid File Handle. GetLastError reports %d\n", 
+                GetLastError ());
+        }
+        return hFind;
+    }
+
+    bool test1(string curdir) {
+        bool rc = true;
+        const char* top = strdup(curdir.c_str());
+        list<string> dirs;
+        HANDLE hFind;
+
+        dirs.push_back(curdir);
+
+        while(!dirs.empty()) {
+
+            curdir = dirs.front();
+            dirs.pop_front();
+            if(curdir.compare(top))
+                curdir += "\\*";
+
+            printf("Going to %s\n", curdir.c_str());
+
+            FindClose(hFind);
+            hFind = FindFirstFile(curdir.c_str(), &findData);
+
+            if (hFind == INVALID_HANDLE_VALUE) {
+                DWORD errCode = GetLastError();
+
+                if(errCode == ERROR_NO_MORE_FILES) {
+                    // exit gracefully
+                    printf("No more files in current directory\n");
+                    continue;
+                }
+
+                printf("Invalid File Handle. GetLastError reports %d\n", 
+                    errCode);
+                break;
+            }
+
+            while(FindNextFile(hFind, &findData)) {
+                if( (strcmp(findData.cFileName, ".") == 0) || ((strcmp(findData.cFileName, "..") == 0)) ) {
+                    printf("[%s] Skipping . and ..\n", curdir.c_str());
+                } else {
+
+                    if(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                        printf("%s is directory\n", findData.cFileName);
+
+                        string tmp;
+                        //if(curdir[0] != '*') {
+                        if(curdir.compare(top)) {
+                            tmp = curdir.substr(0, curdir.length() - 1);
+                            tmp += findData.cFileName;
+                        } else
+                            tmp = findData.cFileName;
+
+                        dirs.push_back(tmp);
+
+                    } else {
+                        if(findData.dwFileAttributes & FILE_ATTRIBUTE_READONLY) {
+                            printf("%s is read only\n", findData.cFileName);
+                        } else {
+                            printf("%s looks like file\n", findData.cFileName);
+                        }
+                    }
+                }
+            }
+
+#if 0            
+            if (! (FindNextFile(hFind, &findData)) ) {
+                DWORD errCode = GetLastError();
+
+                if(errCode == ERROR_NO_MORE_FILES) {
+                    // exit gracefully
+                    printf("No more files in current directory\n");
+
+                    if(dirs.empty()) {
+                        cout << "End of scan" << endl;
+                        break;
+                    }
+
+                    string next = dirs.front();
+                    dirs.pop_front();
+                    next += "\\*";
+                    cout << "Next dir will be " << next.c_str() << endl;
+
+//                    FindClose(hFind);
+                    hFind = FindFirstFile(next.c_str(), &findData);
+                    if (hFind == INVALID_HANDLE_VALUE) {
+                        DWORD errCode = GetLastError();
+                        if(errCode == ERROR_NO_MORE_FILES) {
+                            continue;
+                        }
+
+                        printf("Invalid File Handle. GetLastError reports %d\n", 
+                            errCode);
+                        return false;
+                    }
+
+                    ZZ
+                    continue;
+                }
+
+                printf("Invalid File Handle. GetLastError reports %d\n", 
+                    errCode);
+                break;
+                rc = false;
+            }
+#endif
+
+        }
+
+        dumpList(dirs);
+
+        return rc;
+    }
+};
+
+int main() {
+    A a;
+    a.test1("*");
+
+    return 0;
+}
