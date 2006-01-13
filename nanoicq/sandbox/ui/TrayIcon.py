@@ -1,7 +1,9 @@
 
 #
-# $Id: TrayIcon.py,v 1.1 2006/01/13 15:21:12 lightdruid Exp $
+# $Id: TrayIcon.py,v 1.2 2006/01/13 22:11:18 lightdruid Exp $
 #
+
+# The piece stolen from wxPython demo
 
 import wx
 import images
@@ -11,6 +13,27 @@ class TrayIcon(wx.TaskBarIcon):
     TBMENU_CLOSE   = wx.NewId()
     TBMENU_CHANGE  = wx.NewId()
     TBMENU_REMOVE  = wx.NewId()
+
+    TBMENU_STATUS_MENU          = wx.NewId()
+    TBMENU_STATUS_OFFLINE       = wx.NewId()
+    TBMENU_STATUS_ONLINE        = wx.NewId()
+    TBMENU_STATUS_AWAY          = wx.NewId()
+    TBMENU_STATUS_NA            = wx.NewId()
+    TBMENU_STATUS_OCCIPIED      = wx.NewId()
+    TBMENU_STATUS_DND           = wx.NewId()
+    TBMENU_STATUS_FREE          = wx.NewId()
+    TBMENU_STATUS_INVISIBLE     = wx.NewId()
+
+    _statusMenuItems = [
+        ("TBMENU_STATUS_OFFLINE"       , "Offline"),
+        ("TBMENU_STATUS_ONLINE"        , "Online"),
+        ("TBMENU_STATUS_AWAY"          , "Away"),
+        ("TBMENU_STATUS_NA"            , "N/A"),
+        ("TBMENU_STATUS_OCCIPIED"      , "Occupied"),
+        ("TBMENU_STATUS_DND"           , "DND"),
+        ("TBMENU_STATUS_FREE"          , "Free for chat"),
+        ("TBMENU_STATUS_INVISIBLE"     , "Invisible"),
+    ]
     
     def __init__(self, frame):
         wx.TaskBarIcon.__init__(self)
@@ -36,8 +59,13 @@ class TrayIcon(wx.TaskBarIcon):
         the menu how you want it and return it from this function,
         the base class takes care of the rest.
         """
+        statusMenu = wx.Menu()
+        for ids, txt in self._statusMenuItems:
+            statusMenu.Append(getattr(self, ids), txt)
+
         menu = wx.Menu()
         menu.Append(self.TBMENU_RESTORE, "Hide/Show")
+        menu.AppendMenu(self.TBMENU_STATUS_ONLINE, 'Status', statusMenu)
         menu.AppendSeparator()
         menu.Append(self.TBMENU_CLOSE,   "Exit")
         #menu.Append(self.TBMENU_CHANGE, "Change the TB Icon")
@@ -62,12 +90,12 @@ class TrayIcon(wx.TaskBarIcon):
     def onCancelTaskBarActivate(self, evt):
         if self.frame.IsIconized():
             self.frame.Iconize(False)
+            if not self.frame.IsShown():
+                self.frame.Show(True)
         else:
             self.frame.Iconize(True)
-        if not self.frame.IsShown():
-            self.frame.Show(True)
-        else:
-            self.frame.Show(False)
+            if self.frame.IsShown():
+                self.frame.Show(False)
         self.frame.Raise()
 
 
@@ -91,3 +119,4 @@ class TrayIcon(wx.TaskBarIcon):
     def onCancelTaskBarRemove(self, evt):
         self.RemoveIcon()
 
+# ---
