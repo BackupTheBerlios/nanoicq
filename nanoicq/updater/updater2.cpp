@@ -4,11 +4,14 @@
 #include "stdafx.h"
 #include "updater2.h"
 #include "updater2Dlg.h"
+#include "cmdline.h"
+#include "log.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+bool g_quiet = false;
 
 // Cupdater2App
 
@@ -44,6 +47,24 @@ BOOL Cupdater2App::InitInstance()
 
 	AfxEnableControlContainer();
 
+	// Command line
+	CCommandLine m_commandLine;
+	CString flag, param;
+	if(m_commandLine.GetFirstParameter(flag, param)) {
+		do {
+			if(flag.MakeLower() == "quiet") {
+				g_quiet = true;
+			} else {
+				CString sTmp;
+				sTmp.Format("Unknown flag: '%s'", flag);
+				MessageBox(0, sTmp, "Error", 0);
+				logger->write(sTmp);
+				delete logger;
+				return false;
+			}
+		} while(m_commandLine.GetNextParameter(flag, param));
+	}
+
 	// Standard initialization
 	// If you are not using these features and wish to reduce the size
 	// of your final executable, you should remove from the following
@@ -51,7 +72,7 @@ BOOL Cupdater2App::InitInstance()
 	// Change the registry key under which our settings are stored
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
-	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+	//SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 
 	Cupdater2Dlg dlg;
 	m_pMainWnd = &dlg;
@@ -69,5 +90,7 @@ BOOL Cupdater2App::InitInstance()
 
 	// Since the dialog has been closed, return FALSE so that we exit the
 	//  application, rather than start the application's message pump.
+	logger->write("Done");
+	delete logger;
 	return FALSE;
 }

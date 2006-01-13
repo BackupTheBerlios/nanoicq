@@ -125,10 +125,19 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\cmdline.cpp">
+			</File>
+			<File
+				RelativePath=".\log.cpp">
+			</File>
+			<File
 				RelativePath=".\MD5Checksum.cpp">
 			</File>
 			<File
 				RelativePath=".\PathDialog.cpp">
+			</File>
+			<File
+				RelativePath=".\Registry.cpp">
 			</File>
 			<File
 				RelativePath=".\scan.cpp">
@@ -160,6 +169,12 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
+				RelativePath=".\cmdline.h">
+			</File>
+			<File
+				RelativePath=".\log.h">
+			</File>
+			<File
 				RelativePath=".\MD5Checksum.h">
 			</File>
 			<File
@@ -169,10 +184,19 @@
 				RelativePath=".\PathDialog.h">
 			</File>
 			<File
+				RelativePath=".\RegEntry.h">
+			</File>
+			<File
+				RelativePath=".\Registry.h">
+			</File>
+			<File
 				RelativePath=".\Resource.h">
 			</File>
 			<File
 				RelativePath=".\scan.h">
+			</File>
+			<File
+				RelativePath=".\singleton.h">
 			</File>
 			<File
 				RelativePath=".\stdafx.h">

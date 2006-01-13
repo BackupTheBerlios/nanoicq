@@ -7,6 +7,7 @@
 #include "PathDialog.h"
 #include ".\updater2dlg.h"
 #include "scan.h"
+#include <afxisapi.h>
 
 #include <list>
 
@@ -81,6 +82,7 @@ END_MESSAGE_MAP()
 
 BOOL Cupdater2Dlg::OnInitDialog()
 {
+	const CString mREG_KEY = "Software\\LA2Updater";
 	CDialog::OnInitDialog();
 
 	// Add "About..." menu item to system menu.
@@ -107,7 +109,16 @@ BOOL Cupdater2Dlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-	
+	if (!CRegistry::KeyExists(mREG_KEY)) {
+		// empty
+	}
+	bool rc = m_registry.Open(mREG_KEY, HKEY_LOCAL_MACHINE);
+	CString tmp = m_registry["Last directory"];
+	if(tmp.GetLength() != 0)
+		m_folder.SetWindowText(tmp);
+
+	CHttpServer* cs = new CHttpServer();
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -181,14 +192,17 @@ void Cupdater2Dlg::OnBnClickedTest()
 	if(pathDialog->DoModal() == IDOK) {
 		m_folder.SetWindowText(pathDialog->GetPathName());
 		updateProcessText(pathDialog->GetPathName());
+		m_registry["Last directory"] = pathDialog->GetPathName();
 	}
 }
 
-void cb(WIN32_FIND_DATA data) {
+void cb(WIN32_FIND_DATA data, const string& md5) {
     printf("Called cb for %s\n", data.cFileName);
 	CString curText;
 	global_process->GetWindowText(curText);
 	curText += data.cFileName;
+	curText += " ";
+	curText += md5.c_str();
 	curText += "\r\n";
 	global_process->SetWindowText(curText);
 

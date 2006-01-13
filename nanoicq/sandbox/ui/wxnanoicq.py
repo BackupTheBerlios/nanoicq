@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.27 2006/01/11 14:30:36 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.28 2006/01/13 15:21:12 lightdruid Exp $
 #
 
 
@@ -38,6 +38,7 @@ from utils import *
 from events import *
 from message import Message
 from history import History
+from TrayIcon import TrayIcon
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -162,6 +163,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         icon = self.prepareIcon(images.getLimeWireImage())
         self.SetIcon(icon)
+
+        self.trayIcon = TrayIcon(self)
 
         self.createTopPanel()
         self.restoreGeometry(wx.Point(0, 0), wx.Size(100, 100))
@@ -307,6 +310,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         for d in self._dialogs:
             print 'storing: ', d.GetName()
             d.storeWidgets()
+        self.trayIcon.Destroy()
 
     def OnExit(self, *evts):
         self.storeGeometry()

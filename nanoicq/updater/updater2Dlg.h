@@ -3,6 +3,7 @@
 
 #pragma once
 #include "afxwin.h"
+#include "registry.h"
 
 
 // Cupdater2Dlg dialog
@@ -36,4 +37,6 @@ public:
 	CEdit m_process;
 	afx_msg void OnBnClickedScan();
 	void doScan(const CString& folder);
+protected:
+	CRegistry m_registry;
 };

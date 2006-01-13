@@ -9,7 +9,7 @@
 
 using namespace std;
 
-typedef void (*dircb)(WIN32_FIND_DATA);
+typedef void (*dircb)(WIN32_FIND_DATA, const string& md5);
 
 class Item {
     string fileName_;

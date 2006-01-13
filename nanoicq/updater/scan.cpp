@@ -11,6 +11,8 @@
 
 #include "MD5Checksum.h"
 #include "scan.h"
+#include "singleton.h"
+#include "log.h"
 
 using namespace std;
 
@@ -39,75 +41,6 @@ T stream_cast(S const& val) {
 //} WIN32_FIND_DATA, 
 //*PWIN32_FIND_DATA, 
 //*LPWIN32_FIND_DATA;
-
-enum Level {
-    DEFAULT
-};
-
-class Log {
-    string fileName_;
-    ofstream log_;
-
-public:
-    Log(const string& fileName) : fileName_(fileName) {
-        log_.open(fileName_.c_str(), ios_base::out | ios_base::app);
-    }
-
-    ~Log() {
-        log_.close();
-    }
-
-    void write(const string& msg) {
-        write(DEFAULT, msg);
-    }
-
-    void write(Level level, const string& msg) {
-        log_ << format(level, msg) << endl;
-    }
-
-    void write(const char* fmt, ...) {
-        va_list argptr;
-        va_start(argptr, fmt);
-        char buff[255];
-
-        _vsnprintf(buff, sizeof(buff), fmt, argptr);
-        log_ << format(DEFAULT, buff) << endl;
-
-        va_end(argptr);
-    }
-
-private:
-    const string convertLevel(Level level) {
-        switch(level) {
-        case DEFAULT:
-            return "DEFAULT";
-            break;
-        }
-
-        return "Unknown";
-    }
-
-    virtual std::string format(Level level, const std::string& msg)
-    {
-        const int mx = 255;
-        char time_[mx], date_[mx];
-
-        GetTimeFormat(LOCALE_SYSTEM_DEFAULT, 0, NULL, "HH:mm:ss", time_, mx - 1);
-        GetDateFormat(LOCALE_SYSTEM_DEFAULT, 0, NULL, "dd-MM-yyyy", date_,
-            mx - 1);
-
-        std::stringstream rc;
-        std::string sLevel = convertLevel(level);
-
-        rc << date_ << " " << time_ << " " << sLevel
-            << " " << msg;
-        return rc.str();
-    }
-};
-
-Log logger("somefile.log");
-
-#define log logger.write
 
 
 template <class T>
@@ -178,7 +111,7 @@ bool Scanner::traverse(string curdir, list<Item>& result, dircb pfun) {
                         findData.ftLastWriteTime));
 
                     if(pfun) {
-                        (*pfun)(findData);
+                        (*pfun)(findData, md5);
                     }
 
                     log(md5.c_str());
