@@ -124,7 +124,7 @@ bool Scanner::traverse(string curdir, list<Item>& result, dircb pfun) {
     list<string> dirs;
     HANDLE hFind = 0;
 
-    log("Cur dir: %s", curdir.c_str());
+    log("\nCur dir: %s", curdir.c_str());
     dirs.push_back(curdir);
 
     while(!dirs.empty()) {
@@ -190,7 +190,7 @@ bool Scanner::traverse(string curdir, list<Item>& result, dircb pfun) {
 
     dump(dirs);
 
-    log("Scan is done");
+    log("Scan is done\n");
 
     return rc;
 }

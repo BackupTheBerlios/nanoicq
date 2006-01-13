@@ -121,7 +121,7 @@ CString CMD5Checksum::GetMD5(CFile& File)
     {
         CMD5Checksum MD5Checksum;       //checksum object   
         int nLength = 0;                //number of bytes read from the file
-        const int nBufferSize = 1024;   //checksum the file in blocks of 1024 bytes
+        const int nBufferSize = 1024 * 10;   //checksum the file in blocks of 1024 bytes
         BYTE Buffer[nBufferSize];       //buffer for data read from the file
 
         //checksum the file in blocks of 1024 bytes
