@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIcon.py,v 1.2 2006/01/13 22:11:18 lightdruid Exp $
+# $Id: TrayIcon.py,v 1.3 2006/01/14 02:48:21 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -34,7 +34,7 @@ class TrayIcon(wx.TaskBarIcon):
         ("TBMENU_STATUS_FREE"          , "Free for chat"),
         ("TBMENU_STATUS_INVISIBLE"     , "Invisible"),
     ]
-    
+
     def __init__(self, frame):
         wx.TaskBarIcon.__init__(self)
         self.frame = frame
@@ -43,7 +43,7 @@ class TrayIcon(wx.TaskBarIcon):
         icon = self.MakeIcon(images.getLimeWireImage())
         self.SetIcon(icon, "NanoICQ")
         self.imgidx = 1
-        
+
         # bind some events
         self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.onCancelTaskBarActivate)
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarActivate, id=self.TBMENU_RESTORE)
@@ -85,7 +85,6 @@ class TrayIcon(wx.TaskBarIcon):
         # wxMac can be any size upto 128x128, so leave the source img alone....
         icon = wx.IconFromBitmap(img.ConvertToBitmap() )
         return icon
-    
 
     def onCancelTaskBarActivate(self, evt):
         if self.frame.IsIconized():
@@ -104,14 +103,14 @@ class TrayIcon(wx.TaskBarIcon):
 
 
     def onCancelTaskBarChange(self, evt):
-        names = [ "WXPdemo", "Mondrian", "Pencil", "Carrot" ]                  
+        names = [ "WXPdemo", "Mondrian", "Pencil", "Carrot" ]
         name = names[self.imgidx]
-        
+
         getFunc = getattr(images, "get%sImage" % name)
         self.imgidx += 1
         if self.imgidx >= len(names):
             self.imgidx = 0
-            
+
         icon = self.MakeIcon(getFunc())
         self.SetIcon(icon, "This is a new icon: " + name)
 
