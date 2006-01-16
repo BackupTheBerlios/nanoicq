@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.28 2006/01/13 15:21:12 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.29 2006/01/16 11:48:16 lightdruid Exp $
 #
 
 
@@ -38,7 +38,9 @@ from utils import *
 from events import *
 from message import Message
 from history import History
-from TrayIcon import TrayIcon
+
+if sys.platform == 'win32':
+	from TrayIcon import TrayIcon
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()

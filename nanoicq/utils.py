@@ -1,19 +1,29 @@
 
 #
-# $Id: utils.py,v 1.12 2006/01/09 16:22:49 lightdruid Exp $
+# $Id: utils.py,v 1.13 2006/01/16 11:48:07 lightdruid Exp $
 #
 
 import string
 import cPickle
 import sys, codecs, time, random
 import warnings
+import wx
+
+_ver = wx.VERSION
+if _ver[0] < 2:
+    raise Exception("wxPython is too old, must be 2.6+")
+if _ver[1] < 6:
+    raise Exception("wxPython is too old, must be 2.6+")
 
 if sys.platform == 'win32':
     if sys.getwindowsversion()[0] < 5:
         warnings.warn('Windows prior to XP/2000/2003 are not tested')
     _enc, _dec, _srdr, _swtr = codecs.lookup('cp1251')
 else:
-    raise Exception('Codecs are not tuned yet for platform other than Win32 (ActiveState)')
+    if sys.platform == 'linux2':
+        _enc, _dec, _srdr, _swtr = codecs.lookup('utf-8')
+    else:
+        raise Exception('Codecs are not tuned yet for this platform')
 
 def punicode(s):
     return unicode(_dec(s)[0])
