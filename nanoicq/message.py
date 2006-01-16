@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.4 2006/01/16 07:56:41 lightdruid Exp $
+# $Id: message.py,v 1.5 2006/01/16 07:57:53 lightdruid Exp $
 #
 
 from utils import *
