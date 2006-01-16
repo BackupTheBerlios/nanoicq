@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.3 2006/01/09 16:22:49 lightdruid Exp $
+# $Id: message.py,v 1.4 2006/01/16 07:56:41 lightdruid Exp $
 #
 
 from utils import *
@@ -48,7 +48,6 @@ def messageFactory(typ, *kw, **kws):
         if typ == Message.ICQ_MESSAGE:
             return ICQMessage(*kw, **kws)
     if type(typ) == type(''):
-        assert typ in ["icq"]
         if typ == "icq":
             return ICQMessage(*kw, **kws)
 
