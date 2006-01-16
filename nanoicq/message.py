@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.5 2006/01/16 07:57:53 lightdruid Exp $
+# $Id: message.py,v 1.6 2006/01/16 10:46:43 lightdruid Exp $
 #
 
 from utils import *
@@ -8,11 +8,11 @@ from utils import *
 class Message:
     ICQ_MESSAGE = 0
 
-    def __init__(self, typ, user, content):
+    def __init__(self, context, user, content):
         self.MessageTypes = [Message.ICQ_MESSAGE]
-        assert typ in self.MessageTypes
+        assert context in self.MessageTypes
 
-        self._typ = typ
+        self._context = context
         self._user = user
         self._content = content
 
@@ -21,10 +21,10 @@ class Message:
 
     def __repr__(self):
         return "Class Message (type: %d, dest: %s, content: %s)" %\
-            (self._typ, str(self._user), punicode(str(self._content)))
+            (self._context, str(self._user), punicode(str(self._content)))
 
     def __eq__(self, m):
-        return self._typ == m._typ and self._user == m._user and self._content == m._content
+        return self._context == m._context and self._user == m._user and self._content == m._content
 
 class ICQMessage(Message):
 
@@ -37,21 +37,21 @@ class ICQMessage(Message):
 
     def __repr__(self):
         return "Class ICQMessage (type: %d, dest: %s, uin: %s, content: %s)" %\
-            (self._typ, str(self._user), self._uin, punicode(str(self._content)))
+            (self._context, str(self._user), self._uin, punicode(str(self._content)))
 
     def __eq__(self, m):
         return self._uin == m._uin and Message.__eq__(self, m)
 
-def messageFactory(typ, *kw, **kws):
-    if type(typ) == type(Message.ICQ_MESSAGE):
-        assert typ in [Message.ICQ_MESSAGE]
-        if typ == Message.ICQ_MESSAGE:
+def messageFactory(context, *kw, **kws):
+    if type(context) == type(Message.ICQ_MESSAGE):
+        assert context in [Message.ICQ_MESSAGE]
+        if context == Message.ICQ_MESSAGE:
             return ICQMessage(*kw, **kws)
-    if type(typ) == type(''):
-        if typ == "icq":
+    if type(context) == type(''):
+        if context == "icq":
             return ICQMessage(*kw, **kws)
 
-    raise Exception("Unknown messaeg type: " + str(typ))
+    raise Exception("Unknown messaeg type: " + str(context))
 
 def _test():
     m = Message(Message.ICQ_MESSAGE, '', 'aaa')

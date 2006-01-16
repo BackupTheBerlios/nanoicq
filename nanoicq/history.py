@@ -1,6 +1,6 @@
 
 #
-# $Id: history.py,v 1.2 2006/01/09 16:52:34 lightdruid Exp $
+# $Id: history.py,v 1.3 2006/01/16 10:46:43 lightdruid Exp $
 #
 
 class History:
@@ -28,41 +28,57 @@ class History:
             self._d.append( (direction, v) )
 
     def dump(self):
+        out = []
         for d, v in self._d:
-            print "%s : %s" % (self._convDir(d), unicode(v))
+            out.append("%s : %s" % (self._convDir(d), unicode(v)))
+        return '\n'.join(out)
 
     def _convDir(self, d):
-        assert d in [self.Incoming, self.Outgoing]
+        assert d in self._allowed
         if d == self.Incoming:
             return '>>'
-        else:
-             return '<<'
+        return '<<'
 
     def __len__(self):
         return len(self._d)
 
-def _test():
-    h = History()
-    assert len(h) == 0
-    item1 = History.Incoming, 'incoming 1'
-    item2 = History.Outgoing, 'outgoing 1'
-    h.append(item1)
-    h.append(item2)
-    h.dump()
-
-    v1 = h[0]
-    v2 = h[1]
-
-    assert v1 == item1
-    assert v2 == item2
-
-    assert len(h) == 2
-
-    del h[0]
-    h.dump()
-    assert len(h) == 1
 
 if __name__ == '__main__':
-    _test()
+    import unittest
+    class HistoryTest(unittest.TestCase):
 
+        def setUp(self):
+            self.h = History()
+
+        def testLen(self):
+            assert len(self.h) == 0
+
+        def testAdd(self):
+            assert len(self.h) == 0
+
+            item1 = History.Incoming, 'incoming 1'
+            item2 = History.Outgoing, 'outgoing 1'
+
+            self.h.append(item1)
+            self.h.append(item2)
+
+            d = self.h.dump()
+            assert d.split('\n')[0] == '>> : incoming 1'
+            assert d.split('\n')[1] == '<< : outgoing 1'
+
+            v1 = self.h[0]
+            v2 = self.h[1]
+
+            assert v1 == item1
+            assert v2 == item2
+
+            assert len(self.h) == 2
+
+            del self.h[0]
+            d = self.h.dump()
+            assert d.split('\n')[0] == '<< : outgoing 1'
+            assert len(self.h) == 1
+
+    unittest.main()
+ 
 # ---
