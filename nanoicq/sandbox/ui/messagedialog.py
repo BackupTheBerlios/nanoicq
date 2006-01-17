@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.8 2006/01/11 14:30:36 lightdruid Exp $
+# $Id: messagedialog.py,v 1.9 2006/01/17 15:14:00 lightdruid Exp $
 #
 
 import sys
@@ -25,7 +25,7 @@ ID_BUTTON_SEND = 8001
 class MessageDialog(wx.Dialog, PersistenceMixin):
     def __init__(self, parent, ID, user, message, history, size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
-            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
+            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.DIALOG_NO_PARENT):
 
         wx.Dialog.__init__(self, parent, ID, user.name, size = size,
             style = style, name = 'message_dialog_' + user.name)
@@ -122,6 +122,11 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         self.SetAutoLayout(True)
 
+    def getBuddy(self):
+        ''' Return buddy assigned to this conversation
+        '''
+        return self._user
+
     def storeWidgets(self):
         self.storeObjects([self, self.buttonOk, self.splitter],
             name = self._userName)
@@ -143,9 +148,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         self._history.append(History.Outgoing, self._outgoing.GetValue())
 
-#        message = Message(Message.ICQ_MESSAGE,
-#            self._userName, self._outgoing.GetValue())
-
         message = messageFactory("icq",
             self._user.name, self._user.uin, self._outgoing.GetValue())
 
@@ -153,6 +155,15 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         evt.setVal( (self.GetId(), message) )
         wx.GetApp().GetTopWindow().GetEventHandler().ProcessEvent(evt)
         evt.Skip()
+
+        # Update UI
+        txt = self._history.format(History.Outgoing, message, timestamp = True) + '\n'
+
+        self._incoming.AppendText(txt)
+        self._outgoing.Clear()
+
+        self._incoming.Update()
+        self._outgoing.Update()
 
     def setTitle(self, title):
         self.SetTitle(title)

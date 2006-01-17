@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.29 2006/01/16 11:48:16 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.30 2006/01/17 15:14:00 lightdruid Exp $
 #
 
 
@@ -40,7 +40,7 @@ from message import Message
 from history import History
 
 if sys.platform == 'win32':
-	from TrayIcon import TrayIcon
+    from TrayIcon import TrayIcon
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -184,7 +184,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.updateStatusBar('Disconnected')
 
         # ---
-        result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
+#        result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
+        result = wx.GetApp().GetTopWindow().RegisterHotKey(0, 0, wx.WXK_F9)
+        self.Bind(wx.EVT_HOTKEY, self.OnTest, id = 0)
         print result
 
         self._dialogs = []
@@ -193,11 +195,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
         self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
         self.Bind(EVT_SEND_MESSAGE, self.onSendMessage)
+        self.Bind(EVT_INCOMING_MESSAGE, self.onIncomingMessage)
 
         # ---
 
     def onSendMessage(self, evt):
-        print 'GUI got message: ', evt
+        log().log('GUI sending message: ' + str(evt))
         ids, message = evt.getVal()
 #        print "From %d id and contents are (%s) '%s'" %\
 #            (ids, type(message), punicode(str(message)))
@@ -222,6 +225,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def updateStatusBar(self, msg):
         self.sb.SetStatusText(msg, 0)
 
+    def findDialogForBuddy(self, b):
+        assert isinstance(b, Buddy)
+        for d in self._dialogs:
+            if d.getBuddy().uin == b.uin:
+                return d
+        log().log('Dialog for buddy %s not found, creating new one' % b.name)
+        return None
+
     def dispatch(self, *kw, **kws):
         print 'GUI dispatcher: ', kw, kws
 
@@ -230,10 +241,43 @@ class TopFrame(wx.Frame, PersistenceMixin):
         # Convert all spaces to underscores to get method name
         fn = 'event_' + kw[0][0].replace(' ', '_')
         func = getattr(self, fn, None)
-        print 'going to call ' + fn
+        print 'going to call ' + fn + '()'
 
         #guidebug.message(str(kw[1:][0]))
         func(kw[1:][0])
+
+    def event_Incoming_message(self, kw):
+        print 'Called event_Incoming_message with '
+        print str(kw)
+
+        b = kw['buddy']
+        m = kw['message']
+
+        evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
+        evt.setVal((b, m))
+        self.GetEventHandler().ProcessEvent(evt)
+
+    def onIncomingMessage(self, evt):
+        print 'onIncomingMessage()'
+        evt.Skip()
+
+        b, m = evt.getVal()
+
+        print '>>>', b
+        print '>>>', m
+
+        d = self.findDialogForBuddy(b)
+        if d is not None:
+            d.Show(True)
+        else:
+            print 'calling self.showMessage'
+            #self.showMessage(b.name, m)
+            #wx.MessageBox("", "Fake")
+#            d = wx.Dialog(None, wx.NewId(), 'something', style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.DIALOG_NO_PARENT)
+#            d.Show(True)
+#            d.ShowModal()
+#            d.SetModal(False)
+            print 'done calling self.showMessage'
 
     def event_New_buddy(self, kw):
         print 'Called event_New_Buddy with '
@@ -242,8 +286,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         b = kw['buddy']
         #guidebug.message(str(b))
 
+        # Create fake message and dialog, but do not display it
+
         try:
             self.addBuddy(b)
+            message = Message(0, '', '')
+            self.showMessage(b.name, message, hide = True)
         except Exception, v:
             wx.MessageBox(str(v), "Exception Message")
 
@@ -337,14 +385,24 @@ class TopFrame(wx.Frame, PersistenceMixin):
         import random
         self.showMessage(str(random.random()))
 
-    def showMessage(self, userName, message):
+    def showMessage(self, userName, message, hide = False):
+        print 'showMessage()'
+        print "username: '%s'" % userName
+        print "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
 
+        print '1'
         h = History()
+        print '2'
         d = MessageDialog(self, -1, self.connector["icq"].getBuddy(userName), message, h)
+        print '3'
         icon = d.GetParent().prepareIcon(images.getLimeWireImage())
+        print '4'
         d.SetIcon(icon)
-        d.Show()
-        d.SetFocus()
+        print '5'
+
+        if not hide:
+            d.Show()
+            d.SetFocus()
 
         print 'appending dialog', d.GetId()
         self._dialogs.append(d)
@@ -370,7 +428,7 @@ class TopPanel(wx.Panel):
         info.m_text = "User"
         self.userList.InsertColumnInfo(1, info)
 
-        self.sampleFill()
+        #self.sampleFill()
         self.userList.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.userList.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
@@ -418,3 +476,4 @@ app.MainLoop()
 
 
 # ---
+

@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.24 2006/01/12 13:56:55 lightdruid Exp $
+# $Id: icq.py,v 1.25 2006/01/17 15:14:00 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -28,6 +28,9 @@ from message import ICQMessage
 
 # for debug only
 SLEEP = 0
+
+# socket read buffer size (bytes)
+_SOCK_BUFFER = 10240
 
 def _reg(password):
     lz = struct.pack(">H", len(password)) + password + '\000'
@@ -326,15 +329,14 @@ class Protocol:
         return self._connected
 
     def send(self, data):
-        print 'self.send'
         try:
             self._sock.send(data)
-        except:
-            print 'self.send got exception'
+        except Exception, exc:
+            log().log('socket send got exception ' + str(exc))
             raise
 
     def read(self):
-        return self._sock.read(10240)
+        return self._sock.read(_SOCK_BUFFER)
 
     def sendFLAP(self, ch, data):
         header = "!cBHH"
@@ -1021,6 +1023,11 @@ class Protocol:
         tmp = "proc_2_4_7_%d" % messageChannel
         func = getattr(self, tmp)
         msg = func(tlvs)
+
+        # FIXME: will throw exceptino when buddy is not in current list
+        b = self._groups.getBuddyByUin(sname)
+        m = ICQMessage(b.name, b.uin, msg)
+        self.react("Incoming message", buddy = b, message = m)
 
         try:
             if msg == 'winamp':

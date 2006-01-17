@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.3 2006/01/11 14:30:36 lightdruid Exp $
+# $Id: group.py,v 1.4 2006/01/17 15:14:00 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -18,7 +18,6 @@ class Group:
         assert gid in self._g.keys()
         b.gid = gid
         self._b[b.name] = b
-        print 'bud: ', self._b
 
     def getBuddies(self, gid = None):
         if gid is None: return self._b.values()
@@ -26,7 +25,16 @@ class Group:
         return [self._b[x] for x in self._b if self._b[x].gid == gid]
 
     def getBuddy(self, name):
+        print 'Group.getBuddy() -> ', self._b.keys()
+        print 'Group.getBuddy() -> ', self._b
         return self._b[name]
+
+    def getBuddyByUin(self, uin):
+        print self._b.keys()
+        for b in self._b.values():
+            if b.uin == uin:
+                return b
+        raise Exception("UIN not found in buddies list")
 
     def __getitem__(self, key):
         return self._g[key]
