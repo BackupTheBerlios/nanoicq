@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.25 2006/01/17 15:14:00 lightdruid Exp $
+# $Id: icq.py,v 1.26 2006/01/18 12:31:58 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -637,11 +637,20 @@ class Protocol:
         if b is not None:
             # OK, let's pass new buddy upto gui
             log().log("Got new buddy from SSI list: %s" % b)
-            self.react("New buddy", buddy = b)
             self._groups.addBuddy(groupID, b)
+
+            # ract must be called after groups/buddies list was updated
+            self.react("New buddy", buddy = b)
 
     def getBuddy(self, userName):
         return self._groups.getBuddy(userName)
+
+    def saveBuddiesList(self, fileName):
+        dump2file(fileName, self._groups)
+
+    def loadBuddiesList(self, fileName):
+        log().log('Loading buddies list from ' + fileName)
+        self._groups = restoreFromFile(fileName)
 
     def parseSSIItem(self, data):
 
@@ -1029,19 +1038,19 @@ class Protocol:
         m = ICQMessage(b.name, b.uin, msg)
         self.react("Incoming message", buddy = b, message = m)
 
-        try:
-            if msg == 'winamp':
-                from thirdparty.WinampInfo import WinampInfo
-                w = WinampInfo()
-                reply = "Andrey Sidorenko's WinAmp status:"  + " "
-                reply += w.getPlayingStatus() + " "
-                reply += w.getCurrentTrackName() + " "
-                print reply
-                msg = ICQMessage(sname, sname, reply)
-                self.sendMessage(msg)
-        except Exception, msg:
-            print msg
-            pass
+#        try:
+#            if msg == 'winamp':
+#                from thirdparty.WinampInfo import WinampInfo
+#                w = WinampInfo()
+#                reply = "Andrey Sidorenko's WinAmp status:"  + " "
+#                reply += w.getPlayingStatus() + " "
+#                reply += w.getCurrentTrackName() + " "
+#                print reply
+#                msg = ICQMessage(sname, sname, reply)
+#                self.sendMessage(msg)
+#       except Exception, msg:
+#            print msg
+#            pass
 
     # 13 1C / 19 28
 

@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.9 2006/01/17 15:14:00 lightdruid Exp $
+# $Id: messagedialog.py,v 1.10 2006/01/18 12:32:03 lightdruid Exp $
 #
 
 import sys
@@ -25,12 +25,14 @@ ID_BUTTON_SEND = 8001
 class MessageDialog(wx.Dialog, PersistenceMixin):
     def __init__(self, parent, ID, user, message, history, size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
-            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.DIALOG_NO_PARENT):
+            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
 
         wx.Dialog.__init__(self, parent, ID, user.name, size = size,
             style = style, name = 'message_dialog_' + user.name)
 
         PersistenceMixin.__init__(self, 'test.save')
+
+        wx.MessageBox("Dialog constructor", "Fake")
 
         assert isinstance(user, Buddy)
         self._user = user
@@ -121,6 +123,8 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.Bind(wx.EVT_BUTTON, self.onCancel, id = wx.ID_CANCEL)
 
         self.SetAutoLayout(True)
+
+        print 'Dialog initialization is done'
 
     def getBuddy(self):
         ''' Return buddy assigned to this conversation

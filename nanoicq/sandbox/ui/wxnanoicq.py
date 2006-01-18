@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.30 2006/01/17 15:14:00 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.31 2006/01/18 12:32:03 lightdruid Exp $
 #
 
 
@@ -255,11 +255,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
         evt.setVal((b, m))
-        self.GetEventHandler().ProcessEvent(evt)
+#        self.GetEventHandler().ProcessEvent(evt)
+        self.GetEventHandler().AddPendingEvent(evt)
+
+        print 'Exit from event_Incoming_message'
 
     def onIncomingMessage(self, evt):
         print 'onIncomingMessage()'
-        evt.Skip()
 
         b, m = evt.getVal()
 
@@ -271,13 +273,15 @@ class TopFrame(wx.Frame, PersistenceMixin):
             d.Show(True)
         else:
             print 'calling self.showMessage'
-            #self.showMessage(b.name, m)
+            self.showMessage(b.name, m)
             #wx.MessageBox("", "Fake")
-#            d = wx.Dialog(None, wx.NewId(), 'something', style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.DIALOG_NO_PARENT)
-#            d.Show(True)
+            #d = wx.Dialog(self, wx.NewId(), 'something', style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+            #d.Show(True)
 #            d.ShowModal()
 #            d.SetModal(False)
             print 'done calling self.showMessage'
+
+        evt.Skip()
 
     def event_New_buddy(self, kw):
         print 'Called event_New_Buddy with '
@@ -290,8 +294,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         try:
             self.addBuddy(b)
-            message = Message(0, '', '')
-            self.showMessage(b.name, message, hide = True)
+            #message = Message(0, '', '')
+            #self.showMessage(b.name, message, hide = True)
         except Exception, v:
             wx.MessageBox(str(v), "Exception Message")
 
@@ -390,15 +394,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print "username: '%s'" % userName
         print "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
 
-        print '1'
         h = History()
-        print '2'
-        d = MessageDialog(self, -1, self.connector["icq"].getBuddy(userName), message, h)
-        print '3'
-        icon = d.GetParent().prepareIcon(images.getLimeWireImage())
-        print '4'
+        b = self.connector["icq"].getBuddy(userName)
+        d = MessageDialog(None, -1, b, message, h)
+        icon = self.prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
-        print '5'
 
         if not hide:
             d.Show()
