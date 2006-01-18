@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.10 2006/01/18 12:32:03 lightdruid Exp $
+# $Id: messagedialog.py,v 1.11 2006/01/18 14:13:18 lightdruid Exp $
 #
 
 import sys
@@ -31,8 +31,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
             style = style, name = 'message_dialog_' + user.name)
 
         PersistenceMixin.__init__(self, 'test.save')
-
-        wx.MessageBox("Dialog constructor", "Fake")
 
         assert isinstance(user, Buddy)
         self._user = user
