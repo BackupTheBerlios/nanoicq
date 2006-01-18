@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.31 2006/01/18 12:32:03 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.32 2006/01/18 12:52:54 lightdruid Exp $
 #
 
 
@@ -362,7 +362,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt.Skip()
         self.storeGeometry()
         for d in self._dialogs:
-            print 'storing: ', d.GetName()
             d.storeWidgets()
         self.trayIcon.Destroy()
 
@@ -371,11 +370,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Close()
 
     def OnHelp(self, evt):
-        print "OnHelp"
         evt.Skip()
 
     def OnAbout(self, evt):
-        print "OnAbout"
         evt.Skip()
 
     def OnIcqLogin(self, evt):
@@ -396,7 +393,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         h = History()
         b = self.connector["icq"].getBuddy(userName)
-        d = MessageDialog(None, -1, b, message, h)
+        d = MessageDialog(self, -1, b, message, h)
         icon = self.prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
 
@@ -404,11 +401,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
             d.Show()
             d.SetFocus()
 
-        print 'appending dialog', d.GetId()
         self._dialogs.append(d)
         print self._dialogs
-
-        print 'done'
 
 class TopPanel(wx.Panel):
     def __init__(self, parent):
