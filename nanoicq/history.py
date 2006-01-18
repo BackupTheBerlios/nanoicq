@@ -1,6 +1,6 @@
 
 #
-# $Id: history.py,v 1.4 2006/01/17 15:14:00 lightdruid Exp $
+# $Id: history.py,v 1.5 2006/01/18 15:42:11 lightdruid Exp $
 #
 
 import time
@@ -42,12 +42,12 @@ class History:
         return '<<'
 
     def format(self, direction, msg, timestamp = False, longdate = False):
-        txt = ''
+        txt = self._convDir(direction) + ' '
         if timestamp:
             if longdate: fmt = '%d.%m.%Y %H:%M:%S'
             else: fmt = '%d.%m %H:%M'
-            txt = time.strftime(fmt, time.localtime()) + ' '
-        txt += self._convDir(direction) + ' ' + msg.getContents()
+            txt += time.strftime(fmt, time.localtime()) + ' '
+        txt += msg.getContents()
         return txt
 
     def __len__(self):

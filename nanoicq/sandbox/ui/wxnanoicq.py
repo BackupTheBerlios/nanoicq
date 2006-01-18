@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.32 2006/01/18 12:52:54 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.33 2006/01/18 15:42:11 lightdruid Exp $
 #
 
 
@@ -151,7 +151,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
         evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
         evt.setVal((self.currentItem, userName))
-        self._parent.GetEventHandler().ProcessEvent(evt)
+        self._parent.GetEventHandler().AddPendingEvent(evt)
 
 
 class TopFrame(wx.Frame, PersistenceMixin):
@@ -202,8 +202,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def onSendMessage(self, evt):
         log().log('GUI sending message: ' + str(evt))
         ids, message = evt.getVal()
-#        print "From %d id and contents are (%s) '%s'" %\
-#            (ids, type(message), punicode(str(message)))
 
         # FIXME: only icq handled
         self.connector['icq'].sendMessage(message)
@@ -219,8 +217,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.showMessage(userName, message)
 
     def dialogClose(self, evt):
-        print 'dialog close data:', evt, evt.getVal()
-        print 'self._dialogs: ', self._dialogs
+        pass
 
     def updateStatusBar(self, msg):
         self.sb.SetStatusText(msg, 0)
@@ -229,6 +226,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         assert isinstance(b, Buddy)
         for d in self._dialogs:
             if d.getBuddy().uin == b.uin:
+                log().log('Found dialog for buddy %s' % b.name)
                 return d
         log().log('Dialog for buddy %s not found, creating new one' % b.name)
         return None
@@ -255,31 +253,25 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
         evt.setVal((b, m))
-#        self.GetEventHandler().ProcessEvent(evt)
-        self.GetEventHandler().AddPendingEvent(evt)
 
-        print 'Exit from event_Incoming_message'
+        # Spent 4h to fidure out why dialog hangs after message passing,
+        # we should use AddPendingEvent() instead of ProcessEvent()
+        # was: self.GetEventHandler().ProcessEvent(evt)
+
+        self.GetEventHandler().AddPendingEvent(evt)
 
     def onIncomingMessage(self, evt):
         print 'onIncomingMessage()'
 
         b, m = evt.getVal()
 
-        print '>>>', b
-        print '>>>', m
-
         d = self.findDialogForBuddy(b)
         if d is not None:
+            d.updateMessage(History.Incoming, m)
             d.Show(True)
+            d.SetFocus()
         else:
-            print 'calling self.showMessage'
             self.showMessage(b.name, m)
-            #wx.MessageBox("", "Fake")
-            #d = wx.Dialog(self, wx.NewId(), 'something', style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-            #d.Show(True)
-#            d.ShowModal()
-#            d.SetModal(False)
-            print 'done calling self.showMessage'
 
         evt.Skip()
 

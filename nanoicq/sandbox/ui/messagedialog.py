@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.11 2006/01/18 14:13:18 lightdruid Exp $
+# $Id: messagedialog.py,v 1.12 2006/01/18 15:42:11 lightdruid Exp $
 #
 
 import sys
@@ -136,7 +136,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         print 'Sending close event for dialog...', self.GetId()
         evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
         evt.setVal(self.GetId())
-        self._parent.GetEventHandler().ProcessEvent(evt)
+        self._parent.GetEventHandler().AddPendingEvent(evt)
         print 'Close event sent', self.GetId()
 
     def onCancel(self, evt):
@@ -144,6 +144,15 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.storeWidgets()
         evt.Skip()
 
+    def updateMessage(self, direction, message):
+        txt = self._history.format(direction, message, timestamp = True) + '\n'
+        self._incoming.AppendText(txt)
+        self._incoming.Update()
+
+        if direction == History.Outgoing:
+            self._outgoing.Clear()
+            self._outgoing.Update()
+        
     def onSendMessage(self, evt):
         print 'onSendMessage()'
         print 'Sending send message event for dialog...', self.GetId()
@@ -155,17 +164,18 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
         evt.setVal( (self.GetId(), message) )
-        wx.GetApp().GetTopWindow().GetEventHandler().ProcessEvent(evt)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
         evt.Skip()
 
         # Update UI
-        txt = self._history.format(History.Outgoing, message, timestamp = True) + '\n'
-
-        self._incoming.AppendText(txt)
-        self._outgoing.Clear()
-
-        self._incoming.Update()
-        self._outgoing.Update()
+        self.updateMessage(History.Outgoing, message)
+#        txt = self._history.format(History.Outgoing, message, timestamp = True) + '\n'
+#
+#        self._incoming.AppendText(txt)
+#        self._outgoing.Clear()
+#
+#        self._incoming.Update()
+#        self._outgoing.Update()
 
     def setTitle(self, title):
         self.SetTitle(title)
