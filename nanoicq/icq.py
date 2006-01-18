@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.26 2006/01/18 12:31:58 lightdruid Exp $
+# $Id: icq.py,v 1.27 2006/01/18 16:25:54 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -21,10 +21,11 @@ from isocket import ISocket
 
 from buddy import Buddy
 from group import Group
+from history import History
 
 import caps
 from logger import log, LogException
-from message import ICQMessage
+from message import messageFactory
 
 # for debug only
 SLEEP = 0
@@ -1035,7 +1036,10 @@ class Protocol:
 
         # FIXME: will throw exceptino when buddy is not in current list
         b = self._groups.getBuddyByUin(sname)
-        m = ICQMessage(b.name, b.uin, msg)
+
+        m = messageFactory("icq",
+            b.name, b.uin, msg, History.Outgoing)
+
         self.react("Incoming message", buddy = b, message = m)
 
 #        try:

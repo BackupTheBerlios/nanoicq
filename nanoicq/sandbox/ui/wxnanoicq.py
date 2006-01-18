@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.33 2006/01/18 15:42:11 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.34 2006/01/18 16:25:54 lightdruid Exp $
 #
 
 
@@ -213,7 +213,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         currentItem, userName = evt.getVal()
         user = self.connector['icq'].getBuddy(userName)
 
-        message = Message(0, '', '')
+        message = None
         self.showMessage(userName, message)
 
     def dialogClose(self, evt):
@@ -267,7 +267,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         d = self.findDialogForBuddy(b)
         if d is not None:
-            d.updateMessage(History.Incoming, m)
+            d.updateMessage(m)
             d.Show(True)
             d.SetFocus()
         else:

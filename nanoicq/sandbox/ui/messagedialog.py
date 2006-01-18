@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.12 2006/01/18 15:42:11 lightdruid Exp $
+# $Id: messagedialog.py,v 1.13 2006/01/18 16:25:54 lightdruid Exp $
 #
 
 import sys
@@ -36,7 +36,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self._user = user
         userName = self._user.name
 
-        assert isinstance(message, Message)
         self._parent = parent
 
         assert isinstance(history, History)
@@ -74,7 +73,9 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.incoming.SetBackgroundColour("pink")
         self.incomingSizer.Fit(self.incoming)
 
-        self._incoming.SetValue(message.getContents())
+        if message is not None:
+            self.updateMessage(message)
+        #self._incoming.SetValue(message.getContents())
 
         self.outgoing = wx.Panel(self.splitter, style=0)
         self.outgoingSizer = wx.BoxSizer(wx.VERTICAL)
@@ -144,12 +145,12 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.storeWidgets()
         evt.Skip()
 
-    def updateMessage(self, direction, message):
-        txt = self._history.format(direction, message, timestamp = True) + '\n'
+    def updateMessage(self, message):
+        txt = self._history.format(message, timestamp = True) + '\n'
         self._incoming.AppendText(txt)
         self._incoming.Update()
 
-        if direction == History.Outgoing:
+        if message.getDirection() == History.Outgoing:
             self._outgoing.Clear()
             self._outgoing.Update()
         
@@ -160,7 +161,8 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self._history.append(History.Outgoing, self._outgoing.GetValue())
 
         message = messageFactory("icq",
-            self._user.name, self._user.uin, self._outgoing.GetValue())
+            self._user.name, self._user.uin,
+            self._outgoing.GetValue(), History.Outgoing)
 
         evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
         evt.setVal( (self.GetId(), message) )
@@ -168,14 +170,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         evt.Skip()
 
         # Update UI
-        self.updateMessage(History.Outgoing, message)
-#        txt = self._history.format(History.Outgoing, message, timestamp = True) + '\n'
-#
-#        self._incoming.AppendText(txt)
-#        self._outgoing.Clear()
-#
-#        self._incoming.Update()
-#        self._outgoing.Update()
+        self.updateMessage(message)
 
     def setTitle(self, title):
         self.SetTitle(title)
