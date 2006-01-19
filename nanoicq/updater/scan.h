@@ -30,11 +30,9 @@ public:
 
     friend ostream& operator<<(ostream& ofs, Item v) {
         ofs << v.fileName_.c_str()
-            << " " 
-            << v.modTime_.dwLowDateTime 
-            << v.modTime_.dwHighDateTime 
-            << " " 
-            << v.md5_.c_str();
+            << " " << v.modTime_.dwLowDateTime 
+            << " " << v.modTime_.dwHighDateTime 
+            << " " << v.md5_.c_str();
         return ofs;
     }
 

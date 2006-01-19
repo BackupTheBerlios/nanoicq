@@ -232,4 +232,12 @@ void Cupdater2Dlg::doScan(const CString& folder)
 	list<Item> items;
 	Scanner scanner;
 	scanner.traverse(folder.GetString(), items, cb);
+
+	ofstream ofs("updater.list", ios_base::out);
+	if(!ofs.good())
+		return;
+	for(list<Item>::iterator it = items.begin(); it != items.end(); it++) {
+		ofs << (*it) << endl;
+	}
+	ofs.close();
 }
