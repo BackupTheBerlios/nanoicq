@@ -1,6 +1,6 @@
 
 #
-# $Id: utils.py,v 1.13 2006/01/16 11:48:07 lightdruid Exp $
+# $Id: utils.py,v 1.14 2006/01/22 21:01:15 lightdruid Exp $
 #
 
 import string
@@ -12,8 +12,10 @@ import wx
 _ver = wx.VERSION
 if _ver[0] < 2:
     raise Exception("wxPython is too old, must be 2.6+")
-if _ver[1] < 6:
+if _ver[0] == 2 and _ver[1] < 6:
     raise Exception("wxPython is too old, must be 2.6+")
+if _ver[0] != 2:
+    warnings.warn("Untested wxPythonversion, tested with 2.6 only")
 
 if sys.platform == 'win32':
     if sys.getwindowsversion()[0] < 5:

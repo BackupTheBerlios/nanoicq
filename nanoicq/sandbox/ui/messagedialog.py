@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.13 2006/01/18 16:25:54 lightdruid Exp $
+# $Id: messagedialog.py,v 1.14 2006/01/22 21:01:15 lightdruid Exp $
 #
 
 import sys
@@ -63,6 +63,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.splitter = MySplitter(self, ID_SPLITTER,
             name = 'splitter_' + userName)
 
+        #
         self.incoming = wx.Panel(self.splitter, style=0)
         self.incomingSizer = wx.BoxSizer(wx.VERTICAL)
         self._incoming = wx.TextCtrl(self.incoming, -1, "",
@@ -73,14 +74,16 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.incoming.SetBackgroundColour("pink")
         self.incomingSizer.Fit(self.incoming)
 
-        if message is not None:
-            self.updateMessage(message)
-        #self._incoming.SetValue(message.getContents())
-
+        #
         self.outgoing = wx.Panel(self.splitter, style=0)
         self.outgoingSizer = wx.BoxSizer(wx.VERTICAL)
         self._outgoing = wx.TextCtrl(self.outgoing, -1, "",
-            size=wx.DefaultSize, style=wx.TE_MULTILINE|wx.TE_RICH2)
+            size=wx.DefaultSize, style = wx.TE_MULTILINE | wx.TE_RICH2)
+
+        # Send messages on Ctrl-Enter
+        self._outgoing.Bind(wx.EVT_KEY_DOWN, self.onCtrlEnter)
+
+
         self.outgoingSizer.Add(self._outgoing, 1, wx.EXPAND, 1)
         self.outgoing.SetSizer(self.outgoingSizer)
         self.outgoing.SetAutoLayout(True)
@@ -123,7 +126,21 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         self.SetAutoLayout(True)
 
+        if message is not None:
+            self.updateMessage(message)
+
         print 'Dialog initialization is done'
+
+    def onCtrlEnter(self, evt):
+        keycode = evt.GetKeyCode()
+
+        # 308 (13, 372)
+        if keycode in [372, 13]:
+            if evt.ControlDown():
+                self.onSendMessage(None)
+                return
+
+        evt.Skip()
 
     def getBuddy(self):
         ''' Return buddy assigned to this conversation
@@ -167,6 +184,8 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
         evt.setVal( (self.GetId(), message) )
         wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
+        # ???
         evt.Skip()
 
         # Update UI
@@ -178,5 +197,35 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
     def setUserName(self, userName):
         self._userName = userName
         self._userText.SetLabel(userName)
+
+
+def _test():
+    class TopFrame(wx.Frame):
+        def __init__(self, parent, title):
+            wx.Frame.__init__(self, parent, -1, title,
+                pos=(150, 150), size=(350, 200))
+            wx.Panel(self, -1)
+
+            message = messageFactory("icq", 'user', '12345', 'text', History.Incoming)
+
+            h = History()
+            b = Buddy()
+            b.name = 'user'
+            d = MessageDialog(self, -1, b, message, h)
+            d.Show(True)
+
+    class NanoApp(wx.App):
+        def OnInit(self):
+            frame = TopFrame(None, "NanoICQ")
+            self.SetTopWindow(frame)
+            frame.Show(True)
+            return True
+
+    app = NanoApp(redirect = False)
+    app.MainLoop()
+
+
+if __name__ == '__main__':
+    _test()
 
 # ---
