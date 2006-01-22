@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.27 2006/01/18 16:25:54 lightdruid Exp $
+# $Id: icq.py,v 1.28 2006/01/22 22:53:10 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -299,6 +299,19 @@ class Protocol:
         self._config = config
         self._host, self._port = self._config.get('icq', 'host').split(':')
         self._port = int(self._port)
+
+    def getColorSet(self):
+        '''
+        Return 4-tuple, bg/fg for incoming messages and
+        bg/fg for outgoing messages
+        '''
+        ibg = self._config.get('icq', 'incoming.bg')
+        ifg = self._config.get('icq', 'incoming.fg')
+
+        obg = self._config.get('icq', 'outgoing.bg')
+        ofg = self._config.get('icq', 'outgoing.fg')
+
+        return [ibg, ifg, obg, ofg]
 
     def connect(self, host = None, port = None):
         if host is None:
@@ -1038,7 +1051,7 @@ class Protocol:
         b = self._groups.getBuddyByUin(sname)
 
         m = messageFactory("icq",
-            b.name, b.uin, msg, History.Outgoing)
+            b.name, b.uin, msg, History.Incoming)
 
         self.react("Incoming message", buddy = b, message = m)
 

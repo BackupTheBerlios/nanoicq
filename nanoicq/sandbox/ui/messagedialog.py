@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.15 2006/01/22 21:19:40 lightdruid Exp $
+# $Id: messagedialog.py,v 1.16 2006/01/22 22:53:10 lightdruid Exp $
 #
 
 import sys
@@ -23,7 +23,8 @@ ID_SPLITTER = 8000
 ID_BUTTON_SEND = 8001
 
 class MessageDialog(wx.Dialog, PersistenceMixin):
-    def __init__(self, parent, ID, user, message, history, size = wx.DefaultSize, 
+    def __init__(self, parent, ID, user, message, history, colorSet,
+            size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
 
@@ -40,6 +41,9 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         assert isinstance(history, History)
         self._history = history
+
+        assert len(colorSet) == 4
+        self._colorSet = colorSet
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -158,9 +162,44 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.storeWidgets()
         evt.Skip()
 
-    def updateMessage(self, message):
+    def _colorize(self, message):
+        print 'self._colorSet', self._colorSet
+
         txt = self._history.format(message, timestamp = True) + '\n'
+
+        if message.getDirection() == History.Incoming:
+            bg, fg = self._colorSet[0 : 2]
+        else:
+            bg, fg = self._colorSet[2 : 4]
+
+        curPos = self._incoming.GetInsertionPoint()
+        print curPos
         self._incoming.AppendText(txt)
+        self._incoming.SetStyle(curPos, self._incoming.GetInsertionPoint(), wx.TextAttr(fg, bg))
+
+    def updateMessage(self, message):
+        #txt = self._history.format(message, timestamp = True) + '\n'
+
+        self._colorize(message)
+        #curPos = self._incoming.GetInsertionPoint()
+        #print curPos
+        #self._incoming.AppendText(txt)
+        #self._incoming.SetStyle(curPos, self._incoming.GetInsertionPoint(), wx.TextAttr("RED", "WHITE"))
+
+        self._incoming.Refresh()
+        self._incoming.Update()
+
+        #print 'Number of lines:', self._incoming.GetNumberOfLines()
+
+        #print 'Last position: ', self._incoming.GetLastPosition()
+        #self._incoming.ShowPosition(1)
+        #self._incoming.ShowPosition(self._incoming.GetLastPosition() - 1)
+        #self._incoming.SetInsertionPointEnd()
+
+        self._incoming.ShowPosition(0)
+        self._incoming.ScrollLines(self._incoming.GetNumberOfLines() - 2)
+
+        self._incoming.Refresh()
         self._incoming.Update()
 
         if message.getDirection() == History.Outgoing:

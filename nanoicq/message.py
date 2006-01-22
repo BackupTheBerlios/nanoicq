@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.8 2006/01/22 21:19:40 lightdruid Exp $
+# $Id: message.py,v 1.9 2006/01/22 22:53:10 lightdruid Exp $
 #
 
 from utils import *
@@ -34,7 +34,8 @@ class Message:
             (self._context, str(self._user), punicode(str(self._content)), self._decodeDirection(self._direction))
 
     def __eq__(self, m):
-        return self._context == m._context and self._user == m._user and self._content == m._content
+        return self._context == m._context and self._user == m._user \
+            and self._content == m._content and self._direction == m._direction
 
 class ICQMessage(Message):
 
@@ -72,6 +73,11 @@ def _test():
 
     mm = messageFactory("icq", 'user', '12345', 'text', History.Incoming)
     assert mm == im
+    assert mm.getDirection() == History.Incoming
+
+    mm2 = messageFactory("icq", 'user', '12345', 'text', History.Outgoing)
+    assert mm2 != im
+    assert mm2.getDirection() == History.Outgoing
 
 if __name__ == '__main__':
     _test()

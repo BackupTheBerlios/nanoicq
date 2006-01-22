@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.35 2006/01/22 21:19:40 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.36 2006/01/22 22:53:10 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.35 2006/01/22 21:19:40 lightdruid Exp $"
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.36 2006/01/22 22:53:10 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -348,7 +348,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         h = History()
         b = self.connector["icq"].getBuddy(userName)
-        d = MessageDialog(self, -1, b, message, h)
+        colorSet = self.connector["icq"].getColorSet()
+        d = MessageDialog(self, -1, b, message, h, colorSet)
         icon = self.prepareIcon(images.getLimeWireImage())
         d.SetIcon(icon)
 
@@ -422,7 +423,6 @@ class NanoApp(wx.App):
 
 app = NanoApp(redirect = False)
 app.MainLoop()
-
 
 # ---
 

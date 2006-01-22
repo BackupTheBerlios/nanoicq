@@ -1,6 +1,6 @@
 
 #
-# $Id: utils.py,v 1.14 2006/01/22 21:01:15 lightdruid Exp $
+# $Id: utils.py,v 1.15 2006/01/22 22:53:10 lightdruid Exp $
 #
 
 import string
@@ -8,6 +8,7 @@ import cPickle
 import sys, codecs, time, random
 import warnings
 import wx
+
 
 _ver = wx.VERSION
 if _ver[0] < 2:
@@ -26,6 +27,7 @@ else:
         _enc, _dec, _srdr, _swtr = codecs.lookup('utf-8')
     else:
         raise Exception('Codecs are not tuned yet for this platform')
+
 
 def punicode(s):
     return unicode(_dec(s)[0])

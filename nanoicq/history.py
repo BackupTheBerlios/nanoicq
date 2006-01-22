@@ -1,6 +1,6 @@
 
 #
-# $Id: history.py,v 1.6 2006/01/18 16:25:54 lightdruid Exp $
+# $Id: history.py,v 1.7 2006/01/22 22:53:10 lightdruid Exp $
 #
 
 import time
@@ -46,7 +46,7 @@ class History:
 
         if timestamp:
             if longdate: fmt = '%d.%m.%Y %H:%M:%S'
-            else: fmt = '%d.%m %H:%M'
+            else: fmt = '%x %X'
             txt += time.strftime(fmt, time.localtime()) + ' '
         txt += msg.getContents()
 
