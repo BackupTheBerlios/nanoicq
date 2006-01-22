@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.28 2006/01/22 22:53:10 lightdruid Exp $
+# $Id: icq.py,v 1.29 2006/01/22 23:09:23 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -302,7 +302,10 @@ class Protocol:
 
     def getColorSet(self):
         '''
-        Return 4-tuple, bg/fg for incoming messages and
+        FIXME: actually it's ugly, it makes sense to
+        wrap it to something more suitable.
+
+        Returns 4-list, bg/fg for incoming messages and
         bg/fg for outgoing messages
         '''
         ibg = self._config.get('icq', 'incoming.bg')
