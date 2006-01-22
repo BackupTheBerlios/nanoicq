@@ -1,6 +1,6 @@
 
 #
-# $Id: persistence.py,v 1.4 2006/01/04 16:38:30 lightdruid Exp $
+# $Id: persistence.py,v 1.5 2006/01/22 21:19:40 lightdruid Exp $
 #
 
 import wx
@@ -23,36 +23,13 @@ class PersistenceMixin:
 
         for o in objs:
             ids = o.GetName()
-            print 'Processing', o.__class__, ids
+            # print 'Processing', o.__class__, ids
 
             pos = self.FindWindowByName(ids).GetPosition()
             size = self.FindWindowByName(ids).GetSize()
 
             try:
                 sash = self.FindWindowByName(ids).GetSashPosition()
-            except:
-                sash = None
-
-            d[ids] = (pos, size, sash)
-
-        fn = self._fileName + '.' + name + '.widgets'
-        fp = open(fn, "wb")
-        cPickle.dump(d, fp)
-        fp.close()
-
-    def storeObjects1(self, objs = None, name = 'COMMON'):
-        if objs is None: objs = self._objs
-        d = {}
-
-        for o in objs:
-            ids = o.GetId()
-            print 'Processing', o.__class__, ids
-
-            pos = self.FindWindowById(ids).GetPosition()
-            size = self.FindWindowById(ids).GetSize()
-
-            try:
-                sash = self.FindWindowById(ids).GetSashPosition()
             except:
                 sash = None
 
@@ -78,22 +55,6 @@ class PersistenceMixin:
             if sash is not None:
                 self.FindWindowByName(ids).SetSashPosition(sash)
             self.FindWindowByName(ids).Layout()
-
-    def restoreObjects1(self, ids, name = 'COMMON'):
-        fn = self._fileName + '.' + name + '.widgets'
-        fp = open(fn, "rb")
-        d = cPickle.load(fp)
-        fp.close()
-
-        for ids in d:
-            pos, size, sash = d[ids]
-            print 'restoring', ids, pos, size, sash, self.FindWindowById(ids)
-
-            self.FindWindowById(ids).SetPosition(pos)
-            self.FindWindowById(ids).SetSize(size)
-            if sash is not None:
-                self.FindWindowById(ids).SetSashPosition(sash)
-            self.FindWindowById(ids).Layout()
 
     def storeGeometry(self):
         fp = open(self._fileName, "wb")

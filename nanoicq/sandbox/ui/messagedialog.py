@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.14 2006/01/22 21:01:15 lightdruid Exp $
+# $Id: messagedialog.py,v 1.15 2006/01/22 21:19:40 lightdruid Exp $
 #
 
 import sys
@@ -143,22 +143,18 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         evt.Skip()
 
     def getBuddy(self):
-        ''' Return buddy assigned to this conversation
-        '''
+        ''' Return buddy assigned to this conversation '''
         return self._user
 
     def storeWidgets(self):
         self.storeObjects([self, self.buttonOk, self.splitter],
             name = self._userName)
 
-        print 'Sending close event for dialog...', self.GetId()
         evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
         evt.setVal(self.GetId())
         self._parent.GetEventHandler().AddPendingEvent(evt)
-        print 'Close event sent', self.GetId()
 
     def onCancel(self, evt):
-        print 'onCancel'
         self.storeWidgets()
         evt.Skip()
 

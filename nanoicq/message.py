@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.7 2006/01/18 16:25:54 lightdruid Exp $
+# $Id: message.py,v 1.8 2006/01/22 21:19:40 lightdruid Exp $
 #
 
 from utils import *
@@ -19,9 +19,10 @@ class Message:
         self._content = content
         self._direction = direction
 
-    def getContents(self): return self._content
+    def getContext(self): return self._context
     def getUser(self): return self._user
     def getDirection(self): return self._direction
+    def getContents(self): return self._content
 
     def _decodeDirection(self, d):
         assert d in [History.Incoming, History.Outgoing]

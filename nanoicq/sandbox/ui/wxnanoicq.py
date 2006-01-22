@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.34 2006/01/18 16:25:54 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.35 2006/01/22 21:19:40 lightdruid Exp $
 #
 
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.35 2006/01/22 21:19:40 lightdruid Exp $"
 
 import sys
 import traceback
@@ -22,8 +23,6 @@ import images
 import cPickle
 import string
 
-import wx.lib.mixins.listctrl as listmix
-
 from buddy import Buddy
 import icq
 from icq import log
@@ -38,6 +37,7 @@ from utils import *
 from events import *
 from message import Message
 from history import History
+from userlistctrl import UserListCtrl
 
 if sys.platform == 'win32':
     from TrayIcon import TrayIcon
@@ -121,37 +121,6 @@ class Connector:
 
     def __getitem__(self, attr):
         return self._protocols[attr]
-
-
-class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, ID, pos = wx.DefaultPosition,
-            size = wx.DefaultSize, style = 0):
-
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
-        self._parent = parent
-
-        self.currentItem = -1
-        self.buddies = {}
- 
-        self.Bind(wx.EVT_LEFT_DCLICK, self.onDoubleClick)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self)
-
-    def getColumnText(self, index, col):
-        item = self.GetItem(index, col)
-        return item.GetText()
-
-    def onItemSelected(self, evt):
-        self.currentItem = evt.m_itemIndex
-
-    def onDoubleClick(self, evt):
-        userName = self.getColumnText(self.currentItem, 1)
-        print "nDoubleClick item %d:%s" % (self.currentItem, userName)
-        evt.Skip()
-
-        evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
-        evt.setVal((self.currentItem, userName))
-        self._parent.GetEventHandler().AddPendingEvent(evt)
 
 
 class TopFrame(wx.Frame, PersistenceMixin):
@@ -254,7 +223,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
         evt.setVal((b, m))
 
-        # Spent 4h to fidure out why dialog hangs after message passing,
+        # Spent 4h to figure out why dialog hangs after message passing,
         # we should use AddPendingEvent() instead of ProcessEvent()
         # was: self.GetEventHandler().ProcessEvent(evt)
 
@@ -280,14 +249,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print str(kw)
 
         b = kw['buddy']
-        #guidebug.message(str(b))
-
-        # Create fake message and dialog, but do not display it
-
         try:
             self.addBuddy(b)
-            #message = Message(0, '', '')
-            #self.showMessage(b.name, message, hide = True)
         except Exception, v:
             wx.MessageBox(str(v), "Exception Message")
 
