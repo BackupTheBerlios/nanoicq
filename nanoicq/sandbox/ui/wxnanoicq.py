@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.38 2006/01/23 14:49:52 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.39 2006/01/23 16:53:43 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.38 2006/01/23 14:49:52 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.39 2006/01/23 16:53:43 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -38,6 +38,7 @@ from events import *
 from message import Message
 from history import History
 from userlistctrl import UserListCtrl
+from iconset import *
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -148,6 +149,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.config = Config()
         self.config.read('sample.config')
 
+        self.iconSet = IconSet()
+        self.iconSet.addPath('icons/aox')
+        self.iconSet.loadIcons()
+        self.iconSet.setActiveSet('aox')
+
         self.connector = Connector()
         self.connector.setConfig(self.config)
         self.connector.registerProtocol('icq', ICQThreaded(gui = self))
@@ -167,6 +173,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
         self.Bind(EVT_SEND_MESSAGE, self.onSendMessage)
         self.Bind(EVT_INCOMING_MESSAGE, self.onIncomingMessage)
+        self.Bind(EVT_BUDDY_STATUS_CHANGED, self.onBuddyStatusChanged)
 
         # ---
 
@@ -231,6 +238,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.GetEventHandler().AddPendingEvent(evt)
 
+    def onBuddyStatusChanged(self, evt):
+        print 'onBuddyStatusChanged()'
+        b, status = evt.getVal()
+
+        evt.Skip()
+
     def onIncomingMessage(self, evt):
         print 'onIncomingMessage()'
 
@@ -268,9 +281,22 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def event_Logoff(self, kw):
         self.updateStatusBar('Offline')
 
+    @dtrace
+    def event_Buddy_status_changed(self, kw):
+        print 'Called event_Buddy_status_changed with '
+        print str(kw)
+
+        b = kw['buddy']
+        s = kw['status']
+        print b, s
+
+        evt = NanoEvent(nanoEVT_BUDDY_STATUS_CHANGED, self.GetId())
+        evt.setVal((b, s))
+        self.GetEventHandler().AddPendingEvent(evt)
+
     def addBuddy(self, b):
         self.il = wx.ImageList(16, 16)
-        self.idx1 = self.il.Add(images.getSmilesBitmap())
+        self.idx1 = self.il.Add(self.iconSet['offline'])
         self.topPanel.userList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
         index = self.topPanel.userList.InsertImageStringItem(sys.maxint, '', self.idx1)
@@ -367,22 +393,7 @@ class TopPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.topPanelSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.userList = UserListCtrl(self, -1, style = wx.LC_REPORT | wx.BORDER_SIMPLE)
-
-        info = wx.ListItem()
-        info.m_mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT
-        info.m_image = -1
-        info.m_format = 0
-        info.m_text = "Status"
-        self.userList.InsertColumnInfo(0, info)
-
-#        info.m_format = wx.LIST_FORMAT_RIGHT
-        info.m_text = "User"
-        self.userList.InsertColumnInfo(1, info)
-
-        #self.sampleFill()
-        self.userList.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self.userList.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.userList = UserListCtrl(self, -1)
 
         # ---
         self.topPanelSizer.Add(self.userList, 1, wx.ALL | wx.EXPAND, 1)

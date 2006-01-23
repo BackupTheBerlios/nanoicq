@@ -1,3 +1,5 @@
 *.pyc
 *.pyo
 *.exe
+*.widgets
+frame.position

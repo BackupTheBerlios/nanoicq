@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.30 2006/01/23 14:49:52 lightdruid Exp $
+# $Id: icq.py,v 1.31 2006/01/23 16:53:43 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -813,7 +813,7 @@ class Protocol:
         See also additional information about online userinfo block. '''
 
         uinLen = int(struct.unpack('!B', data[0])[0]) 
-        uin = data[1 : uinLen]
+        uin = data[1 : uinLen + 1]
         log().log("User '%s' is online" % uin)
         log().log("UIN length: %d, UIN: %s" % (uinLen, uin))
 
@@ -859,8 +859,8 @@ class Protocol:
 #                (time.asctime(time.localtime(lastInfoUpdate)), time.asctime(time.localtime(lastExtInfoUpdate)), time.asctime(time.localtime(lastExtStatusUpdate)))
 
             junk = int(struct.unpack('!H', dc[26 : 28])[0])
-        except:
-            raise
+        except Exception, e:
+            log().log("Exception while parsing DC info: %s" % str(e))
 
         # TLV.Type(0x0A) - external ip address
         externalIP = "0:0:0:0"
@@ -922,15 +922,31 @@ class Protocol:
         except KeyError, msg:
             log().log("Unable to get user icon")
 
+        b = self._groups.getBuddyByUin(uin)
+        self.react("Buddy status changed", buddy = b,
+            status = self.splitUserStatus(userStatus))
+
+    def splitUserStatus(self, status):
+        '''
+        ICQ service presence notifications use user status field which 
+        consist of two parts. First is a various flags (birthday flag, 
+        webaware flag, etc). Second is a user status (online, away, 
+        busy, etc) flags. Each part is a two bytes long.
+        '''
+        return struct.unpack('!HH', status)
+
     def parseUserStatus(self, status):
+        p1, p2 = self.splitUserStatus(status)
         st = []
-        p1, p2 = struct.unpack('!HH', status)
+
         for s in _userStatusP1:
             if s & p1:
                 st.append(_userStatusP1[s])
+
         for s in _userStatusP2:
             if s & p2:
                 st.append(_userStatusP2[s])
+
         return ', '.join(st)
 
     def parseDcType(self, dcType):

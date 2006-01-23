@@ -1,6 +1,6 @@
 
 #
-# $Id: events.py,v 1.4 2006/01/17 15:14:00 lightdruid Exp $
+# $Id: events.py,v 1.5 2006/01/23 16:53:43 lightdruid Exp $
 #
 
 import wx
@@ -16,6 +16,9 @@ EVT_SEND_MESSAGE = wx.PyEventBinder(nanoEVT_SEND_MESSAGE, 1)
 
 nanoEVT_INCOMING_MESSAGE = wx.NewEventType()
 EVT_INCOMING_MESSAGE = wx.PyEventBinder(nanoEVT_INCOMING_MESSAGE, 1)
+
+nanoEVT_BUDDY_STATUS_CHANGED = wx.NewEventType()
+EVT_BUDDY_STATUS_CHANGED = wx.PyEventBinder(nanoEVT_BUDDY_STATUS_CHANGED, 1)
 
 class NanoEvent(wx.PyCommandEvent):
     def __init__(self, evtType, id):

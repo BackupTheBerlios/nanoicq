@@ -1,10 +1,11 @@
 
 #
-# $Id: iconset.py,v 1.1 2006/01/23 14:49:52 lightdruid Exp $
+# $Id: iconset.py,v 1.2 2006/01/23 16:53:43 lightdruid Exp $
 #
 
 import wx
 import os
+import warnings
 
 class IconSetException(Exception): pass
 
@@ -24,11 +25,13 @@ class IconSet:
         assert s is not None
         self._activeSet = self._icons[s]
 
-    def addPath(self, alias, path):
+    def addPath(self, path, alias = None):
         ''' Add alias and path where to search icons '''
         npath = os.path.abspath(path)
         if os.path.isdir(npath):
             if npath not in self._path:
+                if alias is None:
+                    alias = os.path.basename(npath)
                 self._path.append((alias, npath))
         else:
             raise IconSetException("Wrong path")
@@ -65,9 +68,11 @@ class IconSet:
                         continue
 
                     try:
-                        icon = wx.Icon(e, self._getIconType(ext))
+                        img = wx.Image(fullName)
+                        icon = wx.BitmapFromImage(img.Scale(16, 16))
                     except Exception, e:
-                        warnings.warn("Got exception while loading icon: %s" % str(e))
+                        print "Got exception while loading icon: %s" % str(e)
+                        continue
 
                     icons[name] = icon
 
@@ -100,7 +105,7 @@ def _test():
     wx.InitAllImageHandlers()
 
     ic = IconSet()
-    ic.addPath('aox', 'icons/aox')
+    ic.addPath('icons/aox/')
     ic.loadIcons()
     ic.dump()
     ic.setActiveSet('aox')

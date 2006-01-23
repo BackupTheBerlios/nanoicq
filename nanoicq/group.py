@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.4 2006/01/17 15:14:00 lightdruid Exp $
+# $Id: group.py,v 1.5 2006/01/23 16:53:43 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -32,9 +32,10 @@ class Group:
     def getBuddyByUin(self, uin):
         print self._b.keys()
         for b in self._b.values():
+            print b.uin
             if b.uin == uin:
                 return b
-        raise Exception("UIN not found in buddies list")
+        raise Exception("UIN '%s' not found in buddies list" % uin)
 
     def __getitem__(self, key):
         return self._g[key]
