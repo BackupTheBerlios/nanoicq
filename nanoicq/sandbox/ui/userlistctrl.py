@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.2 2006/01/23 16:53:43 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.3 2006/01/23 20:48:10 lightdruid Exp $
 #
 
 import sys
@@ -83,6 +83,7 @@ def _test():
 
         def sampleFill(self):
             from buddy import Buddy
+            from iconset import IconSet
 
             musicdata = {
             1 : ("", "a"),
@@ -92,23 +93,34 @@ def _test():
             5 : ("", "e"),
             6 : ("", "f"),
             7 : ("", "g"),
-            8 : ("", "h"),
             }
 
+            self.iconSet = IconSet()
+            self.iconSet.addPath('icons/aox')
+            self.iconSet.loadIcons()
+            self.iconSet.setActiveSet('aox')            
+
             self.il = wx.ImageList(16, 16)
-            self.idx1 = self.il.Add(images.getSmilesBitmap())
+
+            for status in IconSet.FULL_SET:
+                self.idx1 = self.il.Add(self.iconSet[status])
             self.ul.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
             # Here we need to setup a list data
 
+            ii = 0
             items = musicdata.items()
             for key, data in items:
-                index = self.ul.InsertImageStringItem(sys.maxint, data[0], self.idx1)
-                self.ul.SetStringItem(index, 1, data[1])
+                index = self.ul.InsertImageStringItem(sys.maxint, data[0], ii)
+                self.ul.SetStringItem(index, 1, IconSet.FULL_SET[ii])
                 b = Buddy()
                 b.name = str(key)
                 self.ul.buddies[key] = b
                 self.ul.SetItemData(index, key)
+                ii += 1
+
+            self.ul.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+            self.ul.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     class NanoApp(wx.App):
         def OnInit(self):
