@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.37 2006/01/23 09:32:56 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.38 2006/01/23 14:49:52 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.37 2006/01/23 09:32:56 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.38 2006/01/23 14:49:52 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -423,6 +423,7 @@ class NanoApp(wx.App):
         frame.Show(True)
         return True
 
+wx.InitAllImageHandlers()
 app = NanoApp(redirect = False)
 app.MainLoop()
 

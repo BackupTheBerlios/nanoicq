@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.29 2006/01/22 23:09:23 lightdruid Exp $
+# $Id: icq.py,v 1.30 2006/01/23 14:49:52 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -583,6 +583,18 @@ class Protocol:
 #        self.getOfflineMessages()
 #        self.sendSNAC(0x13, 0x05, 0, struct.pack('!LH', 0, 0))
 
+    def parseSelfStatus(self, data):
+        self.userClass = int(struct.unpack('!H', data[1])[0])
+        self.parseUserClass()
+
+    def parseUserClass(self, userClass = None):
+        if userClass is None:
+            userClass = self.userClass
+        out = []
+        for c in _userClasses:
+            if userClass & c: out.append(_userClasses[c])
+        log().log("User class: " + ' '.join(out))
+
     def proc_2_19_6(self, data):
         ''' This is the server reply to client roster 
         requests: SNAC(13,04) - Request contact list (first time),
@@ -594,9 +606,6 @@ class Protocol:
         And the "Number of items" field indicates the number of 
         items in the current packet, not the entire list. '''
 
-        print 'PRE: ', ashex(data)
-        print coldump(data)
-
         if __debug__:
             import cPickle
             f = open('string.dump', 'wb')
@@ -607,7 +616,6 @@ class Protocol:
         assert ver == 0
 
         nitems = int(struct.unpack('!H', data[1:3])[0])
-        print coldump(data[1:3])
         log().log("Items number: %d" % nitems)
 
         data = data[3:]
@@ -670,9 +678,6 @@ class Protocol:
         self._groups = restoreFromFile(fileName)
 
     def parseSSIItem(self, data):
-
-        print '*' * 10, "Parsing SSI data..."
-        print coldump(data)
 
         itemLen = int(struct.unpack('>H', data[0:2])[0])
         data = data[2:]
@@ -937,18 +942,6 @@ class Protocol:
  
     def proc_2_19_15(self, data):
         raise Exception("proc_2_19_15 not implemented")
-
-    def parseSelfStatus(self, data):
-        self.userClass = int(struct.unpack('!H', data[1])[0])
-        self.parseUserClass()
-
-    def parseUserClass(self, userClass = None):
-        if userClass is None:
-            userClass = self.userClass
-        out = []
-        for c in _userClasses:
-            if userClass & c: out.append(_userClasses[c])
-        log().log("User class: " + ' '.join(out))
 
     def proc_2_4_1(self, data):
         '''
@@ -1243,10 +1236,6 @@ class Protocol:
         uin = message.getUIN()
         log().log("Sending message to %s (%s)" % (user, uin))
 
-#        print '*************************'
-#        print 'sending to 177033621 istead of', user
-#        user = '177033621'
-
         channel = 1
         channel = struct.pack('!H', channel)
         data = genCookie() + channel + struct.pack('!B', len(uin)) + uin
@@ -1266,16 +1255,12 @@ class Protocol:
         # xx ..      string (ascii)      Message text string
 
         log().log("Sending %d '%s'" % (len(message.getContents()), message.getContents()))
-        print coldump(message.getContents())
 
         charSet = 3
         charSubSet = 0
 
-        print 'pass 1'
         t += '\x01\x01' + struct.pack('!3H', len(message.getContents()) + 4, charSet, charSubSet)
-        print 'pass 2'
         t += unicode(message.getContents())
-        print 'pass 3'
 
         outMsg = data + tlv(2, t)
 
@@ -1286,7 +1271,6 @@ class Protocol:
         if offline:
             outMsg = outMsg + tlv(6, '')
 
-        print 'pass 4'
         self.sendSNAC(0x04, 0x06, 0, outMsg)
 
 
