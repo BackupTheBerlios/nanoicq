@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.16 2006/01/22 22:53:10 lightdruid Exp $
+# $Id: messagedialog.py,v 1.17 2006/01/23 08:59:09 lightdruid Exp $
 #
 
 import sys
@@ -14,6 +14,9 @@ from message import Message, messageFactory
 from history import History
 from buddy import Buddy
 
+# Default colorset bg/fg for incoming/outgoing messages
+_DEFAULT_COLORSET = ("white", "black", "white", "black")
+
 class MySplitter(wx.SplitterWindow):
     def __init__(self, parent, ID, name):
         wx.SplitterWindow.__init__(self, parent, ID,
@@ -23,7 +26,7 @@ ID_SPLITTER = 8000
 ID_BUTTON_SEND = 8001
 
 class MessageDialog(wx.Dialog, PersistenceMixin):
-    def __init__(self, parent, ID, user, message, history, colorSet,
+    def __init__(self, parent, ID, user, message, history, colorSet = _DEFAULT_COLORSET,
             size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
@@ -87,7 +90,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         # Send messages on Ctrl-Enter
         self._outgoing.Bind(wx.EVT_KEY_DOWN, self.onCtrlEnter)
 
-
         self.outgoingSizer.Add(self._outgoing, 1, wx.EXPAND, 1)
         self.outgoing.SetSizer(self.outgoingSizer)
         self.outgoing.SetAutoLayout(True)
@@ -102,6 +104,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         self.boxSizer2.Add(self._pane, 1, wx.EXPAND)
 
+        # 3rd
         box3 = wx.StaticBox(self, -1)
         self.boxSizer3 = wx.StaticBoxSizer(box3, wx.HORIZONTAL)
         self.buttonOk = wx.Button(self, ID_BUTTON_SEND, 'Send',
