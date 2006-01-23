@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.36 2006/01/22 22:53:10 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.37 2006/01/23 09:32:56 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.36 2006/01/22 22:53:10 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.37 2006/01/23 09:32:56 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -39,8 +39,10 @@ from message import Message
 from history import History
 from userlistctrl import UserListCtrl
 
-if sys.platform == 'win32':
-    from TrayIcon import TrayIcon
+# System-dependent handling of TrayIcon is in the TrayIcon.py
+# When running on system other than win32, this class is simple
+# interface with no functionality
+from TrayIcon import TrayIcon
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()

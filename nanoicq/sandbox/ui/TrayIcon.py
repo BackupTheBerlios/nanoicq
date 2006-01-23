@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIcon.py,v 1.4 2006/01/16 11:48:14 lightdruid Exp $
+# $Id: TrayIcon.py,v 1.5 2006/01/23 09:32:56 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -30,6 +30,9 @@ else:
             pass
 
         def onCancelTaskBarRemove(self, evt):
+            pass
+
+        def Destroy(self):
             pass
 
 # ---
