@@ -1,6 +1,6 @@
 
 #
-# $Id: iconset.py,v 1.2 2006/01/23 16:53:43 lightdruid Exp $
+# $Id: iconset.py,v 1.3 2006/01/24 23:51:35 lightdruid Exp $
 #
 
 import wx
@@ -10,7 +10,7 @@ import warnings
 class IconSetException(Exception): pass
 
 class IconSet:
-    FULL_SET = ['online', 'offline', 'na', 'dnd', 'free', 'invisible', 'away']
+    FULL_SET = ['main', 'online', 'offline', 'na', 'dnd', 'free', 'invisible', 'away']
     _EXTENSIONS = ['.ico']
 
     def __init__(self):

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.39 2006/01/23 16:53:43 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.40 2006/01/24 23:51:35 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.39 2006/01/23 16:53:43 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.40 2006/01/24 23:51:35 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -19,7 +19,7 @@ import thread
 import time
 import wx
 import isocket
-import images
+#import images
 import cPickle
 import string
 
@@ -135,9 +135,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.createTopMenuBar()
         self.makeStatusbar()
 
-        icon = self.prepareIcon(images.getLimeWireImage())
-        self.SetIcon(icon)
-
         self.trayIcon = TrayIcon(self)
 
         self.createTopPanel()
@@ -153,6 +150,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.iconSet.addPath('icons/aox')
         self.iconSet.loadIcons()
         self.iconSet.setActiveSet('aox')
+
+        #icon = self.prepareIcon(images.getLimeWireImage())
+        icon = wx.EmptyIcon()
+        icon.CopyFromBitmap(self.iconSet['main'])
+        self.SetIcon(icon)
 
         self.connector = Connector()
         self.connector.setConfig(self.config)
@@ -266,8 +268,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
         b = kw['buddy']
         try:
             self.addBuddy(b)
-        except Exception, v:
-            wx.MessageBox(str(v), "Exception Message")
+        except:
+            typ, value, tb = sys.exc_info()
+            list = traceback.format_tb(tb, None) + \
+                traceback.format_exception_only(type, value)
+            err = "%s %s" % (
+                "".join(list[:-1]),
+                list[-1],
+            )
+            print 'ERROR: ', err
+
+            wx.MessageBox(err, "Exception Message")
 
     @dtrace
     def event_Login_done(self, kw):
