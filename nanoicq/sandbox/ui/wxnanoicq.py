@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.42 2006/01/25 15:59:16 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.43 2006/01/25 16:21:54 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.42 2006/01/25 15:59:16 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.43 2006/01/25 16:21:54 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -133,6 +133,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         PersistenceMixin.__init__(self, "frame.position")
 
         # ---
+        self._dialogs = []
+
         self.config = Config()
         self.config.read('sample.config')
 
@@ -144,11 +146,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         #---
         self.createTopMenuBar()
         self.makeStatusbar()
-
         self.createTopPanel()
-        self.restoreGeometry(wx.Point(0, 0), wx.Size(100, 100))
 
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        # Setup default position and size, later it will be restored,
+        # if position save were found
+        self.restoreGeometry(wx.Point(0, 0), wx.Size(100, 100))
 
         self.mainIcon = wx.EmptyIcon()
         self.mainIcon.CopyFromBitmap(self.iconSet['main'])
@@ -162,15 +164,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.updateStatusBar('Disconnected')
 
-        # ---
+        # --- Doesn't work:
 #        result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
-        result = wx.GetApp().GetTopWindow().RegisterHotKey(0, 0, wx.WXK_F9)
-        self.Bind(wx.EVT_HOTKEY, self.OnTest, id = 0)
-        print result
+#        self.Bind(wx.EVT_HOTKEY, self.OnTest, id = 0)
+#        print result
 
-        self._dialogs = []
-#        self.OnTest(1)
-
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
         self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
         self.Bind(EVT_SEND_MESSAGE, self.onSendMessage)
@@ -191,10 +190,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'onMessagePrepare', evt.getVal()
 
         currentItem, userName = evt.getVal()
-        user = self.connector['icq'].getBuddy(userName)
+        b = self.connector['icq'].getBuddy(userName)
 
         message = None
-        self.showMessage(userName, message)
+        #self.showMessage(userName, message)
+
+        self._showMessageDialog(message, b)
+
 
     def dialogClose(self, evt):
         pass
@@ -250,7 +252,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'onIncomingMessage()'
 
         b, m = evt.getVal()
+        evt.Skip()
 
+        self._showMessageDialog(m, b)
+
+    def _showMessageDialog(self, m, b):
         d = self.findDialogForBuddy(b)
         if d is not None:
             d.updateMessage(m)
@@ -259,7 +265,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         else:
             self.showMessage(b.name, m)
 
-        evt.Skip()
 
     def event_New_buddy(self, kw):
         print 'Called event_New_Buddy with '
@@ -306,10 +311,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.GetEventHandler().AddPendingEvent(evt)
 
     def addBuddy(self, b):
-        #self.il = wx.ImageList(16, 16)
-        #self.idx1 = self.il.Add(self.iconSet['offline'])
-        #self.topPanel.userList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
-
         index = self.topPanel.userList.InsertImageStringItem(sys.maxint, '', 0)
         self.topPanel.userList.changeStatus(b.name, 'offline')
         self.topPanel.userList.SetStringItem(index, 1, b.name)
@@ -335,19 +336,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
             self.topMenuBar.Append(menu, header)
 
         self.SetMenuBar(self.topMenuBar)
-
-    def prepareIcon(self, img):
-        """
-        The various platforms have different requirements for the
-        icon size...
-        """
-        if "wxMSW" in wx.PlatformInfo:
-            img = img.Scale(16, 16)
-        elif "wxGTK" in wx.PlatformInfo:
-            img = img.Scale(22, 22)
-        # wxMac can be any size upto 128x128, so leave the source img alone....
-        icon = wx.IconFromBitmap(img.ConvertToBitmap() )
-        return icon
 
     def makeStatusbar(self):
         self.sb = CustomStatusBar(self)
@@ -376,10 +364,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].Start()
 
     def OnTest(self, evt):
-#        self.connector['icq'].sendMessage1('177033621', 
-#            'Msg:' + time.asctime(time.localtime()), autoResponse = True)
-        import random
-        self.showMessage(str(random.random()))
+        pass
 
     def showMessage(self, userName, message, hide = False):
         print 'showMessage()'

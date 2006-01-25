@@ -1,6 +1,6 @@
 
 #
-# $Id: slider.py,v 1.1 2006/01/24 23:28:28 lightdruid Exp $
+# $Id: slider.py,v 1.2 2006/01/25 16:21:54 lightdruid Exp $
 #
 
 from threading import *
@@ -257,10 +257,8 @@ class NanoApp(wx.App):
         frame.Show(True)
         return True
 
-
-
 wx.InitAllImageHandlers()
 app = NanoApp(redirect = False)
 app.MainLoop()
 
-
+# ---

@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.4 2006/01/25 00:59:34 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.5 2006/01/25 16:21:54 lightdruid Exp $
 #
 
 import sys
@@ -62,12 +62,11 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         idx = -1
         while True:
             idx = self.GetNextItem(idx)
-            if idx == -1: break
+            if idx == -1:
+                break
             u = self.getColumnText(idx, 1)
-            print userName, status, u
             if u == userName:
                 self.SetStringItem(idx, 0, '', IconSet.FULL_SET.index(status))
-                print 'FOUND'
                 break
 
     def onDoubleClick(self, evt):
