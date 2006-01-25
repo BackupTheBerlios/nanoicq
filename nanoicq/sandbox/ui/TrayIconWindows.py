@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.2 2006/01/25 15:55:11 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.3 2006/01/25 15:59:16 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -34,12 +34,12 @@ class TrayIcon(wx.TaskBarIcon):
         ("TBMENU_STATUS_INVISIBLE"     , "Invisible"),
     ]
 
-    def __init__(self, frame):
+    def __init__(self, frame, icon):
         wx.TaskBarIcon.__init__(self)
         self.frame = frame
 
         # Set the image
-        icon = self.MakeIcon(images.getLimeWireImage())
+        #icon = self.MakeIcon(images.getLimeWireImage())
         self.SetIcon(icon, "NanoICQ")
         self.imgidx = 1
 

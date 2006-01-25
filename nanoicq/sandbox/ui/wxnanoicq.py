@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.41 2006/01/25 00:59:34 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.42 2006/01/25 15:59:16 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.41 2006/01/25 00:59:34 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.42 2006/01/25 15:59:16 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -145,18 +145,16 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.createTopMenuBar()
         self.makeStatusbar()
 
-        self.trayIcon = TrayIcon(self)
-
         self.createTopPanel()
         self.restoreGeometry(wx.Point(0, 0), wx.Size(100, 100))
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-
-        #icon = self.prepareIcon(images.getLimeWireImage())
         self.mainIcon = wx.EmptyIcon()
         self.mainIcon.CopyFromBitmap(self.iconSet['main'])
         self.SetIcon(self.mainIcon)
+
+        self.trayIcon = TrayIcon(self, self.mainIcon)
 
         self.connector = Connector()
         self.connector.setConfig(self.config)
