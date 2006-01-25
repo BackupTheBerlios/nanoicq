@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.40 2006/01/24 23:51:35 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.41 2006/01/25 00:59:34 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.40 2006/01/24 23:51:35 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.41 2006/01/25 00:59:34 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -132,6 +132,16 @@ class TopFrame(wx.Frame, PersistenceMixin):
             pos=(150, 150), size=(350, 200))
         PersistenceMixin.__init__(self, "frame.position")
 
+        # ---
+        self.config = Config()
+        self.config.read('sample.config')
+
+        self.iconSet = IconSet()
+        self.iconSet.addPath('icons/aox')
+        self.iconSet.loadIcons()
+        self.iconSet.setActiveSet('aox')
+
+        #---
         self.createTopMenuBar()
         self.makeStatusbar()
 
@@ -142,19 +152,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        # ---
-        self.config = Config()
-        self.config.read('sample.config')
-
-        self.iconSet = IconSet()
-        self.iconSet.addPath('icons/aox')
-        self.iconSet.loadIcons()
-        self.iconSet.setActiveSet('aox')
 
         #icon = self.prepareIcon(images.getLimeWireImage())
-        icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(self.iconSet['main'])
-        self.SetIcon(icon)
+        self.mainIcon = wx.EmptyIcon()
+        self.mainIcon.CopyFromBitmap(self.iconSet['main'])
+        self.SetIcon(self.mainIcon)
 
         self.connector = Connector()
         self.connector.setConfig(self.config)
@@ -306,11 +308,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.GetEventHandler().AddPendingEvent(evt)
 
     def addBuddy(self, b):
-        self.il = wx.ImageList(16, 16)
-        self.idx1 = self.il.Add(self.iconSet['offline'])
-        self.topPanel.userList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+        #self.il = wx.ImageList(16, 16)
+        #self.idx1 = self.il.Add(self.iconSet['offline'])
+        #self.topPanel.userList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
-        index = self.topPanel.userList.InsertImageStringItem(sys.maxint, '', self.idx1)
+        index = self.topPanel.userList.InsertImageStringItem(sys.maxint, '', 0)
+        self.topPanel.userList.changeStatus(b.name, 'offline')
         self.topPanel.userList.SetStringItem(index, 1, b.name)
         self.topPanel.userList.SetItemData(index, b.gid)
 
@@ -318,7 +321,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.topPanel.userList.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     def createTopPanel(self):
-        self.topPanel = TopPanel(self)
+        self.topPanel = TopPanel(self, self.iconSet)
 
     def createTopMenuBar(self):
         self.topMenuBar = wx.MenuBar()
@@ -389,8 +392,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         b = self.connector["icq"].getBuddy(userName)
         colorSet = self.connector["icq"].getColorSet()
         d = MessageDialog(self, -1, b, message, h, colorSet)
-        icon = self.prepareIcon(images.getLimeWireImage())
-        d.SetIcon(icon)
+        d.SetIcon(self.mainIcon)
 
         if not hide:
             d.Show()
@@ -400,11 +402,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print self._dialogs
 
 class TopPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, iconSet):
         wx.Panel.__init__(self, parent, -1)
         self.topPanelSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.userList = UserListCtrl(self, -1)
+        self.userList = UserListCtrl(self, -1, iconSet)
 
         # ---
         self.topPanelSizer.Add(self.userList, 1, wx.ALL | wx.EXPAND, 1)

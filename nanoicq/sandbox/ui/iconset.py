@@ -1,6 +1,6 @@
 
 #
-# $Id: iconset.py,v 1.3 2006/01/24 23:51:35 lightdruid Exp $
+# $Id: iconset.py,v 1.4 2006/01/25 00:59:33 lightdruid Exp $
 #
 
 import wx
@@ -84,6 +84,8 @@ class IconSet:
 
                 if adjust_missing:
                     self._adjustMissing(icons)
+            else:
+                print "Loaded '%s' (FULL) icon set" % alias
 
         self._icons[alias] = icons
 

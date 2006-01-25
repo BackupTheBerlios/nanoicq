@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.3 2006/01/23 20:48:10 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.4 2006/01/25 00:59:34 lightdruid Exp $
 #
 
 import sys
@@ -9,17 +9,20 @@ import wx.lib.mixins.listctrl as listmix
 
 sys.path.insert(0, '../..')
 from events import *
-#from message import messageFactory
-#from buddy import Buddy
+from buddy import Buddy
+from iconset import IconSet
 
 
 class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, ID, pos = wx.DefaultPosition,
+    def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
             size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_SIMPLE):
 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         self._parent = parent
+
+        assert isinstance(iconSet, IconSet)
+        self.iconSet = iconSet
 
         self.currentItem = -1
         self.buddies = {}
@@ -35,6 +38,12 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         info.m_text = "User"
         self.InsertColumnInfo(1, info)
 
+        self.il = wx.ImageList(16, 16)
+
+        for status in IconSet.FULL_SET:
+            self.idx1 = self.il.Add(self.iconSet[status])
+        self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
         self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.SetColumnWidth(1, wx.LIST_AUTOSIZE)
  
@@ -47,6 +56,19 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
     def onItemSelected(self, evt):
         self.currentItem = evt.m_itemIndex
+
+    def changeStatus(self, userName, status):
+
+        idx = -1
+        while True:
+            idx = self.GetNextItem(idx)
+            if idx == -1: break
+            u = self.getColumnText(idx, 1)
+            print userName, status, u
+            if u == userName:
+                self.SetStringItem(idx, 0, '', IconSet.FULL_SET.index(status))
+                print 'FOUND'
+                break
 
     def onDoubleClick(self, evt):
         evt.Skip()
@@ -61,6 +83,10 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
         evt.setVal((self.currentItem, userName))
         self._parent.GetEventHandler().AddPendingEvent(evt)
+
+        self.changeStatus(userName, 'invisible')
+        self.Update()
+        self.Refresh()
 
 
 def _test():
@@ -78,12 +104,15 @@ def _test():
 #            d = MessageDialog(self, -1, b, message, h)
 #            d.Show(True)
 
-            self.ul = UserListCtrl(self.p, -1)
+            self.iconSet = IconSet()
+            self.iconSet.addPath('icons/aox')
+            self.iconSet.loadIcons()
+            self.iconSet.setActiveSet('aox')            
+
+            self.ul = UserListCtrl(self.p, -1, self.iconSet)
             self.sampleFill()
 
         def sampleFill(self):
-            from buddy import Buddy
-            from iconset import IconSet
 
             musicdata = {
             1 : ("", "a"),
@@ -95,16 +124,12 @@ def _test():
             7 : ("", "g"),
             }
 
-            self.iconSet = IconSet()
-            self.iconSet.addPath('icons/aox')
-            self.iconSet.loadIcons()
-            self.iconSet.setActiveSet('aox')            
 
-            self.il = wx.ImageList(16, 16)
-
-            for status in IconSet.FULL_SET:
-                self.idx1 = self.il.Add(self.iconSet[status])
-            self.ul.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+#            self.il = wx.ImageList(16, 16)
+#
+#            for status in IconSet.FULL_SET:
+#                self.idx1 = self.il.Add(self.iconSet[status])
+#            self.ul.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
             # Here we need to setup a list data
 
@@ -118,6 +143,8 @@ def _test():
                 self.ul.buddies[key] = b
                 self.ul.SetItemData(index, key)
                 ii += 1
+
+                break
 
             self.ul.SetColumnWidth(0, wx.LIST_AUTOSIZE)
             self.ul.SetColumnWidth(1, wx.LIST_AUTOSIZE)
