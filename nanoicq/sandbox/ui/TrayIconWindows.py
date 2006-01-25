@@ -1,12 +1,11 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.1 2006/01/16 11:48:16 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.2 2006/01/25 15:55:11 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
 
 import wx
-import images
 
 class TrayIcon(wx.TaskBarIcon):
     TBMENU_RESTORE = wx.NewId()
