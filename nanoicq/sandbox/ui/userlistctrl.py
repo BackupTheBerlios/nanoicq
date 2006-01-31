@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.5 2006/01/25 16:21:54 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.6 2006/01/31 14:48:03 lightdruid Exp $
 #
 
 import sys
@@ -77,13 +77,11 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
             return
 
         userName = self.getColumnText(self.currentItem, 1)
-        print "nDoubleClick item %d:%s" % (self.currentItem, userName)
 
         evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
         evt.setVal((self.currentItem, userName))
         self._parent.GetEventHandler().AddPendingEvent(evt)
 
-        self.changeStatus(userName, 'invisible')
         self.Update()
         self.Refresh()
 

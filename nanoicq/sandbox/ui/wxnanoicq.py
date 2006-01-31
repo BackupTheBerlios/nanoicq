@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.43 2006/01/25 16:21:54 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.44 2006/01/31 14:48:03 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.43 2006/01/25 16:21:54 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.44 2006/01/31 14:48:03 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -223,7 +223,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         func = getattr(self, fn, None)
         print 'going to call ' + fn + '()'
 
-        #guidebug.message(str(kw[1:][0]))
         func(kw[1:][0])
 
     def event_Incoming_message(self, kw):
@@ -243,9 +242,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.GetEventHandler().AddPendingEvent(evt)
 
     def onBuddyStatusChanged(self, evt):
-        print 'onBuddyStatusChanged()'
+        '''
+        Buddy status is changed, let's change his icon in user list
+        TODO: change ison in opened message boxes
+        '''
         b, status = evt.getVal()
-
+        self.topPanel.userList.changeStatus(b.name, status)
         evt.Skip()
 
     def onIncomingMessage(self, evt):

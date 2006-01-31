@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.31 2006/01/23 16:53:43 lightdruid Exp $
+# $Id: icq.py,v 1.32 2006/01/31 14:48:03 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -98,13 +98,13 @@ _userStatusP1 = {
 }
 
 _userStatusP2 = {
-  0x0000:      "STATUS_ONLINE", #       Status is online  
-  0x0001:      "STATUS_AWAY", #     Status is away    
-  0x0002:      "STATUS_DND", #      Status is no not disturb (DND)    
-  0x0004:      "STATUS_NA", #       Status is not available (N/A) 
-  0x0010:      "STATUS_OCCUPIED", #     Status is occupied (BISY) 
-  0x0020:      "STATUS_FREE4CHAT", #        Status is free for chat   
-  0x0100:      "STATUS_INVISIBLE", #        Status is invisible
+  0x0000:      "online", #       Status is online  
+  0x0001:      "away", #     Status is away    
+  0x0002:      "dnd", #      Status is no not disturb (DND)    
+  0x0004:      "na", #       Status is not available (N/A) 
+  0x0010:      "occupied", #     Status is occupied (BUSY) 
+  0x0020:      "free", #        Status is free for chat   
+  0x0100:      "invisible", #        Status is invisible
 }
 
 SSI_ITEM_BUDDY      = 0x0000  # Buddy record (name: uin for ICQ and screenname for AIM)
@@ -872,7 +872,7 @@ class Protocol:
 
         # TLV.Type(0x06) - user status
         userStatus = tlvs[0x06][0 : 4]
-        status = self.parseUserStatus(userStatus)
+        status = self._parseUserStatus(userStatus)
         log().log("User status: %s" % status)
 
         # TLV.Type(0x0D) - user capabilities
@@ -923,8 +923,27 @@ class Protocol:
             log().log("Unable to get user icon")
 
         b = self._groups.getBuddyByUin(uin)
+        status = self.splitUserStatus(userStatus)
         self.react("Buddy status changed", buddy = b,
-            status = self.splitUserStatus(userStatus))
+            status = self.decodeOnlineStatus(status[1]))
+
+    def decodeOnlineStatus(self, status):
+        '''
+        Return textual representation of status, e.g. 'online', 'na' etc.
+        '''
+
+        print "decodeOnlineStatus got status: ", status
+
+        d = _userStatusP2.keys()
+        d.reverse()
+
+        for s in d:
+            if s & status:
+                return _userStatusP2[s]
+                print "decodeOnlineStatus return status: ", _userStatusP2[s]
+
+        print "decodeOnlineStatus return status: ", _userStatusP2[0]
+        return _userStatusP2[0]
 
     def splitUserStatus(self, status):
         '''
@@ -935,7 +954,7 @@ class Protocol:
         '''
         return struct.unpack('!HH', status)
 
-    def parseUserStatus(self, status):
+    def _parseUserStatus(self, status):
         p1, p2 = self.splitUserStatus(status)
         st = []
 
