@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.44 2006/01/31 14:48:03 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.45 2006/01/31 15:49:41 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.44 2006/01/31 14:48:03 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.45 2006/01/31 15:49:41 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -248,6 +248,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         '''
         b, status = evt.getVal()
         self.topPanel.userList.changeStatus(b.name, status)
+        d = self.findDialogForBuddy(b)
+        if d is not None:
+            d.setStatus(status)
         evt.Skip()
 
     def onIncomingMessage(self, evt):

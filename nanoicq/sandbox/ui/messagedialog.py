@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.17 2006/01/23 08:59:09 lightdruid Exp $
+# $Id: messagedialog.py,v 1.18 2006/01/31 15:49:41 lightdruid Exp $
 #
 
 import sys
@@ -54,12 +54,13 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.boxSizer1 = wx.StaticBoxSizer(box1, wx.HORIZONTAL)
 
         self._userText = wx.StaticText(self, -1, '')
-        self.boxSizer1.Add(self._userText, 0, wx.ALIGN_LEFT)
+        self.boxSizer1.Add(self._userText, 0, wx.ALIGN_LEFT | wx.ALL, 3)
 
-        self.boxSizer1.Add((60, 20), 0, wx.EXPAND)
+        self.boxSizer1.Add(wx.StaticLine(self, -1, style = wx.LI_VERTICAL), 0, wx.EXPAND | wx.ALL, 3)
 
-        self._status = wx.StaticText(self, -1, 'status')
-        self.boxSizer1.Add(self._status, 1, wx.ALIGN_RIGHT)
+        # TODO: status must be set by passing argumant or using buddy's properties
+        self._status = wx.StaticText(self, -1, 'offline')
+        self.boxSizer1.Add(self._status, 1, wx.ALIGN_RIGHT | wx.EXPAND | wx.ALL, 3)
 
         self.sizer.Add(self.boxSizer1, 0, wx.EXPAND)
 
@@ -136,7 +137,9 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         if message is not None:
             self.updateMessage(message)
 
-        print 'Dialog initialization is done'
+    def setStatus(self, status):
+        self._status.SetLabel(status)
+        self._status.Refresh()
 
     def onCtrlEnter(self, evt):
         keycode = evt.GetKeyCode()
