@@ -1,6 +1,6 @@
 
 #
-# $Id: isocket.py,v 1.12 2006/01/11 13:55:00 lightdruid Exp $
+# $Id: isocket.py,v 1.13 2006/02/01 14:12:24 lightdruid Exp $
 #
 
 import socket
@@ -33,7 +33,8 @@ class ISocket:
         return self._sock.recv(bufsize)
 
 def _test():
-    s = ISocket('localhost', 25)
+    s = ISocket('ftp.roedu.net', 21)
+    s.connect()
 
 if __name__ == '__main__':
     _test()
