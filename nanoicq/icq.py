@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.32 2006/01/31 14:48:03 lightdruid Exp $
+# $Id: icq.py,v 1.33 2006/02/01 22:07:00 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1342,8 +1342,17 @@ def _test():
     host, port = server.split(':')
 
     # ===============
-    s = ISocket(host, int(port), 'cp1251')
-    s.connect()
+
+    using_proxy = 1
+
+    if using_proxy == 0:
+        s = ISocket(host, int(port))
+        s.connect()
+    else:
+        from proxy import Socks5Proxy
+        s = Socks5Proxy('localhost', 1080)
+        s.connect('login.icq.com', 5190)
+
     p = Protocol(sock = s, connected = True)
 
     # ================================
