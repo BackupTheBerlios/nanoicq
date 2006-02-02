@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.46 2006/02/02 12:21:44 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.47 2006/02/02 16:23:02 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.46 2006/02/02 12:21:44 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.47 2006/02/02 16:23:02 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -265,7 +265,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         d = self.findDialogForBuddy(b)
         if d is not None:
             if m is not None:
-                # Do not do stupid work
+                # Do not try to update dialog when dialog is fresh
+                # and there is no message yet
                 d.updateMessage(m)
             d.Show(True)
             d.SetFocus()

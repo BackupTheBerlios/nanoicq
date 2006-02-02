@@ -1,9 +1,10 @@
 
 #
-# $Id: history.py,v 1.7 2006/01/22 22:53:10 lightdruid Exp $
+# $Id: history.py,v 1.8 2006/02/02 16:23:02 lightdruid Exp $
 #
 
 import time
+import cPickle
 
 class History:
     Incoming = 0
@@ -28,6 +29,20 @@ class History:
         else:
             assert direction in self._allowed
             self._d.append( (direction, v) )
+
+    def store(self, fileName):
+        f = open(fileName, 'wb')
+        try:
+            cPickle.dump(self._d, f)
+        finally:
+            f.close()
+
+    def restore(self, fileName):
+        f = open(fileName, 'rb')
+        try:
+            self._d = cPickle.load(f)
+        finally:
+            f.close()
 
     def dump(self):
         out = []
@@ -91,6 +106,22 @@ if __name__ == '__main__':
             d = self.h.dump()
             assert d.split('\n')[0] == '<< : outgoing 1'
             assert len(self.h) == 1
+
+        def testPersistance(self):
+            fn = 'test.history.dump'
+
+            item1 = History.Incoming, 'incoming 1'
+            self.h.append(item1)
+
+            self.h.store(fn)
+            self.h = None
+            del self.h
+
+            self.h = History()
+            self.h.restore(fn)
+
+            d = self.h.dump()
+            assert d.split('\n')[0] == '>> : incoming 1'
 
     unittest.main()
  
