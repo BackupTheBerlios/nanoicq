@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.45 2006/01/31 15:49:41 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.46 2006/02/02 12:21:44 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.45 2006/01/31 15:49:41 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.46 2006/02/02 12:21:44 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -210,7 +210,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             if d.getBuddy().uin == b.uin:
                 log().log('Found dialog for buddy %s' % b.name)
                 return d
-        log().log('Dialog for buddy %s not found, creating new one' % b.name)
+        log().log('Dialog for buddy %s not found' % b.name)
         return None
 
     def dispatch(self, *kw, **kws):
@@ -246,11 +246,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         Buddy status is changed, let's change his icon in user list
         TODO: change ison in opened message boxes
         '''
-        b, status = evt.getVal()
-        self.topPanel.userList.changeStatus(b.name, status)
+        b = evt.getVal()
+        self.topPanel.userList.changeStatus(b.name, b.status)
         d = self.findDialogForBuddy(b)
         if d is not None:
-            d.setStatus(status)
+            d.setStatus(b.status)
         evt.Skip()
 
     def onIncomingMessage(self, evt):
@@ -264,7 +264,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def _showMessageDialog(self, m, b):
         d = self.findDialogForBuddy(b)
         if d is not None:
-            d.updateMessage(m)
+            if m is not None:
+                # Do not do stupid work
+                d.updateMessage(m)
             d.Show(True)
             d.SetFocus()
         else:
@@ -304,15 +306,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     @dtrace
     def event_Buddy_status_changed(self, kw):
-        print 'Called event_Buddy_status_changed with '
-        print str(kw)
-
-        b = kw['buddy']
-        s = kw['status']
-        print b, s
-
         evt = NanoEvent(nanoEVT_BUDDY_STATUS_CHANGED, self.GetId())
-        evt.setVal((b, s))
+        evt.setVal(kw['buddy'])
         self.GetEventHandler().AddPendingEvent(evt)
 
     def addBuddy(self, b):

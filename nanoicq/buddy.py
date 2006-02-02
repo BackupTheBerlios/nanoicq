@@ -1,6 +1,6 @@
 
 #
-# $Id: buddy.py,v 1.4 2006/01/09 16:22:49 lightdruid Exp $
+# $Id: buddy.py,v 1.5 2006/02/02 12:21:43 lightdruid Exp $
 #
 
 from antarctica import Frozen
@@ -10,9 +10,10 @@ class Buddy(Frozen):
     def __init__(self):
         self.name = None
         self.email = None
-        self.firstMessage = 0
         self.gid = None
         self.uin = None
+        self.status = None
+        self.firstMessage = 0
 
     def __repr__(self):
         return "Buddy: name: '%s', gid = '%s', email: '%s', uin: '%s', firstMessage: '%d'" % \

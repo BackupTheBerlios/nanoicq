@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.34 2006/02/01 22:59:02 lightdruid Exp $
+# $Id: icq.py,v 1.35 2006/02/02 12:21:43 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -389,7 +389,7 @@ class Protocol:
 
     def sendAuth(self, username = None):
         if username is None:
-            username = self._config.get('icq', 'username')
+            username = self._config.get('icq', 'uin')
         self.username = username
         encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
 
@@ -922,10 +922,13 @@ class Protocol:
         except KeyError, msg:
             log().log("Unable to get user icon")
 
-        b = self._groups.getBuddyByUin(uin)
         status = self.splitUserStatus(userStatus)
-        self.react("Buddy status changed", buddy = b,
-            status = self.decodeOnlineStatus(status[1]))
+        textStatus = self.decodeOnlineStatus(status[1])
+
+        self._groups.getBuddyByUin(uin).status = textStatus
+        b = self._groups.getBuddyByUin(uin)
+
+        self.react("Buddy status changed", buddy = b)
 
     def decodeOnlineStatus(self, status):
         '''

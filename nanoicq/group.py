@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.5 2006/01/23 16:53:43 lightdruid Exp $
+# $Id: group.py,v 1.6 2006/02/02 12:21:43 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -66,5 +66,9 @@ if __name__ == '__main__':
     print g.getBuddies()
     print g.getBuddies(1)
     print g.getBuddies(2)
+
+    print '='*50
+    g.getBuddy('b2').name = 'aaa'
+    print g.getBuddies()
 
 # ---
