@@ -1,12 +1,17 @@
 
 #
-# $Id: proxy.py,v 1.3 2006/02/01 22:07:00 lightdruid Exp $
+# $Id: proxy.py,v 1.4 2006/02/03 07:05:06 lightdruid Exp $
 #
 
+import sys
+sys.path.insert(0, '../..')
+
 import struct
+from base64 import b64encode, b64decode
 
 from isocket import ISocket
 from utils import *
+from logger import log
 
 class Proxy(ISocket):
     def __init__(self, host, port, default_charset = 'cp1251'):
@@ -17,8 +22,27 @@ class HttpsProxy(Proxy):
 
 
 class HttpProxy(HttpsProxy):
-    pass
+    def connect(self, host, port, userName = None, password = None):
+        ISocket.connect(self)
 
+        log().log("using CONNECT tunnelling for %s:%d" % (host, port))
+        request = "CONNECT %s:%d HTTP/1.1\r\nHost: %s:%d\r\n" %\
+            (host, port, host, port)
+
+        if userName is not None:
+            r = b64encode("%s:%d" % (userName, password))
+            raise 1
+
+        request += "\r\n"
+        ISocket.send(self, request)
+
+        response = ISocket.read(self, 1024)
+        log().log('Got response: ' + response)
+        status = response.split()[1]
+
+        if status not in ["200"]:
+            raise Exception(response)
+        
 
 class Socks4Proxy(Proxy):
     pass
@@ -72,9 +96,14 @@ class Socks5Proxy(Proxy):
 
 
 def _test():
-    p = Socks5Proxy('localhost', 1080)
+    # export http_proxy="http://user:passwd@your.proxy.server:port/"
+    import re
+
+#    p = Socks5Proxy('localhost', 1080)
 #    p.connect('login.icq.com', 5190, 'andrey', 'andrey')
-    p.connect('login.icq.com', 5190)
+
+#    p = HttpProxy('localhost', 3128)
+#    p.connect('login.icq.com', 5190)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.35 2006/02/02 12:21:43 lightdruid Exp $
+# $Id: icq.py,v 1.36 2006/02/03 07:05:06 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -26,6 +26,7 @@ from history import History
 import caps
 from logger import log, LogException
 from message import messageFactory
+from proxy import Socks5Proxy
 
 # for debug only
 SLEEP = 0
@@ -329,8 +330,18 @@ class Protocol:
             # We don't have config, use default values
             pass
 
-        self._sock = ISocket(host, port, self.default_charset)
-        self._sock.connect()
+        if self._config.has_option('icq', 'proxy.server'):
+            junk = self._config.get('icq', 'proxy.server').split(':')
+            proxyHost = junk[0]
+            proxyPort = int(junk[1])
+
+            proxyType = self._config.get('icq', 'proxy.type').capitalize()
+            self._sock = eval("%sProxy(proxyHost, proxyPort, self.default_charset)" % proxyType)
+            self._sock.connect(host, port)
+        else:
+            self._sock = ISocket(host, port, self.default_charset)
+            self._sock.connect()
+
         log().log("Socket connected")
 
     def disconnect(self):
@@ -1313,9 +1324,6 @@ class Protocol:
 
 
 def _test():
-
-#    s = ISocket('login.icq.com', 5190)
-#    s.connect()
 
     p = Protocol()
     p.connect('login.icq.com', 5190)

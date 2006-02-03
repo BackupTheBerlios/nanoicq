@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.47 2006/02/02 16:23:02 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.48 2006/02/03 07:05:06 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.47 2006/02/02 16:23:02 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.48 2006/02/03 07:05:06 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -18,8 +18,6 @@ sys.path.insert(0, '../..')
 import thread
 import time
 import wx
-import isocket
-#import images
 import cPickle
 import string
 
