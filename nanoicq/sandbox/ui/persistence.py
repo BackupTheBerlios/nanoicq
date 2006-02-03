@@ -1,6 +1,6 @@
 
 #
-# $Id: persistence.py,v 1.5 2006/01/22 21:19:40 lightdruid Exp $
+# $Id: persistence.py,v 1.6 2006/02/03 10:41:36 lightdruid Exp $
 #
 
 import wx
@@ -96,7 +96,6 @@ class PersistenceMixin:
 
         self.SetPosition(pos)
         self.Layout()
-
 
 def _test():
     ID_PANEL = wx.NewId()

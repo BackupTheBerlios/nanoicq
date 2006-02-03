@@ -1,5 +1,5 @@
 
-$Id: README.txt,v 1.1 2006/01/23 22:11:39 lightdruid Exp $
+$Id: README.txt,v 1.2 2006/02/03 10:41:35 lightdruid Exp $
 
 NanoICQ is ICQ library written on pure Python and client 
 built on top of the wxPython (http://www.wxpython.org) framework.
@@ -18,4 +18,3 @@ Credits
 
 
 --andrey
-

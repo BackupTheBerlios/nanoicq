@@ -1,8 +1,7 @@
 
 #
-# $Id: config.py,v 1.3 2006/02/03 07:05:06 lightdruid Exp $
+# $Id: config.py,v 1.4 2006/02/03 10:41:36 lightdruid Exp $
 #
-
 
 from ConfigParser import SafeConfigParser
 
