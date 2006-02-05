@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.6 2006/01/31 14:48:03 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.7 2006/02/05 15:06:51 lightdruid Exp $
 #
 
 import sys
@@ -141,7 +141,7 @@ def _test():
                 self.ul.SetItemData(index, key)
                 ii += 1
 
-                break
+                #break
 
             self.ul.SetColumnWidth(0, wx.LIST_AUTOSIZE)
             self.ul.SetColumnWidth(1, wx.LIST_AUTOSIZE)

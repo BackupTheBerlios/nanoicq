@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.49 2006/02/05 14:53:03 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.50 2006/02/05 15:06:51 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.49 2006/02/05 14:53:03 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.50 2006/02/05 15:06:51 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -421,17 +421,20 @@ class TopPanel(wx.Panel):
             self.userList.buddies[key] = b
             self.userList.SetItemData(index, key)
 
+def main(args = []):
+    class NanoApp(wx.App):
+        def OnInit(self):
+            frame = TopFrame(None, "NanoICQ")
+            self.SetTopWindow(frame)
+            frame.Show(True)
+            return True
 
-class NanoApp(wx.App):
-    def OnInit(self):
-        frame = TopFrame(None, "NanoICQ")
-        self.SetTopWindow(frame)
-        frame.Show(True)
-        return True
+    wx.InitAllImageHandlers()
+    app = NanoApp(redirect = False)
+    app.MainLoop()
 
-wx.InitAllImageHandlers()
-app = NanoApp(redirect = False)
-app.MainLoop()
+if __name__ == '__main__':
+    main(sys.argv[1:])
 
 # ---
 
