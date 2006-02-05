@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.36 2006/02/03 07:05:06 lightdruid Exp $
+# $Id: icq.py,v 1.37 2006/02/05 14:26:32 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -26,7 +26,7 @@ from history import History
 import caps
 from logger import log, LogException
 from message import messageFactory
-from proxy import Socks5Proxy
+from proxy import *
 
 # for debug only
 SLEEP = 0
@@ -330,12 +330,13 @@ class Protocol:
             # We don't have config, use default values
             pass
 
-        if self._config.has_option('icq', 'proxy.server'):
+        if hasattr(self, '_config') and self._config.has_option('icq', 'proxy.server'):
             junk = self._config.get('icq', 'proxy.server').split(':')
             proxyHost = junk[0]
             proxyPort = int(junk[1])
 
             proxyType = self._config.get('icq', 'proxy.type').capitalize()
+            print 'Using: ', proxyType
             self._sock = eval("%sProxy(proxyHost, proxyPort, self.default_charset)" % proxyType)
             self._sock.connect(host, port)
         else:
@@ -816,6 +817,21 @@ class Protocol:
 
         log().log("Called 2,3,12 with data:")
         log().log(coldump(data))
+
+    def proc_2_11_2(self, data):
+        '''
+        SNAC(0B,02)     SRV_SET_MINxREPORTxINTERVAL  
+
+        Server send this to client after login. This snac contain minimum 
+        stats report interval value. Client should send stats report 
+        every 1200 hours (default value). 
+        See HKLM\SOFTWARE\Mirabilis\ICQ\Owners\6218895\Prefs\Stats in your 
+        registry for ICQ stats information (don't forget to change uin 
+        number in the path)
+        '''
+
+        hours = int(struct.unpack('!H', data[0:2])[0]) 
+        log().log("Server set minimum stats report interval: %d hours" % hours)
 
     def proc_2_3_11(self, data):
         ''' Server sends this snac when user from your contact list 
@@ -1360,8 +1376,8 @@ def _test():
         s = ISocket(host, int(port))
         s.connect()
     else:
-        from proxy import Socks5Proxy
-        s = Socks5Proxy('localhost', 1080)
+        s = HttpProxy('localhost', 1080)
+        #s = Socks5Proxy('localhost', 1080)
         s.connect(host, int(port))
 
     p = Protocol(sock = s, connected = True)

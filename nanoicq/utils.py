@@ -1,6 +1,6 @@
 
 #
-# $Id: utils.py,v 1.15 2006/01/22 22:53:10 lightdruid Exp $
+# $Id: utils.py,v 1.16 2006/02/05 14:26:32 lightdruid Exp $
 #
 
 import string
@@ -8,6 +8,7 @@ import cPickle
 import sys, codecs, time, random
 import warnings
 import wx
+import re
 
 
 _ver = wx.VERSION
@@ -28,6 +29,13 @@ else:
     else:
         raise Exception('Codecs are not tuned yet for this platform')
 
+def parseProxyAddress(addr):
+    re_proxy = re.compile("(http|https)://(\w+):(\w+)@([^:].*):(\d+)/?")
+
+    m = re_proxy.match(addr)
+    if not m:
+        raise Exception("Bad proxy address, it must have following format 'http://user:passwd@your.proxy.server:port/'")
+    return m.groups()
 
 def punicode(s):
     return unicode(_dec(s)[0])
@@ -140,5 +148,13 @@ if __name__ == '__main__':
     test2(3)
 
     assert "Light Druid" == asPrintable("Light Druid")
+
+    sample = "http://user:passwd@your.proxy.server:1234/"
+    proto, user, passwd, addr, port = parseProxyAddress(sample)
+    assert proto == 'http'
+    assert user == 'user'
+    assert passwd == 'passwd'
+    assert addr == 'your.proxy.server'
+    assert port == '1234'
 
 # ---

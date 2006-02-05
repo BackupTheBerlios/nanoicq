@@ -1,6 +1,6 @@
 
 #
-# $Id: proxy.py,v 1.4 2006/02/03 07:05:06 lightdruid Exp $
+# $Id: proxy.py,v 1.5 2006/02/05 14:26:32 lightdruid Exp $
 #
 
 import sys
@@ -37,11 +37,14 @@ class HttpProxy(HttpsProxy):
         ISocket.send(self, request)
 
         response = ISocket.read(self, 1024)
-        log().log('Got response: ' + response)
+        log().log('HttpProxy got response: ' + response)
         status = response.split()[1]
 
         if status not in ["200"]:
+            log().log('HttpProxy error: ' + response)
             raise Exception(response)
+
+        log().log('HttpProxy connected')
         
 
 class Socks4Proxy(Proxy):
@@ -65,9 +68,12 @@ class Socks5Proxy(Proxy):
 
         buf = ISocket.read(self, 2)
         if ord(buf[0]) != 0x05 or ord(buf[1]) == 0xff:
+            log().log("Bad answer from SOCKS5 proxy: " + ashex(buf))
             raise Exception("Bad answer from SOCKS5 proxy")
 
         if userName is not None:
+            log().log("Authentification...")
+
             buf = '\x01' + struct.pack('!B', len(userName)) + userName
             buf += struct.pack('!B', len(password)) + password
 
@@ -76,6 +82,7 @@ class Socks5Proxy(Proxy):
             buf = ISocket.read(self, 2)
             print len(buf)
             if len(buf) != 2 or ord(buf[0]) != 0x01 or ord(buf[1]) != 0x00:
+                log().log("Bad answer from SOCKS5 proxy: " + ashex(buf))
                 raise Exception("Bad answer from SOCKS5 proxy")
 
         # Version, CONNECT, reserved, address type: host name
@@ -90,20 +97,20 @@ class Socks5Proxy(Proxy):
         buf = ISocket.read(self, 100)
 
         if ord(buf[0]) != 0x05 or ord(buf[1]) != 0x00:
+            log().log("Bad answer from SOCKS5 proxy: " + ashex(buf))
             raise Exception("Bad answer from SOCKS5 proxy")
 
-        print 'Socks5Proxy connect() is done'
+        log().log('Socks5Proxy connected')
 
 
 def _test():
     # export http_proxy="http://user:passwd@your.proxy.server:port/"
-    import re
-
+        
 #    p = Socks5Proxy('localhost', 1080)
 #    p.connect('login.icq.com', 5190, 'andrey', 'andrey')
 
-#    p = HttpProxy('localhost', 3128)
-#    p.connect('login.icq.com', 5190)
+    p = HttpProxy('localhost', 3128)
+    p.connect('login.icq.com', 5190)
 
 
 if __name__ == '__main__':
