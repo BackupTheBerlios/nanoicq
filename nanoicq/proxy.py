@@ -1,6 +1,6 @@
 
 #
-# $Id: proxy.py,v 1.5 2006/02/05 14:26:32 lightdruid Exp $
+# $Id: proxy.py,v 1.6 2006/02/05 14:53:03 lightdruid Exp $
 #
 
 import sys
@@ -13,12 +13,15 @@ from isocket import ISocket
 from utils import *
 from logger import log
 
+
 class Proxy(ISocket):
     def __init__(self, host, port, default_charset = 'cp1251'):
         ISocket.__init__(self, host, port, default_charset)
 
+
 class HttpsProxy(Proxy):
-    pass
+    def connect(self, host, port, userName = None, password = None):
+        raise NotImplementedError("Https4Proxy")
 
 
 class HttpProxy(HttpsProxy):
@@ -48,7 +51,8 @@ class HttpProxy(HttpsProxy):
         
 
 class Socks4Proxy(Proxy):
-    pass
+    def connect(self, host, port, userName = None, password = None):
+        raise NotImplementedError("Socks4Proxy")
 
 
 class Socks5Proxy(Proxy):

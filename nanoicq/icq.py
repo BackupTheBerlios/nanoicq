@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.37 2006/02/05 14:26:32 lightdruid Exp $
+# $Id: icq.py,v 1.38 2006/02/05 14:53:03 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -813,10 +813,27 @@ class Protocol:
 
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 
-        offline. See also additional information about online userinfo block.'''
+        offline. See also additional information about online userinfo block.
+        '''
 
-        log().log("Called 2,3,12 with data:")
-        log().log(coldump(data))
+        uinLen = int(struct.unpack('!B', data[0])[0]) 
+        uin = data[1 : uinLen + 1]
+        log().log("User '%s' is offline" % uin)
+        log().log("UIN length: %d, UIN: %s" % (uinLen, uin))
+
+        data = data[1 + uinLen:]
+
+        warningLevel = int(struct.unpack('!H', data[0:2])[0]) 
+        ntlv = int(struct.unpack('!H', data[2:4])[0]) 
+        log().log("Warning level: %d. number of TLV: %d" % (warningLevel, ntlv))
+
+        tlvs = readTLVs(data[4:])
+        userClass = int(struct.unpack('!H', tlvs[0x01])[0])
+
+        self._groups.getBuddyByUin(uin).status = 'offline'
+        b = self._groups.getBuddyByUin(uin)
+
+        self.react("Buddy status changed", buddy = b)
 
     def proc_2_11_2(self, data):
         '''
@@ -1180,6 +1197,21 @@ class Protocol:
         log().log('Message type 1: ' + str(msg))
         return msg
 
+    def proc_2_4_12(self, data):
+        '''
+        SNAC(04,0C)     SRV_MSG_ACK  
+
+        This is the server ack for client message sent via SNAC(04,06). 
+        Server send it only if client requested it via empty TLV(3) in 
+        message snac. This ack mean that server accepted message for 
+        delivery.
+        '''
+        print ashex(data)
+        channel = int(struct.unpack('!H', data[8:10])[0])
+
+        uinLen = int(struct.unpack('!B', data[10:11])[0])
+        uin = data[11 : 11 + uinLen]
+        log().log("Server accepted message for delivery (%s)" % uin)
 
     def proc_2_2_3(self, data):
         ''' Client service parameters request '''
