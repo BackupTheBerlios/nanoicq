@@ -1,4 +1,9 @@
 
+
+" Vertical blocks using mouse
+noremap <M-LeftMouse> <LeftMouse><Esc><C-V>
+noremap <M-LeftDrag> <LeftDrag>
+
 set gcr=a:blinkon0" never blink the cursor
 
 let g:uname = system("uname")
