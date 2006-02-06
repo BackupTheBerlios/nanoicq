@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.38 2006/02/05 14:53:03 lightdruid Exp $
+# $Id: icq.py,v 1.39 2006/02/06 16:06:00 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -576,6 +576,58 @@ class Protocol:
                 version, toolID, toolVersion = sf[fam]
                 d = d + struct.pack('!4H', fam, version, toolID, toolVersion)
         self.sendSNAC(0x01, 0x02, 0, d)
+
+
+    def proc_2_4_20(self, data):
+        '''
+        SNAC(04,14)     TYPING_NOTIFICATION     
+
+        This snac used by client and server for mini typing notification (MTN). 
+        Basically, when you begin typing something you send a "typing begun" 
+        message, then a few seconds later you send a "text typed" message, 
+        then after you actually send the message, you send a "no more text 
+        has been typed" message. You also send the "typing finished" message 
+        if you delete all the stuff you've typed.
+
+        Remote clients know that your client supports MTN because the server 
+        appends an empty type 0x000b TLV to all outgoing IMs. You tell 
+        the server you want this TLV appended when you send the SNAC(04,02). 
+        Just set message flags bit4=1. Send and receive SNACs has the same 
+        type=0x14. Here is the known notification types list:
+
+        0x0000 - typing finished sign
+        0x0001 - text typed sign
+        0x0002 - typing begun sign
+        '''
+
+        data = data[8:]
+        channel = int(struct.unpack('!H', data[0:2])[0])
+
+        data = data[2:]
+        uinLen = int(struct.unpack('!B', data[0])[0])
+        uin = str(data[1 : uinLen + 1])
+
+        data = data[1 : uinLen + 1]
+        ntype = int(struct.unpack('!H', data[0:2])[0])
+
+        log().log('Got MTN from %s (not implemented yet)' % uin)
+
+    def proc_2_1_33(self, data):
+        '''
+        SNAC(01,21)     SRV_EXT_STATUS  
+
+        This is an own extended status notification. You'll get this when 
+        you have server-stored icon or if you setup iChat "available" message. 
+        It's also used to tell the client whether or not it needs to 
+        upload an SSI buddy icon. Check for buddy icons info here.
+
+        About icon flags byte. Its purpose is unknown, but i found that 
+        bit8=1 is a command to upload icon to server and it is appeared 
+        after changing corresponding ssi item.
+        '''
+
+        # FIXME:
+        log().log('Got extended status (not implemented yet)')
 
     def proc_2_1_15(self, data):
         ''' My status '''
@@ -1182,6 +1234,8 @@ class Protocol:
 
         self.parseMessageType(mtype)
         self.parseMessageFlags(mflags)
+
+        return msg
 
     def proc_2_4_7_1(self, tlvs):
         '''  Channel 1 message format (typed old-style messages) '''

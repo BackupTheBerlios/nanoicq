@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.6 2006/02/02 12:21:43 lightdruid Exp $
+# $Id: group.py,v 1.7 2006/02/06 16:06:00 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -25,8 +25,6 @@ class Group:
         return [self._b[x] for x in self._b if self._b[x].gid == gid]
 
     def getBuddy(self, name):
-        print 'Group.getBuddy() -> ', self._b.keys()
-        print 'Group.getBuddy() -> ', self._b
         return self._b[name]
 
     def getBuddyByUin(self, uin):
