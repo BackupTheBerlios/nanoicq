@@ -14,7 +14,15 @@ endif
 
 set laststatus=2
 
-colorscheme desert
+"colorscheme desert
+"colorscheme inkpot
+"colorscheme MidNight2
+"colorscheme BlueGreen
+"colorscheme Dusk
+"colorscheme OceanDeep
+colorscheme Camo
+
+map <C-F10> :source ~/.gvimrc<CR>
 
 if has("gui_gtk2")
     set guifont=MiscFixed\ 10
