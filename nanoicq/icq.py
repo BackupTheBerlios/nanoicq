@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.40 2006/02/07 07:27:47 lightdruid Exp $
+# $Id: icq.py,v 1.41 2006/02/07 13:04:06 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -740,6 +740,9 @@ class Protocol:
             # ract must be called after groups/buddies list was updated
             self.react("New buddy", buddy = b)
 
+    def getBuddies(self, gid = None, status = None):
+        return self._groups.getBuddies(gid = gid, status = status)
+
     def getBuddy(self, userName):
         return self._groups.getBuddy(userName)
 
@@ -1309,7 +1312,7 @@ class Protocol:
         user information packet.
         '''
         tlvs = readTLVs(data)
-        print tlvs[1]
+        print coldump(tlvs[1])
 
     def proc_2_3_10(self, data):
         '''

@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.7 2006/02/05 15:06:51 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.8 2006/02/07 13:04:06 lightdruid Exp $
 #
 
 import sys
@@ -13,12 +13,16 @@ from buddy import Buddy
 from iconset import IconSet
 
 
-class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
     def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
             size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_SIMPLE):
 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
+        listmix.ColumnSorterMixin.__init__(self, 2)
+
+        self.itemDataMap = {}
+
         self._parent = parent
 
         assert isinstance(iconSet, IconSet)
@@ -31,11 +35,11 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         info.m_mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT
         info.m_image = -1
         info.m_format = 0
-        info.m_text = "Status"
+        info.m_text = ""
         self.InsertColumnInfo(0, info)
 
 #        info.m_format = wx.LIST_FORMAT_RIGHT
-        info.m_text = "User"
+        info.m_text = ""
         self.InsertColumnInfo(1, info)
 
         self.il = wx.ImageList(16, 16)
@@ -50,6 +54,21 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDoubleClick)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self)
 
+    def addBuddy(self, b):
+        index = self.InsertImageStringItem(sys.maxint, '', 0)
+        self.SetStringItem(index, 1, b.name)
+        self.SetItemData(index, int(b.uin))
+
+        print b, b.status
+        self.changeStatus(b)
+        self.itemDataMap[int(b.uin)] = (b.status, b.name)
+
+        self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
+    def GetListCtrl(self):
+        return self
+
     def getColumnText(self, index, col):
         item = self.GetItem(index, col)
         return item.GetText()
@@ -57,16 +76,17 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def onItemSelected(self, evt):
         self.currentItem = evt.m_itemIndex
 
-    def changeStatus(self, userName, status):
-
+    def changeStatus(self, b):
+        userName = b.name
         idx = -1
+
         while True:
             idx = self.GetNextItem(idx)
             if idx == -1:
                 break
             u = self.getColumnText(idx, 1)
             if u == userName:
-                self.SetStringItem(idx, 0, '', IconSet.FULL_SET.index(status))
+                self.SetStringItem(idx, 0, '', IconSet.FULL_SET.index(b.status))
                 break
 
     def onDoubleClick(self, evt):
@@ -84,6 +104,18 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
         self.Update()
         self.Refresh()
+
+    def onHideOffline(self, blist):
+        #for k in self.itemDataMap:
+        #    item = self.FindItemData(-1, k)
+        #    if item != -1:
+        #        self.DeleteItem(item)
+
+        for b in blist:
+            print 'Looking for buddy', b
+            item = self.FindItemData(-1, int(b.uin))
+            if item != -1:
+                self.DeleteItem(item)
 
 
 def _test():
@@ -138,6 +170,7 @@ def _test():
                 b = Buddy()
                 b.name = str(key)
                 self.ul.buddies[key] = b
+                self.ul.itemDataMap[key] = (b.status, b.name)
                 self.ul.SetItemData(index, key)
                 ii += 1
 

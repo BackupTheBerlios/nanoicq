@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.7 2006/02/06 16:06:00 lightdruid Exp $
+# $Id: group.py,v 1.8 2006/02/07 13:04:06 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -19,10 +19,16 @@ class Group:
         b.gid = gid
         self._b[b.name] = b
 
-    def getBuddies(self, gid = None):
-        if gid is None: return self._b.values()
-        assert gid in self._g.keys()
-        return [self._b[x] for x in self._b if self._b[x].gid == gid]
+    def getBuddies(self, gid = None, status = None):
+        if gid is None and status == None:
+            return self._b.values()
+
+        if gid is not None:
+            assert gid in self._g.keys()
+            return [self._b[x] for x in self._b if self._b[x].gid == gid]
+
+        if status is not None:
+            return [self._b[x] for x in self._b if self._b[x].status == status]
 
     def getBuddy(self, name):
         return self._b[name]

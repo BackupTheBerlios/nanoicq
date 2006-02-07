@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.51 2006/02/07 07:27:47 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.52 2006/02/07 13:04:06 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.51 2006/02/07 07:27:47 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.52 2006/02/07 13:04:06 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -47,14 +47,15 @@ ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
 ID_ICQ_LOGIN = wx.NewId()
 
-ID_TEST = wx.NewId()
+ID_HIDE_OFFLINE = wx.NewId()
 
 _topMenu = (
     ("File",
         (
-            (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit"),
             (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin"),
-            (ID_TEST, "Test\tF4", "test", "self.OnTest"),
+            (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onHideOffline"),
+            (),
+            (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit"),
         )
     ),
     ("Help",
@@ -89,7 +90,7 @@ class ICQThreaded(icq.Protocol):
                 ch, b, c = self.readFLAP(buf)
                 snac = self.readSNAC(c)
                 print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
-                print 'for this snac: ', snac
+                print 'for this snac: ', unicode(snac)
 
                 if snac[0] == 3 and snac[1] == 11:
                     #print "Buffer (bub): " + coldump(buf)
@@ -251,7 +252,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         TODO: change ison in opened message boxes
         '''
         b = evt.getVal()
-        self.topPanel.userList.changeStatus(b.name, b.status)
+        self.topPanel.userList.changeStatus(b)
         d = self.findDialogForBuddy(b)
         if d is not None:
             d.setStatus(b.status)
@@ -316,13 +317,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.GetEventHandler().AddPendingEvent(evt)
 
     def addBuddy(self, b):
-        index = self.topPanel.userList.InsertImageStringItem(sys.maxint, '', 0)
-        self.topPanel.userList.changeStatus(b.name, 'offline')
-        self.topPanel.userList.SetStringItem(index, 1, b.name)
-        self.topPanel.userList.SetItemData(index, b.gid)
-
-        self.topPanel.userList.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self.topPanel.userList.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.topPanel.userList.addBuddy(b)
 
     def createTopPanel(self):
         self.topPanel = TopPanel(self, self.iconSet)
@@ -335,8 +330,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
             header, det = item
             for d in det:
-                menu.Append(d[0], d[1], d[2])
-                self.Bind(wx.EVT_MENU, eval(d[3]), id = d[0])
+                if len(d) == 0:
+                    menu.AppendSeparator() 
+                else:
+                    menu.Append(d[0], d[1], d[2])
+                    self.Bind(wx.EVT_MENU, eval(d[3]), id = d[0])
 
             self.topMenuBar.Append(menu, header)
 
@@ -368,8 +366,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].login()
         self.connector['icq'].Start()
 
-    def OnTest(self, evt):
-        pass
+    def onHideOffline(self, evt):
+        self.topPanel.userList.onHideOffline(self.connector['icq'].getBuddies(status = 'offline'))
+        evt.Skip()
 
     def showMessage(self, userName, message, hide = False):
         print 'showMessage()'
