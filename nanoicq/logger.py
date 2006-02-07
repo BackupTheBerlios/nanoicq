@@ -32,6 +32,9 @@ class _Log:
     def setLevel(self, level):
         self._level = level
 
+    def packetin_col(self, msg):
+        self.log("<- \n" + coldump(msg))
+
     def packetin(self, msg):
         self.log("<- " + ashex(msg))
 
@@ -39,6 +42,9 @@ class _Log:
         self.log("-> " + ashex(msg))
         if verbose:
             self.log("->\n" + coldump(msg))
+
+    def packetout_col(self, msg, verbose = False):
+        self.log("->\n" + coldump(msg))
 
 
 class Log(_Log, Singleton): 

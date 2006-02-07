@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.50 2006/02/05 15:06:51 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.51 2006/02/07 07:27:47 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.50 2006/02/05 15:06:51 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.51 2006/02/07 07:27:47 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -84,12 +84,18 @@ class ICQThreaded(icq.Protocol):
 
             try:
                 buf = self.read()
-                log().packetin(buf)
+                log().packetin_col(buf)
 
                 ch, b, c = self.readFLAP(buf)
                 snac = self.readSNAC(c)
                 print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
                 print 'for this snac: ', snac
+
+                if snac[0] == 3 and snac[1] == 11:
+                    #print "Buffer (bub): " + coldump(buf)
+                    #print "Buffer (b): " + coldump(b)
+                    #print "Data (c): " + coldump(c)
+                    pass
 
                 tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
                 func = getattr(self, tmp)

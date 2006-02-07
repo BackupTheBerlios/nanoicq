@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.39 2006/02/06 16:06:00 lightdruid Exp $
+# $Id: icq.py,v 1.40 2006/02/07 07:27:47 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -32,7 +32,7 @@ from proxy import *
 SLEEP = 0
 
 # socket read buffer size (bytes)
-_SOCK_BUFFER = 10240
+_SOCK_BUFFER = 1024000
 
 def _reg(password):
     lz = struct.pack(">H", len(password)) + password + '\000'
@@ -372,14 +372,14 @@ class Protocol:
         if (not hasattr(self, "seqnum")):
             self.seqnum = 0
         self.seqnum = (self.seqnum + 1) % 0xFFFF
-        head = struct.pack(header,'*', ch, self.seqnum, len(data))
+        head = struct.pack(header, '*', ch, self.seqnum, len(data))
 
         try:
             data = head + data
         except UnicodeEncodeError, msg:
             data = head + data.encode(self.default_charset)
 
-        log().packetout(data)
+        log().packetout_col(data)
         self.send(data)
 
     def readFLAP(self, buf):
@@ -643,7 +643,13 @@ class Protocol:
         self.parseSelfStatus(tlvs)
 
         log().log("Retrieving server-side contact list")
-        self.sendSNAC(0x13, 0x04, 0, '')
+        data = "\x00\x00\x00\x00\x00\x00"
+        self.sendSNAC(0x13, 0x05, 0, data)
+
+        # FIXME:
+        #log().log("Retrieving server-side contact list FIRST TIME")
+        #self.sendSNAC(0x13, 0x04, 0, '')
+
 #        self.getOfflineMessages()
 #        self.sendSNAC(0x13, 0x05, 0, struct.pack('!LH', 0, 0))
 
@@ -691,8 +697,11 @@ class Protocol:
         except Exception, msg:
             log().log("Exception while parsing SSI items (%s)" % str(msg))
             
-
         log().log('Current list of groups: %s' % self._groups)
+
+        log().log('Activate server-side contact... (SNAC(13,07)')
+        self.sendSNAC(0x13, 0x07, 0, '')
+        log().log('Activation done (SNAC(13,07)')
 
     def parseSSIBuddy(self, groupID, name, tlvs):
         '''
@@ -774,6 +783,12 @@ class Protocol:
      
         data = data[8 + dataLen:]
         return data
+
+    def parseSSIItem_7605(self, t, b):
+        '''
+        Unknown
+        '''
+        log().log('Called unknown handler parseSSIItem_7605')
 
     def parseSSIItem_6D(self, t, b):
         '''
@@ -1289,6 +1304,25 @@ class Protocol:
         log().log("Sending buddylist service parameters ")
         self.sendSNAC(0x03, 0x02, 0, '')
 
+    def proc_2_21_3(self, data):
+        '''
+        user information packet.
+        '''
+        tlvs = readTLVs(data)
+        print tlvs[1]
+
+    def proc_2_3_10(self, data):
+        '''
+        SNAC(03,0A)     SRV_NOTIFICATION_REJECTED  
+
+        Sometimes server send this as reply for SNAC(03,04) entry. 
+        This mean that it can't send notification about this user for 
+        some reason. The reason is unknown. 
+        '''
+        # FIXME:
+        #raise Exception('proc_2_3_10')
+        pass
+
     def proc_4_9_2(self, data):
         ''' You have been disconnected from the ICQ network because you 
         logged on from another location using the same ICQ number. '''
@@ -1354,6 +1388,16 @@ class Protocol:
         self.sendFLAP(0x01, '\000\000\000\001' + tlv(0x06, tlvs[TLV_Cookie]))
 
         log().log('Login done')
+
+        log().log('Post login, getting meta information')
+        uin = struct.pack('<L', int(self._config.get('icq', 'uin')))
+        data = uin
+        data += '\xd0\x07\x02\x00\xd0\x04' + uin
+        data = struct.pack('<H', len(data)) + data
+
+        tlvs = tlv(1, data)
+        self.sendSNAC(0x15, 0x02, 0, tlvs)
+
         self.react('Login done')
 
         if mainLoop:
