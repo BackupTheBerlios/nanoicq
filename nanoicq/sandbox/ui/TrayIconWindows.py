@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.3 2006/01/25 15:59:16 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.4 2006/02/08 12:36:12 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -24,32 +24,35 @@ class TrayIcon(wx.TaskBarIcon):
     TBMENU_STATUS_INVISIBLE     = wx.NewId()
 
     _statusMenuItems = [
-        ("TBMENU_STATUS_OFFLINE"       , "Offline"),
-        ("TBMENU_STATUS_ONLINE"        , "Online"),
-        ("TBMENU_STATUS_AWAY"          , "Away"),
-        ("TBMENU_STATUS_NA"            , "N/A"),
-        ("TBMENU_STATUS_OCCIPIED"      , "Occupied"),
-        ("TBMENU_STATUS_DND"           , "DND"),
-        ("TBMENU_STATUS_FREE"          , "Free for chat"),
-        ("TBMENU_STATUS_INVISIBLE"     , "Invisible"),
+        ("TBMENU_STATUS_OFFLINE"       , "Offline",         "offline"),
+        ("TBMENU_STATUS_ONLINE"        , "Online",          "online"),
+        ("TBMENU_STATUS_AWAY"          , "Away",            "away"),
+        ("TBMENU_STATUS_NA"            , "N/A",             "na"),
+        ("TBMENU_STATUS_OCCIPIED"      , "Occupied",        "occupied"),
+        ("TBMENU_STATUS_DND"           , "DND",             "dnd"),
+        ("TBMENU_STATUS_FREE"          , "Free for chat",   "free"),
+        ("TBMENU_STATUS_INVISIBLE"     , "Invisible",       "invisible"),
     ]
 
-    def __init__(self, frame, icon):
+    def __init__(self, frame, icon, iconSet):
         wx.TaskBarIcon.__init__(self)
         self.frame = frame
 
         # Set the image
-        #icon = self.MakeIcon(images.getLimeWireImage())
-        self.SetIcon(icon, "NanoICQ")
-        self.imgidx = 1
+        self._icon = icon
+        self.SetIcon(self._icon, "ICQ offline")
+
+        self._iconSet = iconSet
 
         # bind some events
         self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.onCancelTaskBarActivate)
-        self.Bind(wx.EVT_MENU, self.onCancelTaskBarActivate, id=self.TBMENU_RESTORE)
-        self.Bind(wx.EVT_MENU, self.onCancelTaskBarClose, id=self.TBMENU_CLOSE)
+        self.Bind(wx.EVT_MENU, self.onCancelTaskBarActivate, id = self.TBMENU_RESTORE)
+        self.Bind(wx.EVT_MENU, self.onCancelTaskBarClose, id = self.TBMENU_CLOSE)
         #self.Bind(wx.EVT_MENU, self.onCancelTaskBarChange, id=self.TBMENU_CHANGE)
         #self.Bind(wx.EVT_MENU, self.onCancelTaskBarRemove, id=self.TBMENU_REMOVE)
 
+    def setToolTip(self, toolTip):
+        self.SetIcon(self._icon, toolTip)
 
     def CreatePopupMenu(self):
         """
@@ -59,8 +62,12 @@ class TrayIcon(wx.TaskBarIcon):
         the base class takes care of the rest.
         """
         statusMenu = wx.Menu()
-        for ids, txt in self._statusMenuItems:
-            statusMenu.Append(getattr(self, ids), txt)
+        for ids, txt, alias in self._statusMenuItems:
+            item = wx.MenuItem(statusMenu, getattr(self, ids), txt, txt)
+            item.SetBitmap(self._iconSet[alias])
+            statusMenu.AppendItem(item)
+
+            #statusMenu.Append(getattr(self, ids), txt)
 
         menu = wx.Menu()
         menu.Append(self.TBMENU_RESTORE, "Hide/Show")

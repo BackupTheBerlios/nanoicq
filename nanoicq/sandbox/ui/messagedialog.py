@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.19 2006/02/02 12:21:44 lightdruid Exp $
+# $Id: messagedialog.py,v 1.20 2006/02/08 12:36:12 lightdruid Exp $
 #
 
 import sys
@@ -24,6 +24,21 @@ class MySplitter(wx.SplitterWindow):
 
 ID_SPLITTER = 8000
 ID_BUTTON_SEND = 8001
+
+
+class NanoTextDropTarget(wx.TextDropTarget):
+    def __init__(self, window):
+        wx.TextDropTarget.__init__(self)
+        self.window = window
+        print 'NanoTextDropTarget.__init__'
+
+    def OnDropText(self, x, y, text):
+        log().log("Drop: (%d, %d)\n%s\n" % (x, y, text))
+
+    def _OnDragOver(self, x, y, d):
+        print wx.DragCopy
+        return wx.DragCopy
+
 
 class MessageDialog(wx.Dialog, PersistenceMixin):
     def __init__(self, parent, ID, user, message, history, colorSet = _DEFAULT_COLORSET,
@@ -89,6 +104,9 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
         # Send messages on Ctrl-Enter
         self._outgoing.Bind(wx.EVT_KEY_DOWN, self.onCtrlEnter)
+
+        self.dropTarget = NanoTextDropTarget(self._outgoing)
+        self._outgoing.SetDropTarget(self.dropTarget)
 
         self.outgoingSizer.Add(self._outgoing, 1, wx.EXPAND, 1)
         self.outgoing.SetSizer(self.outgoingSizer)

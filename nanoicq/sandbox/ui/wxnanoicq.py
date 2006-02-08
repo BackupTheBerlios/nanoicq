@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.52 2006/02/07 13:04:06 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.53 2006/02/08 12:36:12 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.52 2006/02/07 13:04:06 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.53 2006/02/08 12:36:12 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -52,16 +52,16 @@ ID_HIDE_OFFLINE = wx.NewId()
 _topMenu = (
     ("File",
         (
-            (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin"),
-            (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onHideOffline"),
+            (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin", 0),
+            (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onHideOffline", wx.ITEM_CHECK),
             (),
-            (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit"),
+            (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit", 0),
         )
     ),
     ("Help",
         (
-            (ID_HELP, "Help\tF1", "Help", "self.OnHelp"),
-            (ID_ABOUT, "About", "About", "self.OnAbout"),
+            (ID_HELP, "Help\tF1", "Help", "self.OnHelp", 0),
+            (ID_ABOUT, "About", "About", "self.OnAbout", 0),
         )
     ),
 )
@@ -161,7 +161,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.mainIcon.CopyFromBitmap(self.iconSet['main'])
         self.SetIcon(self.mainIcon)
 
-        self.trayIcon = TrayIcon(self, self.mainIcon)
+        self.trayIcon = TrayIcon(self, self.mainIcon, self.iconSet)
 
         self.connector = Connector()
         self.connector.setConfig(self.config)
@@ -169,11 +169,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.updateStatusBar('Disconnected')
 
-        # --- Doesn't work:
-#        result = wx.GetApp().GetTopWindow().RegisterHotKey(ID_ICQ_LOGIN, wx.MOD_SHIFT, wx.WXK_F9)
-#        self.Bind(wx.EVT_HOTKEY, self.OnTest, id = 0)
-#        print result
-
+        # Events
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
         self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
@@ -181,7 +177,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_INCOMING_MESSAGE, self.onIncomingMessage)
         self.Bind(EVT_BUDDY_STATUS_CHANGED, self.onBuddyStatusChanged)
 
+        self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
+
         # ---
+
+    def onToggleHideOffline(self, evt):
+        self.hideOffline(evt.Checked())
 
     def onSendMessage(self, evt):
         log().log('GUI sending message: ' + str(evt))
@@ -301,6 +302,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
     @dtrace
     def event_Login_done(self, kw):
         self.updateStatusBar('Online')
+        self.trayIcon.setToolTip('ICQ online')
 
     @dtrace
     def event_Login(self, kw):
@@ -309,6 +311,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
     @dtrace
     def event_Logoff(self, kw):
         self.updateStatusBar('Offline')
+        self.trayIcon.setToolTip('ICQ offline')
 
     @dtrace
     def event_Buddy_status_changed(self, kw):
@@ -333,7 +336,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 if len(d) == 0:
                     menu.AppendSeparator() 
                 else:
-                    menu.Append(d[0], d[1], d[2])
+                    menu.Append(d[0], d[1], d[2], d[4])
                     self.Bind(wx.EVT_MENU, eval(d[3]), id = d[0])
 
             self.topMenuBar.Append(menu, header)
@@ -367,8 +370,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].Start()
 
     def onHideOffline(self, evt):
-        self.topPanel.userList.onHideOffline(self.connector['icq'].getBuddies(status = 'offline'))
+        #self.topPanel.userList.onHideOffline(self.connector['icq'].getBuddies(status = 'offline'))
         evt.Skip()
+
+    def hideOffline(self, flag):
+        self.topPanel.userList.onHideOffline(self.connector['icq'].getBuddies(status = 'offline'), flag)
 
     def showMessage(self, userName, message, hide = False):
         print 'showMessage()'

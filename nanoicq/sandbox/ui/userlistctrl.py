@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.8 2006/02/07 13:04:06 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.9 2006/02/08 12:36:12 lightdruid Exp $
 #
 
 import sys
@@ -105,17 +105,22 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
         self.Update()
         self.Refresh()
 
-    def onHideOffline(self, blist):
+    def onHideOffline(self, blist, flag):
         #for k in self.itemDataMap:
         #    item = self.FindItemData(-1, k)
         #    if item != -1:
         #        self.DeleteItem(item)
 
+        assert flag in [True, False]
+
         for b in blist:
-            print 'Looking for buddy', b
             item = self.FindItemData(-1, int(b.uin))
             if item != -1:
-                self.DeleteItem(item)
+                if flag:
+                    self.DeleteItem(item)
+                else:
+                    # FIXME
+                    pass
 
 
 def _test():
