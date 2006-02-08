@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.41 2006/02/07 13:04:06 lightdruid Exp $
+# $Id: icq.py,v 1.42 2006/02/08 15:07:54 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -879,7 +879,7 @@ class Protocol:
         list (if in the master group), or no buddies in the group 
         (if in a normal group), then this TLV is not present.
         '''
-        log().log("Master group IDs: %s" % str(t))
+        log().log("Master group IDs: " + coldump(t))
 
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 
