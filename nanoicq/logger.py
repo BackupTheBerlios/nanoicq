@@ -27,7 +27,10 @@ class _Log:
             raise LogException("Wrong message type")
 
         if level >= self._level:
-            print "LOG (%d):" % level, msg
+            try:
+                print "LOG (%d):" % level, msg
+            except UnicodeEncodeError, exc:
+                print "LOG (%d):" % level, coldump(msg)
 
     def setLevel(self, level):
         self._level = level

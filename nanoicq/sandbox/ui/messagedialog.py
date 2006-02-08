@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.20 2006/02/08 12:36:12 lightdruid Exp $
+# $Id: messagedialog.py,v 1.21 2006/02/08 14:20:04 lightdruid Exp $
 #
 
 import sys
@@ -44,7 +44,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
     def __init__(self, parent, ID, user, message, history, colorSet = _DEFAULT_COLORSET,
             size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
-            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
+            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX  | wx.MINIMIZE_BOX):
 
         wx.Dialog.__init__(self, parent, ID, user.name, size = size,
             style = style, name = 'message_dialog_' + user.name)
