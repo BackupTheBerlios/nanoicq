@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.21 2006/02/08 14:20:04 lightdruid Exp $
+# $Id: messagedialog.py,v 1.22 2006/02/09 13:20:36 lightdruid Exp $
 #
 
 import sys
@@ -149,6 +149,11 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.Bind(wx.EVT_BUTTON, self.onCancel, id = wx.ID_CANCEL)
 
         self.SetAutoLayout(True)
+
+        # Bug fix for [ wxwindows-Bugs-1428169 ] wx.StaticBox seems to be interfering  with DnD
+        box1.Lower()
+        box2.Lower()
+        box3.Lower()
 
         if message is not None:
             self.updateMessage(message)
