@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.42 2006/02/08 15:07:54 lightdruid Exp $
+# $Id: icq.py,v 1.43 2006/02/10 15:59:20 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -59,6 +59,14 @@ _userClasses = {
 0x0200: "CLASS_UNKNOWN200",
 0x0400: "CLASS_UNKNOWN400",
 0x0800: "CLASS_UNKNOWN800",
+}
+
+_motdTypes = {
+0x0001:      "MTD_MDT_UPGRAGE",     # Mandatory upgrade needed notice   
+0x0002:      "MTD_ADV_UPGRAGE",     # Advisable upgrade notice  
+0x0003:      "MTD_SYS_BULLETIN",    # AIM/ICQ service system announcements  
+0x0004:      "MTD_NORMAL",          # Standart notice   
+0x0006:      "MTD_NEWS",            # Some news from AOL service
 }
 
 _messageTypes = {
@@ -365,7 +373,7 @@ class Protocol:
             raise
 
     def read(self):
-        return self._sock.read(_SOCK_BUFFER)
+        return self._sock.read()
 
     def sendFLAP(self, ch, data):
         header = "!cBHH"
@@ -454,6 +462,29 @@ class Protocol:
 
         req =  "\x00\x00\x00\x00\x28\x00\x03\x00"
         req += "\x00\x00\x00\x00\x00\x00\x00\x00"
+
+    def proc_2_1_19(self, data):
+        '''
+        SNAC(01,13)     SRV_MOTD    
+
+        Server send this during protocol negotiation sequence. 
+        Various docs call this SNAC as "message of the day" but it looks 
+        like that ICQ2K+ ignores this SNAC completely.
+        '''
+        typ = struct.unpack('!H', data[0 : 2])[0]
+        mtype = self._decodeMotdType(typ)
+        tlvs = readTLVs(data[2:])
+
+        log().log('Got MOTD message: ' + mtype)
+        if tlvs.has_key(0x0b):
+            log().log('MOTD message contents: ' + tlvs[0x0b])
+
+    def _decodeMotdType(self, typ):
+        out = []
+        for t in _motdTypes:
+            if typ & t:
+                out.append(_motdTypes[t])
+        return ', '.join(out)
 
     def proc_2_1_3(self, data):
         self.parseFamilies(data)
@@ -745,6 +776,9 @@ class Protocol:
 
     def getBuddy(self, userName):
         return self._groups.getBuddy(userName)
+
+    def getBuddyByUin(self, uin):
+        return self._groups.getBuddyByUin(uin)
 
     def saveBuddiesList(self, fileName):
         dump2file(fileName, self._groups)
@@ -1438,19 +1472,19 @@ class Protocol:
         channel = struct.pack('!H', channel)
         data = genCookie() + channel + struct.pack('!B', len(uin)) + uin
 
-        # 05      byte        fragment identifier (array of required capabilities)    
-        # 01     byte        fragment version    
-        # xx xx      word        Length of rest data 
-        # xx ...     array       byte array of required capabilities (1 - text)
+        # 05        byte        fragment identifier (array of required capabilities)    
+        # 01        byte        fragment version    
+        # xx xx     word        Length of rest data 
+        # xx ...    array       byte array of required capabilities (1 - text)
 
-        # 01      byte        fragment identifier (text message)  
-        # 01     byte        fragment version    
-        # xx xx      word        Length of rest data
+        # 01        byte        fragment identifier (text message)  
+        # 01        byte        fragment version    
+        # xx xx     word        Length of rest data
         t = "\x05\x01\x00\x03\x01\x01\x02"
 
-        # 00 00      word        Message charset number  
-        # ff ff      word        Message language number 
-        # xx ..      string (ascii)      Message text string
+        # 00 00     word        Message charset number  
+        # ff ff     word        Message language number 
+        # xx ..     string (ascii)      Message text string
 
         log().log("Sending %d '%s'" % (len(message.getContents()), message.getContents()))
 
@@ -1458,7 +1492,10 @@ class Protocol:
         charSubSet = 0
 
         t += '\x01\x01' + struct.pack('!3H', len(message.getContents()) + 4, charSet, charSubSet)
-        t += unicode(message.getContents())
+
+        print 'With length:\n', coldump(t)
+
+        t += message.getContents()
 
         outMsg = data + tlv(2, t)
 
@@ -1467,6 +1504,7 @@ class Protocol:
         if autoResponse:
             outMsg = outMsg + tlv(4, '')
         if offline:
+            log().log('Sending message through server (user is offline)')
             outMsg = outMsg + tlv(6, '')
 
         self.sendSNAC(0x04, 0x06, 0, outMsg)

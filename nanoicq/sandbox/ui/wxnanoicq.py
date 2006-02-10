@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.54 2006/02/09 13:20:36 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.55 2006/02/10 15:59:20 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.54 2006/02/09 13:20:36 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.55 2006/02/10 15:59:20 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -190,7 +190,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         ids, message = evt.getVal()
 
         # FIXME: only icq handled
-        self.connector['icq'].sendMessage(message, offline = True)
+        b = self.connector['icq'].getBuddyByUin(message.getUIN())
+        offline = b.status == 'offline'
+        self.connector['icq'].sendMessage(message, offline)
 
     def onMessagePrepare(self, evt):
         evt.Skip()
@@ -203,7 +205,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         #self.showMessage(userName, message)
 
         self._showMessageDialog(message, b)
-
 
     def dialogClose(self, evt):
         pass

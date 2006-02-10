@@ -1,11 +1,15 @@
 
 #
-# $Id: isocket.py,v 1.13 2006/02/01 14:12:24 lightdruid Exp $
+# $Id: isocket.py,v 1.14 2006/02/10 15:59:20 lightdruid Exp $
 #
 
 import socket
+import thread
+import struct
 
 class ISocket:
+    _mutex = thread.allocate_lock()
+
     def __init__(self, host, port, default_charset = 'cp1251'):
         self._host = host
         self._port = port
@@ -29,8 +33,43 @@ class ISocket:
         except UnicodeEncodeError, msg:
             self._sock.send(data.encode(self._default_charset))
 
-    def read(self, bufsize):
-        return self._sock.recv(bufsize)
+    def read(self):
+        try:
+            self._mutex.acquire()
+            head = self._sock.recv(6, socket.MSG_PEEK)
+            self._mutex.release()
+        except socket.error:
+            self._mutex.release()
+            raise
+
+        try:
+            pid, ch, seq, length = struct.unpack('!bbhh', head)
+        except:
+            raise
+        
+        if pid != 42:
+            length = -1
+        elif not length:
+            pass
+        else:
+            pass
+
+        buf = ''
+        if length == -1:
+            return buf
+
+        try:
+            self._mutex.acquire()
+            buf = self._sock.recv(6 + length)
+            self._mutex.release()
+        except socket.error:
+            self._mutex.release()
+            raise
+
+        if len(buf) != length + 6:
+            print "Actual packet length differs from header length"
+
+        return buf
 
 def _test():
     s = ISocket('ftp.roedu.net', 21)
