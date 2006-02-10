@@ -1,0 +1,231 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM DEFINES ORDER BY Sett,Sort -->
+<!-- SELECT Sett FROM DEFINES WHERE Name = 'CAPABILITIES' AND Sort = 0 -->
+<html><head>
+<title>ICQ protocol version 8 - #define </title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<h2><a name="CAPABILITIES">#define CAPABILITIES</h2>
+<p>Here are the capabilities that I encountered.</p>
+<table>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_VOICE</td>
+  <td><code>{09461341-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_SENDFILE</td>
+  <td><code>{09461343-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_ISICQ</td>
+  <td><code>{09461344-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+The client is, in fact, an ICQ client, and not an AIM client. This capability may occur as a type-2 message's capability: then the content will contain the sender's dc info.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_IMIMAGE</td>
+  <td><code>{09461345-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_BUDDYICON</td>
+  <td><code>{09461346-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_STOCKS</td>
+  <td><code>{09461347-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_GETFILE</td>
+  <td><code>{09461348-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_SERVERRELAY</td>
+  <td><code>{09461349-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>The client supports messages in the style of direct messages (aka type-2 messages). If this capability is not set, the server will refuse type-2 messages to this contact with this capability as the messages' capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_GAMES</td>
+  <td><code>{0946134A-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_SBUD</td>
+  <td><code>{0946134B-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_INTEROPERATE</td>
+  <td><code>{0946134D-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Setting this lets AIM users receive messages from ICQ users, and ICQ users
+receive messages from AIM users.  Windows AIM 5.2.3139 is the only thing I
+know that sets this.  Well, and Gaim 0.60cvs.<br>
+Also, though you advertise the capability, it does not get sent to other users
+with your other capabilities.
+</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_UTF8</td>
+  <td><code>{0946134E-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>The ICQ client supports UTF-8 messages. Each outgoing message that uses the UTF-8 character set has CAP_UTF8 appended as a GUID. Otherwise, the character set used is totally undefined. Note that CAP_UTF8 also signals UCS-2BE encoded & tagged type-1 messages are understood.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_RTFMSGS</td>
+  <td><code>{97B12751-243C-4334-AD22-D6ABF73F1492}</code></td>
+  <td></td></tr><tr><td colspan=3>
+The ICQ client supports RTF type-2 messages. Each outgoing message that is in RTF format has CAP_RTFMSGS appended as a GUI.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_STR_2001</td>
+  <td><code>{A0E93F37-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+ICQ 2001 sends this to all contacts upon (visible) login inside an otherwise empty CAP_SERVERRELAY type-2 message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_STR_2002</td>
+  <td><code>{10CF40D1-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+ICQ 2002 sends this the same way as CAP_STR_2001 inside an otherwise empty CAP_SERVERRELAY type-2 message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_IS_2001</td>
+  <td><code>{2E7A6475-FADF-4DC8-886F-EA3595FDB6DF}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Capability sent by ICQ 2001.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_IS_WEB</td>
+  <td><code>{563FC809-0B6f-41BD-9F79-422609DFA2F3}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Sent by ICQ Lite and ICQ2go.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_LICQ</td>
+  <td><code>{09491349-4C7F-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Note the 0x49 instead of 0x46 to CAP_AIM_SERVERRELAY. This is sent by licq; probably a typo.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_AIM_CHAT</td>
+  <td><code>{748F2420-6287-11D1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+AIM specific capability.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_TRILL_CRYPT</td>
+  <td><code>{F2E7C7F4-FEAD-4DFB-B235-36798BDF0000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Trillian crypted message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_TRILL_UNK</td>
+  <td><code>{97B12751-243C-4334-AD22-D6ABF73F1409}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Another unknown capability invented by Trillian.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_MICQ</td>
+  <td><code>{6d494351-20a9-2052-2e4b-2e20wwxxyyzz}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Sent by mICQ. The last four bytes determine the client version.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_SIM</td>
+  <td><code>{97B12751-243C-4334-AD22-D6ABF73F14xx}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Sent by SIM and Kopete. The last byte is the version number; if it is less than or 1<<6, then it's Kopete, otherwise it's SIM, with the byte being (major + 1) << 6 + minor. Kopete uses 1 for 0.6 up to 0.6.1b and 64 = 1<<6 for 0.6.2. Why can't those guys just use their own capability?</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_MACICQ</td>
+  <td><code>{DD16F202-84E6-11D4-90DB-00104B9B4B7D}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Capability supposedly sent by Mac ICQ.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_KXICQ</td>
+  <td><code>{09491344-4c7f-11d1-8222-444553540000}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Sent by kxICQ2.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP_SIMNEW</td>
+  <td><code>{53494d20-636c-6965-6e74-2020wwxxyyzz}</code></td>
+  <td></td></tr><tr><td colspan=3>
+Sent by SIM >= 0.8.3. The last four bytes determine the client version. Interpreted in US-ASCII, the capability reads "SIM client  ####".</td>
+ </tr>
+</table>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">packets</a>
+  <a class=tut href="../Packets/Fam1.html">fam 1: service</a>
+  <a class=tut href="../Packets/Fam2.html">fam 2: location</a>
+  <a class=tut href="../Packets/Fam3.html">fam 3: contact</a>
+  <a class=tut href="../Packets/Fam4.html">fam 4: icbm</a>
+  <a class=tut href="../Packets/Fam9.html">fam 9: bos</a>
+  <a class=tut href="../Packets/Fam11.html">fam 11: interval</a>
+  <a class=tut href="../Packets/Fam19.html">fam 19: roster</a>
+  <a class=tut href="../Packets/Fam21.html">fam 21: old icq</a>
+  <a class=tut href="../Packets/Fam23.html">fam 23: new user</a>
+  <a class=tut href="../Packets/Peer.html">peer to peer</a>
+  <hr>
+  <a href="../tut_login.html">tutorial login</a>
+  <hr>
+  <a href="../Define.html">defines</a>
+
+<a class=tut href="CAPABILITIES.html">CAPABILITIES</a><a class=tut href="STATUS.html">STATUS</a><a class=tut href="MESSAGETYPE.html">MESSAGETYPE</a><a class=tut href="ROSTERTYPE.html">ROSTERTYPE</a><a class=tut href="MESSAGEFORMAT.html">MESSAGEFORMAT</a><a class=tut href="META_GENDERTYPE.html">META_GENDERTYPE</a><a class=tut href="META_MARITALSTATUS.html">META_MARITALSTATUS</a><a class=tut href="META_OCCUPATIONTYPE.html">META_OCCUPATIONTYPE</a><a class=tut href="META_GROUPTYPE.html">META_GROUPTYPE</a><a class=tut href="META_PASTTYPE.html">META_PASTTYPE</a><a class=tut href="META_INTERESTTYPE.html">META_INTERESTTYPE</a><a class=tut href="META_COUNTRYCODE.html">META_COUNTRYCODE</a><a class=tut href="META_LANGUAGECODE.html">META_LANGUAGECODE</a><a class=tut href="CHATGROUP.html">CHATGROUP</a><a class=tut href="DATATYPES.html">DATATYPES</a><a class=tut href="ERROR.html">ERROR</a> </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

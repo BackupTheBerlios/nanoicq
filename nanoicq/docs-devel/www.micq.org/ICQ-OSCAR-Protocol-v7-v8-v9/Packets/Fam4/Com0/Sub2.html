@@ -1,0 +1,268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Family = 4 AND Command = 0 AND Subcommand = 2 AND Type = 0 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=185 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=185 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - SUB_MSG_TYPE2</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../../../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../../../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">SUB_MSG_TYPE2</h1></td>
+ <td><h1 style="text-align:right">Channel: 2 SNAC(4,0)&nbsp;2</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>The content of the TLV of messages in format 2.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.B</td>
+     <td class=id>xx xx</td>
+     <td class=id>ACKTYPE</td>
+     <td>0x0000 - normal message<br>
+0x0001 - abort request<br>
+0x0002 - file ack
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WTIME</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>TIME</td>
+     <td>A copy of the very first time in this packet.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>ID</td>
+     <td>The random message ID again.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(11)</td>
+     <td class=id>00 0b 00 02 00 01</td>
+     <td class=id>UNKNOWN</td>
+     <td>Only if ACKTYPE is 1; then it will be the last TLV.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>CAP</td>
+     <td class=id>...</td>
+     <td class=id>CAPABILITY</td>
+     <td>A <a href="../../../Define/CAPABILITIES.html">capability</a> describing the further content, usually CAP_SERVERRELAY.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(10)</td>
+     <td class=id>00 0a 00 02 xx xx</td>
+     <td class=id>ACKTYPE2</td>
+     <td>0x0001 - normal message 0x0002 - file ack or file ok
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(5)</td>
+     <td class=id>00 05 00 02 xx xx</td>
+     <td class=id>PORT</td>
+     <td>Only for file request or file ack packets: The listening port to which to connect.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(3)</td>
+     <td class=id>00 03 00 04 xx xx xx xx</td>
+     <td class=id>IP</td>
+     <td>Only for file request or file ack packets: The IP address to connect.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(15)</td>
+     <td class=id>00 0f 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown, emtpy.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(10001)</td>
+     <td class=id>27 11 xx xx ...</td>
+     <td class=id>MESSAGE</td>
+     <td>This is yet another message TLV that adds yet another layer of complexity as follows:
+     </td>
+    </tr>
+<tr><td colspan=4><table class=sub><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup><!-- 1/ -->
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>1b 00</td>
+     <td class=id>LEN</td>
+     <td>The length till the end of SEQ1.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>TCPVER</td>
+     <td>The version of the TCP protocol that the sending client uses.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>CAP</td>
+     <td class=id>...</td>
+     <td class=id>CAPABILITY</td>
+     <td><a href="../../../Define/CAPABILITIES.html">Capability</a> describing the further content again. Empty for normal type-2 messages. Seen: CAP_STR_2001 and CAP_STR_2002, but not yet understood.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>3</td>
+     <td class=id>00 00 03</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD</td>
+     <td class=id>00 00 00 xx</td>
+     <td class=id>UNKNOWN</td>
+     <td>0 = normal message, 1 = file ok, 4 = file ok or file request.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD</td>
+     <td class=id>xx xx</td>
+     <td class=id>SEQ1</td>
+     <td>A sequence that starts at 0xffff. I'm not sure yet when this decrements, most likely on each message send.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>-------</td>
+     <td class=id>-----------</td>
+     <td class=id>------------</td>
+     <td>The following data is similar to <!-- filler -->
+<a href="../../Peer.html">peer-to-peer</a> messages but through the server.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: 0x0e. Some people consider it the length till the end of the unknown 12 bytes array; however, that does not fit for the type-2 messages ICQ2001/2002 sends when it sees you logging in, then it will have the value 0x12.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD</td>
+     <td class=id>xx xx</td>
+     <td class=id>SEQ2</td>
+     <td>This is a copy of SEQ1.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>12</td>
+     <td class=id>00 ... 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown, always zero. 
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>MSGTYPE</td>
+     <td>The <a href="../../../Define/MESSAGETYPE.html">message type</a> of the message.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD</td>
+     <td class=id>xx xx</td>
+     <td class=id>UNKNOWN</td>
+     <td>Usually 0, seen 0x2000.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD</td>
+     <td class=id>xx xx</td>
+     <td class=id>PRIORITY</td>
+     <td>Usually 0, seen 0x0002 in information request messages.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>LNTS</td>
+     <td class=id>xx xx ...</td>
+     <td class=id>MESSAGE</td>
+     <td>The message!
+     </td>
+    </tr>
+    <tr>
+     <td class=id>COLOR</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>FOREGROUND</td>
+     <td>Only present in actual real messages, this will be the text color of the message in RGB0 format.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>COLOR</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>BACKGROUND</td>
+     <td>Only present in actual real messages, this will be the background color of the text box in RGB0 format.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DLStr</td>
+     <td class=id>xx xx xx xx ...</td>
+     <td class=id>GUID</td>
+     <td>A <a href="../../../Define/CAPABILITIES.html">capability</a> in GUID form defining the message content's data type. Often used are CAP_UTF8 and CAP_RTFMSGS.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<p>No examples.</p>
+<h2>Attribution</h2>
+<p>Submitted by: tadu@gmx.de.</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../../../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../../../Packets.html">generic packets</a>
+  <a href="../../Fam1.html">fam 1: service</a>
+  <a href="../../Fam2.html">fam 2: location</a>
+  <a href="../../Fam3.html">fam 3: contact</a>
+  <a href="../../Fam4.html">fam 4: icbm</a>
+  <a href="../../Fam9.html">fam 9: bos</a>
+  <a href="../../Fam11.html">fam 11: interval</a>
+  <a href="../../Fam19.html">fam 19: roster</a>
+  <a href="../../Fam21.html">fam 21: old icq</a>
+  <a href="../../Fam23.html">fam 23: new user</a>
+  <a href="../../Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE Family = 4 AND (Command = 0 OR Type = 0) ORDER BY Channel,Family,Command,Subcommand,Type,Name -->
+  <a class=tut href="Sub1.html">SUB_MSG_TYPE1</a>
+  <a class=tut href="Sub2.html">SUB_MSG_TYPE2</a>
+  <a class=tut href="Sub4.html">SUB_MSG_TYPE4</a>
+  <a class=tut href="../Com1.html">SRV_ICBMERR</a>
+  <a class=tut href="../Com2.html">CLI_SETICBM</a>
+  <a class=tut href="../Com4.html">CLI_REQICBM</a>
+  <a class=tut href="../Com5.html">SRV_REPLYICBM</a>
+  <a class=tut href="../Com6.html">CLI_SENDMSG</a>
+  <a class=tut href="../Com7.html">SRV_RECVMSG</a>
+  <a class=tut href="../Com10.html">SRV_MISSED_ICBM</a>
+  <a class=tut href="../Com11.html">ACKMSG</a>
+  <a class=tut href="../Com12.html">SRV_SRVACKMSG</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../../../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

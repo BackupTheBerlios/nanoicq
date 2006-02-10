@@ -1,0 +1,6 @@
+/* This file is hidden from IE6.
+ * Did I already say IE6 sucks the big one?
+ */
+
+div#navbar { position: fixed; }
+div#sigbar { position: fixed; }

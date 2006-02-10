@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE byPeer = 1 AND Subcommand = 1 AND Type = 2 AND Name = 'PEER_MSG_FILE' -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=144 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=144 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - PEER_MSG_FILE</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../../../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../../../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">PEER_MSG_FILE</h1></td>
+ <td><h1 style="text-align:right">Channel: 0</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>Sub-packet of <a href="PEER_MSG.html">PEER_MSG</a> for MSGTYPE 3.
+This packet is used to initiate/acknowledge a file transfer. It is used only in version 7 of the protocol; for version 8, use PEER_MSG_GREET with an appropriate sub command. Note, however, that some clients claim to do v8 that still use this, including Trillian 0.73.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.B</td>
+     <td class=id>xx xx</td>
+     <td class=id> PORT</td>
+     <td>The port to which the file should be sent. Note this and PORT2 are empty in the request.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD</td>
+     <td class=id>xx xx</td>
+     <td class=id> PAD</td>
+     <td>Unknown or padding.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>LNTS</td>
+     <td class=id>xx xx ...</td>
+     <td class=id>NAME</td>
+     <td>The file name. This will be empty in the ACK.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>FILELEN</td>
+     <td>The length of the file in bytes.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>UNKNOWN</td>
+     <td>If I'd know, I'd be lucky. Looks like a piece of text. New for version 7; for version 6, this is left out.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>PORT2</td>
+     <td>The port again.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>00:48:15 Incoming TCP packet (6 - smo@karlsruhe): PEER_MSG
+         TCP MSG seq fffc type 3 status 0 flags 1: 'asdf'
+         ac c1         PORT - should be empty
+         c4 00         PAD  - should be empty
+         0b 00 42 69 6c 64 20 31 2e 6a 70 67 00
+                       NAME - &quot;Bild1.jpg&quot;
+         bf 1e 01 00   FILELEN - 73407
+         00 00 00 00   PORT2 - 0
+</pre>
+<h2>Attribution</h2>
+<p>Submitted by: tadu@gmx.de.</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../../../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../../../Packets.html">generic packets</a>
+  <a href="../../Fam1.html">fam 1: service</a>
+  <a href="../../Fam2.html">fam 2: location</a>
+  <a href="../../Fam3.html">fam 3: contact</a>
+  <a href="../../Fam4.html">fam 4: icbm</a>
+  <a href="../../Fam9.html">fam 9: bos</a>
+  <a href="../../Fam11.html">fam 11: interval</a>
+  <a href="../../Fam19.html">fam 19: roster</a>
+  <a href="../../Fam21.html">fam 21: old icq</a>
+  <a href="../../Fam23.html">fam 23: new user</a>
+  <a href="../../Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE byPeer = 1 ORDER BY Channel,Family,Command,Subcommand,Type,Name -->
+  <a class=tut href="../Init/-1.html">PEER_INIT</a>
+  <a class=tut href="../Init/1.html">PEER_INITACK</a>
+  <a class=tut href="PEER_MSG.html">PEER_MSG</a>
+  <a class=tut href="PEER_MSG_EXTENDED.html">PEER_MSG_EXTENDED</a>
+  <a class=tut href="PEER_MSG_FILE.html">PEER_MSG_FILE</a>
+  <a class=tut href="PEER_MSG_MSG.html">PEER_MSG_MSG</a>
+  <a class=tut href="3.html">PEER_MSGINIT</a>
+  <a class=tut href="../File/0.html">PEER_FILE_INIT</a>
+  <a class=tut href="../File/1.html">PEER_FILE_INITACK</a>
+  <a class=tut href="../File/2.html">PEER_FILE_START</a>
+  <a class=tut href="../File/3.html">PEER_FILE_STARTACK</a>
+  <a class=tut href="../File/4.html">PEER_FILE_STOP</a>
+  <a class=tut href="../File/5.html">PEER_FILE_SPEED</a>
+  <a class=tut href="../File/6.html">PEER_FILE_DATA</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../../../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Channel = 4 AND Family = 0 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=33 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=33 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - DISCONNECT</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">DISCONNECT</h1></td>
+ <td><h1 style="text-align:right">Channel: 4</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>This packet is sent when the connection is closed: if the client wants to exit, if the server redirects you to another server, or if the server disconnects you for any reason.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(1)</td>
+     <td class=id>00 01 xx xx STR</td>
+     <td class=id>UIN</td>
+     <td>Your UIN as a string.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(5)</td>
+     <td class=id>00 05 xx xx STR</td>
+     <td class=id>SERVER</td>
+     <td>The actual server and port the login server wants you to use for this session, like "64.12.28.242:5190". Format can also be just IP address (no port), seems to take this format if you try connecting to the server through a different port than the default one (5190).
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(6)</td>
+     <td class=id>00 06 xx xx STR</td>
+     <td class=id>COOKIE</td>
+     <td>The actual cookie that you have to send the server you're redirected to.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(8)</td>
+     <td class=id>00 08 00 02 WORD</td>
+     <td class=id>ERROR</td>
+     <td>Reason for disconnect as an error code:<br>
+<ul>
+<li>0x0000 - no error</li>
+<li>0x0001 - multiple logins (on same UIN)</li>
+<li>0x0004 - bad password</li>
+<li>0x0005 - bad password</li>
+<li>0x0007 - non-existant ICQ#</li>
+<li>0x0008 - non-existant ICQ#</li>
+<li>0x0015 - too many clients from same IP</li>
+<li>0x0016 - too many clients from same IP</li>
+<li>0x0018 - rate exceeded (turboing), this means you're been connecting and disconnecting too quickly with the same login. The server temporarily bans you.</li>
+<li>0x001B - old version of ICQ, need to upgrade.</li>
+<li>0x001D - (probably) you are reconnecting too fast.</li>
+<li>0x001E - can't register on ICQ network, try again soon.</li>
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(4)</td>
+     <td class=id>00 04 xx STR</td>
+     <td class=id>DESCRIPTION</td>
+     <td>Reason for disconnect as a string, usually a web page.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>2A 04 23 32 01 24                                                 Flap: Channel 4, Sequence 9010, Length 292
+   00 01 00 07 38 30 38 33 36 30 38                               '8083608'
+   00 05 00 11 36 34 2E 31 32 2E 32 38 2E 32 34 32 3A 35 31 39    '64.12.28.242:519'
+               30                                                 '0'
+   00 06 01 00 58 A1 E2 C9 DC 14 7D 6F 4F E9 85 23 10 64 07 C3    Cookie
+               9D 6E 05 D1 46 C4 D6 EF C4 65 44 78 68 51 C1 91
+               C5 89 19 E9 7D E8 D2 10 8A D2 A9 C2 E1 4D C2 1E
+               A1 4E AB 6A 2E F0 3A DC B4 FB 7F 82 A2 76 B0 B6
+               F9 C0 77 D3 04 A5 72 46 12 BD DE 1B 81 99 B0 0D
+               24 C9 C4 7E 18 40 A5 8C FC 97 1E 21 27 10 F2 38
+               23 F4 16 3B 9A 9D 4F ED 46 ED 26 11 88 8E 8D A0
+               AE E5 12 3C 0C 45 E8 E0 3B 74 35 1B E5 8E 71 96
+               11 51 78 45 FF CB 2B 2B 30 E1 CC EE F5 97 18 FA
+               1D F8 30 4E 46 80 29 A2 27 4F BD 05 2E 62 B1 E2
+               DA 82 AD A1 EF 6B 68 83 C5 CD FA 7D 33 73 6E 6F
+               EF 58 64 BE 69 91 28 00 F8 B2 E5 C5 8C ED 46 6B
+               22 A2 50 F7 4F 42 AB 44 45 5F 56 3B 09 35 A9 9B
+               9B 10 94 7D 95 70 C3 4A D5 3B C7 C1 E0 4C A8 41
+               F4 5F 76 41 4C 67 90 BA E3 35 AC D2 1B DC 37 57
+               D6 1E 0C 88 7C 4C 8B 4E 4B 97 B1 60 A2 D2 62 B6</pre><hr>
+<pre>2a 04 cd fd 00 46                                                  Flap: Channel 4, Sequence 0xcdfd, Length 0x46
+   00 04 00 3c 68 74 74 70 3a 2f 2f 77 77 77 2e 61 69 6d 2e 61     'http://www.aim.a'
+               6f 6c 2e 63 6f 6d 2f 65 72 72 6f 72 73 2f 55 53     'ol.com/errors/US'
+               45 52 5f 4c 4f 47 47 45 44 5f 4f 46 46 5f 4e 45     'ER_LOGGED_OFF_NE'
+               57 5f 4c 4f 47 49 4e 2e 68 74 6d 6c                 'W_LOGIN.html'
+   00 08 00 02 00 01                                               Error code: 0x0001
+</pre><hr>
+<pre>2a 04 EE 0E 00 29                                                  Flap: Channel 4, Sequence 0xee0e, Length 0x29
+   00 01 00 09                                                     Obviously my UIN
+      31 37 36 34 35 33 30 33 39                                   '176453039'
+   00 04 00 12                                                     TLV(4), Length 0x12
+      68 74 74 70 3A 2F 2F 77 77 77 2E 61 6F 6C 2E 63 6F 6D        'http://www.aol.com'
+   00 08 00 02 00 18                                               This one I couldn't find out
+</pre>
+<h2>Attribution</h2>
+<p>Submitted by: .</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">generic packets</a>
+  <a href="Fam1.html">fam 1: service</a>
+  <a href="Fam2.html">fam 2: location</a>
+  <a href="Fam3.html">fam 3: contact</a>
+  <a href="Fam4.html">fam 4: icbm</a>
+  <a href="Fam9.html">fam 9: bos</a>
+  <a href="Fam11.html">fam 11: interval</a>
+  <a href="Fam19.html">fam 19: roster</a>
+  <a href="Fam21.html">fam 21: old icq</a>
+  <a href="Fam23.html">fam 23: new user</a>
+  <a href="Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE byPeer = 0 AND Family = 0 ORDER BY Channel,Family,Command,Subcommand,Type -->
+  <a class=tut href="Basic-TLV.html">TLV</a>
+  <a class=tut href="Basic-FLAP.html">FLAP</a>
+  <a class=tut href="Flap1.html">HELLO</a>
+  <a class=tut href="Flap2.html">SNAC</a>
+  <a class=tut href="Flap4.html">DISCONNECT</a>
+  <a class=tut href="Flap5.html">KEEPALIVE</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM DEFINES ORDER BY Sett,Sort -->
+<!-- SELECT Sett FROM DEFINES WHERE Name = 'MESSAGETYPE' AND Sort = 0 -->
+<html><head>
+<title>ICQ protocol version 8 - #define </title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<h2><a name="MESSAGETYPE">#define MESSAGETYPE</h2>
+<p>The messages types used. For type that consists of several parts, these parts are seperated by a 254 = 0xfe = þ character.</p>
+<table>
+ <tr>
+  <td></td>
+  <td>MSG_AUTO</td>
+  <td><code>0x0000</code></td>
+  <td>An automatic message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_NORM</td>
+  <td><code>0x0001</code></td>
+  <td>A plain normal message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_CHAT</td>
+  <td><code>0x0002</code></td>
+  <td>A chat request.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_FILE</td>
+  <td><code>0x0003</code></td>
+  <td>A file transfer request.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_URL</td>
+  <td><code>0x0004</code></td>
+  <td>An URL message. The message consists of the description and the url.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_AUTHREQ</td>
+  <td><code>0x0006</code></td>
+  <td>An authorization request.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_AUTHREJ</td>
+  <td><code>0x0007</code></td>
+  <td>An authorization reject message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_AUTHACC</td>
+  <td><code>0x0008</code></td>
+  <td>An authorization accept message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_ADDED</td>
+  <td><code>0x000c = 12</code></td>
+  <td>You were added to the sender's contact list.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MGS_WEB</td>
+  <td><code>0x000d = 13</code></td>
+  <td>A message sent through www.icq.com's web pager.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_EMAIL</td>
+  <td><code>0x000e = 14</code></td>
+  <td>A message sent through the email pager ([uin]@pager.icq.com).</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_CONTACT</td>
+  <td><code>0x0013 = 19</code></td>
+  <td>A contact list message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_EXTENDED</td>
+  <td><code>0x001a = 26</code></td>
+  <td>An extended message. The packet will contain more data.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_GET_AWAY</td>
+  <td><code>0x03e8 = 1000</code></td>
+  <td>A message requesting the "away" auto message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_GET_OCC</td>
+  <td><code>0x03e9 = 1001</code></td>
+  <td>A message requesting the "occupied" auto message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_GET_NA</td>
+  <td><code>0x03ea = 1002</code></td>
+  <td>A message requesting the "not available" auto message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_GET_DND</td>
+  <td><code>0x03eb = 1003</code></td>
+  <td> A message requesting the "do not disturb" auto message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSG_GET_FFC</td>
+  <td><code>0x03ec = 1004</code></td>
+  <td> A message requesting the "free for chat" auto message.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>MSGF_MASS</td>
+  <td><code>0x8000</code></td>
+  <td>The message was sent to several recipients.</td>
+ </tr>
+</table>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">packets</a>
+  <a class=tut href="../Packets/Fam1.html">fam 1: service</a>
+  <a class=tut href="../Packets/Fam2.html">fam 2: location</a>
+  <a class=tut href="../Packets/Fam3.html">fam 3: contact</a>
+  <a class=tut href="../Packets/Fam4.html">fam 4: icbm</a>
+  <a class=tut href="../Packets/Fam9.html">fam 9: bos</a>
+  <a class=tut href="../Packets/Fam11.html">fam 11: interval</a>
+  <a class=tut href="../Packets/Fam19.html">fam 19: roster</a>
+  <a class=tut href="../Packets/Fam21.html">fam 21: old icq</a>
+  <a class=tut href="../Packets/Fam23.html">fam 23: new user</a>
+  <a class=tut href="../Packets/Peer.html">peer to peer</a>
+  <hr>
+  <a href="../tut_login.html">tutorial login</a>
+  <hr>
+  <a href="../Define.html">defines</a>
+
+<a class=tut href="CAPABILITIES.html">CAPABILITIES</a><a class=tut href="STATUS.html">STATUS</a><a class=tut href="MESSAGETYPE.html">MESSAGETYPE</a><a class=tut href="ROSTERTYPE.html">ROSTERTYPE</a><a class=tut href="MESSAGEFORMAT.html">MESSAGEFORMAT</a><a class=tut href="META_GENDERTYPE.html">META_GENDERTYPE</a><a class=tut href="META_MARITALSTATUS.html">META_MARITALSTATUS</a><a class=tut href="META_OCCUPATIONTYPE.html">META_OCCUPATIONTYPE</a><a class=tut href="META_GROUPTYPE.html">META_GROUPTYPE</a><a class=tut href="META_PASTTYPE.html">META_PASTTYPE</a><a class=tut href="META_INTERESTTYPE.html">META_INTERESTTYPE</a><a class=tut href="META_COUNTRYCODE.html">META_COUNTRYCODE</a><a class=tut href="META_LANGUAGECODE.html">META_LANGUAGECODE</a><a class=tut href="CHATGROUP.html">CHATGROUP</a><a class=tut href="DATATYPES.html">DATATYPES</a><a class=tut href="ERROR.html">ERROR</a> </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

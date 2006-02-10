@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Channel = 5 AND Family = 0 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=137 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=137 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - KEEPALIVE</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">KEEPALIVE</h1></td>
+ <td><h1 style="text-align:right">Channel: 5</h1></td>
+</tr></table>
+
+<div></div>
+
+<p><ul>
+<li>it is safe to send keepalive packets.
+
+<li>it is safe to never send keepalive packets.
+
+<li>any keepalive packet is a flap channel 5 packet with an
+   empty flapdata field.
+
+<li>keepalive packets are sent by official icq clients, when
+   the checkbox "keep the connection alive" is turned on.
+
+<li>it is safe to send keepalive packets with an interval of
+   30 or more seconds between keepalive packets.  It is unknown 
+   if they can be sent more frequently.
+</ul></p>
+
+<h2>Parameters</h2><p>No parameters.</p>
+<h2>Examples</h2>
+<pre>2a 05 00 15 00 00
+
+2a //byte, constant, flap magic
+05 //byte, constant, flap channel
+00 15 //word, variable, flap sequence number
+00 00 //word, constant, flap data length</pre>
+<h2>Attribution</h2>
+<p>Submitted by: .</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">generic packets</a>
+  <a href="Fam1.html">fam 1: service</a>
+  <a href="Fam2.html">fam 2: location</a>
+  <a href="Fam3.html">fam 3: contact</a>
+  <a href="Fam4.html">fam 4: icbm</a>
+  <a href="Fam9.html">fam 9: bos</a>
+  <a href="Fam11.html">fam 11: interval</a>
+  <a href="Fam19.html">fam 19: roster</a>
+  <a href="Fam21.html">fam 21: old icq</a>
+  <a href="Fam23.html">fam 23: new user</a>
+  <a href="Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE byPeer = 0 AND Family = 0 ORDER BY Channel,Family,Command,Subcommand,Type -->
+  <a class=tut href="Basic-TLV.html">TLV</a>
+  <a class=tut href="Basic-FLAP.html">FLAP</a>
+  <a class=tut href="Flap1.html">HELLO</a>
+  <a class=tut href="Flap2.html">SNAC</a>
+  <a class=tut href="Flap4.html">DISCONNECT</a>
+  <a class=tut href="Flap5.html">KEEPALIVE</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

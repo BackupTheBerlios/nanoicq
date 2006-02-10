@@ -1,0 +1,39 @@
+#main {
+  position: absolute;
+  top: 4px; right: 8px; left: 173px; bottom: auto;
+  margin: 4px 0 0 0;
+  border: 0px solid #000;
+  padding: 8px 10px 4px 10px;
+  text-align: justify;
+}
+
+#navbar {
+  position: absolute;
+  width: 160px;
+  top: 4px; left: 4px; bottom: 62px;
+  margin: 0;
+  overflow: visible;
+  border-left:  1px solid #369;
+  border-right: 1px solid #369;
+  border-top:   1px solid #369;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  z-index: 1;
+  background: #acf;
+}
+
+#sigbar {
+  position: absolute;
+  width: 154px; height: 57px;
+  top: auto; left: 4px; bottom: 4px; right: auto;
+  overflow: visible;
+  border-left:   1px solid #369;
+  border-right:  1px solid #369;
+  border-bottom: 1px solid #369;
+  padding: 0 3px 3px 3px;
+  text-align: right;
+  vertical-align: bottom;
+  z-index: 1;
+  background: #09f;
+}

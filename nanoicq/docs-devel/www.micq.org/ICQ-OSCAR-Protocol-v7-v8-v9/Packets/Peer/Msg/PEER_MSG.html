@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE byPeer = 1 AND Subcommand = 1 AND Type = 2 AND Name = 'PEER_MSG' -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=131 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=131 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - PEER_MSG</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../../../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../../../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">PEER_MSG</h1></td>
+ <td><h1 style="text-align:right">Channel: 0</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>This packet is used to communicate directly.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>BYTE</td>
+     <td class=id>02</td>
+     <td class=id>CMD</td>
+     <td>The command: send a message.<br>
+Note: all following data is encrypted as in the protocol
+v5 and v6.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>CHECKCODE</td>
+     <td>The checksum of this packet.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>COMMAND</td>
+     <td>The command like sending a message or getting auto-response strings.
+<pre>0x07d0 = 2000 - cancel given message.
+0x07da = 2010 - acknowledge message.
+0x07ee = 2030 - normal message.</pre>
+     </td>
+    </tr>
+    <tr>
+     <td class=id>-------</td>
+     <td class=id>-----------</td>
+     <td class=id>------------</td>
+     <td>The following data is the same as in <a href="../../Fam4/Com0/Sub2.html">type-2</a> messages through the server.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: 0xe = 14.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>SEQUENCE</td>
+     <td>Our sequence number.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>00 00 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: empty.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>00 00 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: empty.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>00 00 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: empty.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>MSGTYPE</td>
+     <td>The <a href="../../../Define/MESSAGETYPE.html">message type</a>.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>STATUS</td>
+     <td>For messages sent: the current status of the user, but only with the bit to check for set. For acknowledges: the acknowledge status, which can be:<pre>
+0x00 - user is online, message was receipt, file transfer accepted
+0x01 - refused
+0x04 - accepted (to contact list) because of away
+0x09 - refused because of occupied (retry by sending to contact list or as urgent)
+0x0a - refused because of dnd (retry by sending to contact list)
+0x0e - accepted (to contact list) because of na
+</pre>
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>xx xx</td>
+     <td class=id>FLAGS</td>
+     <td><pre>
+0x0001 =    1 - unknown
+0x0002 =    2 - urgent
+0x0004 =    4 - sent to contact list (i.e. no bell)
+0x0010 =   16 - real message (whatever that is) (??)
+0x0020 =   32 - list (flag) (whatever that means) (??)
+0x0040 =   64 - urgent (flag) (??)
+</pre>
+     </td>
+    </tr>
+    <tr>
+     <td class=id>LNTS</td>
+     <td class=id>xx xx STR</td>
+     <td class=id>MESSAGE</td>
+     <td>Finally the message.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DATA</td>
+     <td class=id>...</td>
+     <td class=id>EXTRA</td>
+     <td>Extra data, depending on COMMAND. See PEER_MSG_* for more information.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>01:49:38 Ausgehendes TCP-Paket: (53)
+         02                                        CMD: message
+         00 00 00 00
+         ee 07                                     COMMAND: normal message
+         0e 00                                     UNKNOWN
+         ff ff                                     SEQUENCE
+         00 00 00 00 00 00 00 00 00 00 00 00
+         01 00                                     MSGTYPE
+         00 00                                     UNKNOWN
+         20 00                                     STATUS
+         06 00 41 68 6f 69 21 00                   MESSAGE: &quot;Ahoi!&quot;
+         00 00 00 00                               FOREGROUND
+         ff ff ff 00                               BACKGROUND</pre>
+<h2>Attribution</h2>
+<p>Submitted by: tadu@gmx.de.</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../../../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../../../Packets.html">generic packets</a>
+  <a href="../../Fam1.html">fam 1: service</a>
+  <a href="../../Fam2.html">fam 2: location</a>
+  <a href="../../Fam3.html">fam 3: contact</a>
+  <a href="../../Fam4.html">fam 4: icbm</a>
+  <a href="../../Fam9.html">fam 9: bos</a>
+  <a href="../../Fam11.html">fam 11: interval</a>
+  <a href="../../Fam19.html">fam 19: roster</a>
+  <a href="../../Fam21.html">fam 21: old icq</a>
+  <a href="../../Fam23.html">fam 23: new user</a>
+  <a href="../../Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE byPeer = 1 ORDER BY Channel,Family,Command,Subcommand,Type,Name -->
+  <a class=tut href="../Init/-1.html">PEER_INIT</a>
+  <a class=tut href="../Init/1.html">PEER_INITACK</a>
+  <a class=tut href="PEER_MSG.html">PEER_MSG</a>
+  <a class=tut href="PEER_MSG_EXTENDED.html">PEER_MSG_EXTENDED</a>
+  <a class=tut href="PEER_MSG_FILE.html">PEER_MSG_FILE</a>
+  <a class=tut href="PEER_MSG_MSG.html">PEER_MSG_MSG</a>
+  <a class=tut href="3.html">PEER_MSGINIT</a>
+  <a class=tut href="../File/0.html">PEER_FILE_INIT</a>
+  <a class=tut href="../File/1.html">PEER_FILE_INITACK</a>
+  <a class=tut href="../File/2.html">PEER_FILE_START</a>
+  <a class=tut href="../File/3.html">PEER_FILE_STARTACK</a>
+  <a class=tut href="../File/4.html">PEER_FILE_STOP</a>
+  <a class=tut href="../File/5.html">PEER_FILE_SPEED</a>
+  <a class=tut href="../File/6.html">PEER_FILE_DATA</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../../../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

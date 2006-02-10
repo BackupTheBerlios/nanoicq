@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Channel = 1 AND Family = 0 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=32 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=32 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - HELLO</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">HELLO</h1></td>
+ <td><h1 style="text-align:right">Channel: 1</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>The packet sent upon establishing a connection. If the client wants to login to login.icq.com, it sends all TLVs (CLI_IDENT) except TLV(6), which is for login to the redirected server (CLI_COOKIE). To request a new UIN, no TLV is sent (CLI_HELLO).</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.B</td>
+     <td class=id>00 00 00 01</td>
+     <td class=id>HELLO</td>
+     <td>Always sent as the first parameter of a Channel 1 packet.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(6)</td>
+     <td class=id>00 06 xx xx STR</td>
+     <td class=id>COOKIE</td>
+     <td>The cookie that was received from the first server is passed back to the second server at this point.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(1)</td>
+     <td class=id>00 01 xx xx STR</td>
+     <td class=id>UIN</td>
+     <td>Your UIN as a string.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(2)</td>
+     <td class=id>00 02 xx xx STR</td>
+     <td class=id>PASSWORD</td>
+     <td>Your password, after "encrypted" by XORing with the bytes f3, 26, 81, c4, 39, 86, db, 92, 71, a3, b9, e6, 53, 7a, 95, 7c.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(3)</td>
+     <td class=id>00 03 xx xx STR</td>
+     <td class=id>VERSION</td>
+     <td>This identifies the type and version of the client, e.g.<br>
+"ICQ Inc. - Product of ICQ (TM).2002a.5.37.1.3728.85".<br> "ICQ Inc. - Product of ICQ (TM).2001b.5.15.1.3638.85".
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(22)</td>
+     <td class=id>00 16 00 02 01 0a</td>
+     <td class=id>CLIENTID</td>
+     <td>Always 0x010a for ICQ.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(23)</td>
+     <td class=id>00 17 00 02 00 05</td>
+     <td class=id>VER_MAJOR</td>
+     <td>The major version of the client, currently at 5.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(24)</td>
+     <td class=id>00 18 00 02 00 0f</td>
+     <td class=id>VER_MINOR</td>
+     <td>The minor version of the client.
+<pre>
+0x0f = 15 - ICQ2001b
+0x25 = 37 - ICQ2002a
+</pre>
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(25)</td>
+     <td class=id>00 19 00 02 00 01</td>
+     <td class=id>VER_LESSER</td>
+     <td>The lesser version of the client, currently at 1.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(26)</td>
+     <td class=id>00 1a 00 02 0e 36</td>
+     <td class=id>VER_BUILD</td>
+     <td>The build of the client:
+<pre>
+0x0e36 = 3638: ICQ2001b
+0x0e90 = 3828: ICQ2002a
+</pre>
+
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(20)</td>
+     <td class=id>00 14 00 04 00 00 00 55</td>
+     <td class=id>VER_DISTRIB</td>
+     <td>The distribution channel, usually 85 (0x55).
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(15)</td>
+     <td class=id>00 0f xx xx STR</td>
+     <td class=id>LANGUAGE</td>
+     <td>The language that the client is using, e.g. "fi".
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(14)</td>
+     <td class=id>00 0e xx xx STR</td>
+     <td class=id>COUNTRY</td>
+     <td>The country where the client is located, e.g. "au".
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>2A 01 23 31 00 04    Flap: Channel 1, Sequence 9009, Length 4
+   00 00 00 01       1</pre><hr>
+<pre>2A 01 14 B1 01 08                                                 Flap: Channel 1, Sequence 5297, Length 264
+   00 00 00 01                                                    1
+   00 06 01 00 58 A1 E2 C9 DC 14 7D 6F 4F E9 85 23 10 64 07 C3    Cookie
+               9D 6E 05 D1 46 C4 D6 EF C4 65 44 78 68 51 C1 91
+               C5 89 19 E9 7D E8 D2 10 8A D2 A9 C2 E1 4D C2 1E
+               A1 4E AB 6A 2E F0 3A DC B4 FB 7F 82 A2 76 B0 B6
+               F9 C0 77 D3 04 A5 72 46 12 BD DE 1B 81 99 B0 0D
+               24 C9 C4 7E 18 40 A5 8C FC 97 1E 21 27 10 F2 38
+               23 F4 16 3B 9A 9D 4F ED 46 ED 26 11 88 8E 8D A0
+               AE E5 12 3C 0C 45 E8 E0 3B 74 35 1B E5 8E 71 96
+               11 51 78 45 FF CB 2B 2B 30 E1 CC EE F5 97 18 FA
+               1D F8 30 4E 46 80 29 A2 27 4F BD 05 2E 62 B1 E2
+               DA 82 AD A1 EF 6B 68 83 C5 CD FA 7D 33 73 6E 6F
+               EF 58 64 BE 69 91 28 00 F8 B2 E5 C5 8C ED 46 6B
+               22 A2 50 F7 4F 42 AB 44 45 5F 56 3B 09 35 A9 9B
+               9B 10 94 7D 95 70 C3 4A D5 3B C7 C1 E0 4C A8 41
+               F4 5F 76 41 4C 67 90 BA E3 35 AC D2 1B DC 37 57
+               D6 1E 0C 88 7C 4C 8B 4E 4B 97 B1 60 A2 D2 62 B6
+</pre><hr>
+<pre>2A 01 59 00 00 83                                                 Flap: Channel 1, Sequence 22784, Length 131
+   00 00 00 01                                                    1
+   00 01 00 07 38 30 38 33 36 30 38                               '8083608'
+   00 02 00 07 XX XX XX XX XX XX XX                               Password
+   00 03 00 33 49 43 51 20 49 6E 63 2E 20 2D 20 50 72 6F 64 75    'ICQ Inc. - Produ'
+               63 74 20 6F 66 20 49 43 51 20 28 54 4D 29 2E 32    'ct of ICQ (TM).2'
+               30 30 31 62 2E 35 2E 31 35 2E 31 2E 33 36 33 38    '001b.5.15.1.3638'
+               2E 38 35                                           '.85'
+   00 16 00 02 01 0A                                              266
+   00 17 00 02 00 05                                              5
+   00 18 00 02 00 0F                                              15
+   00 19 00 02 00 01                                              1
+   00 1A 00 02 0E 36                                              3638
+   00 14 00 04 00 00 00 55                                        85
+   00 0F 00 02 65 6E                                              'en'
+   00 0E 00 02 75 73                                              'us'</pre>
+<h2>Attribution</h2>
+<p>Submitted by: .</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">generic packets</a>
+  <a href="Fam1.html">fam 1: service</a>
+  <a href="Fam2.html">fam 2: location</a>
+  <a href="Fam3.html">fam 3: contact</a>
+  <a href="Fam4.html">fam 4: icbm</a>
+  <a href="Fam9.html">fam 9: bos</a>
+  <a href="Fam11.html">fam 11: interval</a>
+  <a href="Fam19.html">fam 19: roster</a>
+  <a href="Fam21.html">fam 21: old icq</a>
+  <a href="Fam23.html">fam 23: new user</a>
+  <a href="Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE byPeer = 0 AND Family = 0 ORDER BY Channel,Family,Command,Subcommand,Type -->
+  <a class=tut href="Basic-TLV.html">TLV</a>
+  <a class=tut href="Basic-FLAP.html">FLAP</a>
+  <a class=tut href="Flap1.html">HELLO</a>
+  <a class=tut href="Flap2.html">SNAC</a>
+  <a class=tut href="Flap4.html">DISCONNECT</a>
+  <a class=tut href="Flap5.html">KEEPALIVE</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

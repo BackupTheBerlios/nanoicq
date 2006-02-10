@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Family = 3 AND Command = 10 AND Subcommand = 0 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=174 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=174 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - SRV_REFUSED</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">SRV_REFUSED</h1></td>
+ <td><h1 style="text-align:right">Channel: 2 SNAC(3,10)</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>A contact was refused from being added to the contact list. Ooops!</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>BUIN</td>
+     <td class=id>xx ...</td>
+     <td class=id>UIN</td>
+     <td>The UIN refused from being added to the contact list.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>13:32:05 Eingehendes Server-Paket (Version 8):
+  2a 02 3c 7d 00 13               FLAP  ch 2 seq 00003c7d length 0013
+  00 03 00 0a 00 00 92 cb  03 ac  SNAC     (3,a) [unknown] flags 0 ref 92cb03ac
+  08 31 37 35 30 32 31 35  31                       '.17502151'
+</pre>
+<h2>Attribution</h2>
+<p>Submitted by: .</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../../Packets.html">generic packets</a>
+  <a href="../Fam1.html">fam 1: service</a>
+  <a href="../Fam2.html">fam 2: location</a>
+  <a href="../Fam3.html">fam 3: contact</a>
+  <a href="../Fam4.html">fam 4: icbm</a>
+  <a href="../Fam9.html">fam 9: bos</a>
+  <a href="../Fam11.html">fam 11: interval</a>
+  <a href="../Fam19.html">fam 19: roster</a>
+  <a href="../Fam21.html">fam 21: old icq</a>
+  <a href="../Fam23.html">fam 23: new user</a>
+  <a href="../Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE Family = 3 ORDER BY Channel,Family,Command,Subcommand,Type,Name -->
+  <a class=tut href="Com1.html">SRV_CONTACTERR</a>
+  <a class=tut href="Com2.html">CLI_REQBUDDY</a>
+  <a class=tut href="Com3.html">SRV_REPLYBUDDY</a>
+  <a class=tut href="Com4.html">CLI_ADDCONTACT</a>
+  <a class=tut href="Com5.html">CLI_REMCONTACT</a>
+  <a class=tut href="Com10.html">SRV_REFUSED</a>
+  <a class=tut href="Com11.html">SRV_USERONLINE</a>
+  <a class=tut href="Com12.html">SRV_USEROFFLINE</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

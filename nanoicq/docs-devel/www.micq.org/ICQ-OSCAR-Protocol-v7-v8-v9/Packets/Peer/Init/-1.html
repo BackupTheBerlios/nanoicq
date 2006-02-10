@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE byPeer = 1 AND Subcommand = 0 AND Type = -1 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=128 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=128 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - PEER_INIT</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../../../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../../../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">PEER_INIT</h1></td>
+ <td><h1 style="text-align:right">Channel: 0</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>This packet is sent during direct connection initialization between two ICQ clients. It is sent by the originator of the connection to start the handshake and by the receiver directly after it has sent the <a href="1.html">PEER_INITACK</a> packet as a reply to the originator's <a href="-1.html">PEER_INIT</a>. The values after the COOKIE field have been added for v7.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>BYTE</td>
+     <td class=id>ff</td>
+     <td class=id>CMD</td>
+     <td>The command: connect.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>08 00</td>
+     <td class=id>TCPVER</td>
+     <td>The peer-to-peer version this packet uses.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>2b 00</td>
+     <td class=id>LENGTH</td>
+     <td>The length of the following data in bytes.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>DESTUIN</td>
+     <td>The UIN this packet is sent to.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.L</td>
+     <td class=id>00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: empty.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>OURPORT</td>
+     <td>The port the sender listens on.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>OURUIN</td>
+     <td>The UIN of the sender.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>OURREMIP</td>
+     <td>The IP of the sender as the server sees it.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>OURINTIP</td>
+     <td>The local IP of the sender.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>BYTE</td>
+     <td class=id>04</td>
+     <td class=id>TCPFLAGS</td>
+     <td>TCP connection flags.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>OURPORT2</td>
+     <td>The sender's "other" port.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>xx xx xx xx</td>
+     <td class=id>COOKIE</td>
+     <td>The connection cookie the server gave for this pair of UINs.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>50 00 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: 0x50 = 80.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>03 00 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: 0x3 = 3.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD.L</td>
+     <td class=id>00 00 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: empty.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>21:39:26 Outgoing TCP packet:
+         ff 08 00 2b   00 d9 1f 37 - 01 00 00 18   8d 00 00 c7   ...+ .&Ugrave;.7 .... ...&Ccedil;
+         54 7f 09 25   29 c4 c1 25 - 29 c4 c1 04   18 8d 00 00   T.% )&Auml;&Aacute;% )&Auml;&Aacute;. ....
+         e6 be 09 98   50 00 00 00 - 03 00 00 00   00 00 00 00   &aelig;?.. P... .... ....</pre>
+<h2>Attribution</h2>
+<p>Submitted by: tadu@gmx.de.</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../../../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../../../Packets.html">generic packets</a>
+  <a href="../../Fam1.html">fam 1: service</a>
+  <a href="../../Fam2.html">fam 2: location</a>
+  <a href="../../Fam3.html">fam 3: contact</a>
+  <a href="../../Fam4.html">fam 4: icbm</a>
+  <a href="../../Fam9.html">fam 9: bos</a>
+  <a href="../../Fam11.html">fam 11: interval</a>
+  <a href="../../Fam19.html">fam 19: roster</a>
+  <a href="../../Fam21.html">fam 21: old icq</a>
+  <a href="../../Fam23.html">fam 23: new user</a>
+  <a href="../../Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE byPeer = 1 ORDER BY Channel,Family,Command,Subcommand,Type,Name -->
+  <a class=tut href="-1.html">PEER_INIT</a>
+  <a class=tut href="1.html">PEER_INITACK</a>
+  <a class=tut href="../Msg/PEER_MSG.html">PEER_MSG</a>
+  <a class=tut href="../Msg/PEER_MSG_EXTENDED.html">PEER_MSG_EXTENDED</a>
+  <a class=tut href="../Msg/PEER_MSG_FILE.html">PEER_MSG_FILE</a>
+  <a class=tut href="../Msg/PEER_MSG_MSG.html">PEER_MSG_MSG</a>
+  <a class=tut href="../Msg/3.html">PEER_MSGINIT</a>
+  <a class=tut href="../File/0.html">PEER_FILE_INIT</a>
+  <a class=tut href="../File/1.html">PEER_FILE_INITACK</a>
+  <a class=tut href="../File/2.html">PEER_FILE_START</a>
+  <a class=tut href="../File/3.html">PEER_FILE_STARTACK</a>
+  <a class=tut href="../File/4.html">PEER_FILE_STOP</a>
+  <a class=tut href="../File/5.html">PEER_FILE_SPEED</a>
+  <a class=tut href="../File/6.html">PEER_FILE_DATA</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../../../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

@@ -1,0 +1,144 @@
+body {
+  color: #000;
+  background: #def;
+  padding: 8px;
+}
+
+table {
+  color: #000; /* Konq sucks */
+}
+
+table.sub {
+  position: relative;
+  left: 10px;
+  right: 10px;
+  border: 2px solid #444;
+  
+}
+
+a[href] { 
+  text-decoration: underline;
+}
+
+#sigbar a:link   { color: #008 }
+#sigbar a:active { color: #008; background: none }
+
+a:link    { color: #00f }
+a:visited { color: #008 }
+a:hover   { color: #f00; background: #bdf }
+a:active  { color: #0f2; background: #000 }
+
+div.navlinks {
+  text-align: left;
+  quotes: "\bb" "\ab";
+}
+
+td { vertical-align:top }
+
+td.id { white-space: nowrap }
+
+div.navlinks a { 
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+  text-decoration: none;
+  font-weight: bold;
+  padding-left: 2px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  width: 158px;
+}
+
+div.navlinks a.tut {
+  font-size: 65%;
+  padding-top: 1px;
+  padding-bottom: 0px;
+}
+
+div.navlinks ab:link    { color: #b00 }
+div.navlinks ab:visited { color: #700 }
+div.navlinks ab:active  { color: #0cf; background: #fff }
+div.navlinks ab:hover   { color: #000; background: #fff }
+
+div.navlinks a:before  { content: open-quote;  color: #ddd; font-size: 12px; line-height: 8px; }
+div.navlinks a:after   { content: close-quote; color: #ddd; font-size: 12px; line-height: 8px; }
+div.navlinks a:hover:before { color: red }
+div.navlinks a:hover:after  { color: red }
+
+div#navbar hr {
+  border: 0px none #369;
+  height: 8px; width: 0px; visibility: hidden;
+  /* border 0 and border 0 hidden aren't enough for Opera */
+}
+
+div#navbar hr.inv { visibility: hidden; }
+
+@media print {
+  #main { margin: 0px; left: 0px; right: 0px; top: 0px; bottom: 0px; }
+  body div#navbar { display: none; }
+  body div#sigbar { display: none; visibility: hidden; position: relative; }
+}
+      
+div.banner {
+  display: block;
+  text-align: center;
+  font-size: x-large;
+  font-weight: bold;
+  text-decoration: none;
+  font-family: verdana,helvetica,arial,sans-serif;
+  color: #800;
+  background: #aaa;
+  border-bottom: 1px solid #000;
+  color: #006;
+  background: #09f;
+}
+
+div.banner a {
+  text-decoration: none;
+  color: #006;
+}
+
+/*div#sigbar span {
+  text-align:left;
+  white-space: nowrap;
+}*/
+
+dt { font-weight: bold; padding-top: 5px;}
+
+td.date { font-size: small; }
+td.date:after  { content: ")"; }
+td.date:before { content: "("; }
+
+h1,h2,h3,h4,h5,h6,th {
+  background: #0cf;
+  text-align: center;
+  font-family: verdana,helvetica,arial,sans-serif;
+  text-decoration: none;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  display: block;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding: 0;
+  border: 1px solid #369;
+}
+
+h1 { font-size: 12pt; }
+h2 { font-size: small; }
+
+.button img { border: 0px none; }
+
+.button {
+  display: block;
+  overflow: hidden;
+  border: 0px none;
+  margin: 3px; padding: 0px;
+  font: 11px sans-serif;
+  color: #fff;
+  text-decoration: none;
+}
+
+.invisible {
+  visibility: hidden;
+}

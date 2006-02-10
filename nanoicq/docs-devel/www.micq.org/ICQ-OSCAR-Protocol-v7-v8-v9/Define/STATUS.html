@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM DEFINES ORDER BY Sett,Sort -->
+<!-- SELECT Sett FROM DEFINES WHERE Name = 'STATUS' AND Sort = 0 -->
+<html><head>
+<title>ICQ protocol version 8 - #define </title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<h2><a name="STATUS">#define STATUS</h2>
+<p>The possible status values. First the flags to test in the given order for a given status, then the values to set for these statuses. At the end some additional flags that may be set.</p>
+<table>
+ <tr>
+  <td></td>
+  <td>STATUS_OFFLINE</td>
+  <td><code>0xffffffff</code></td>
+  <td>The user is offline. / Set status to offline.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_INVISIBLE</td>
+  <td><code>0x00000100</code></td>
+  <td>The user is invisible.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_DND</td>
+  <td><code>0x00000002</code></td>
+  <td>The user does not want to be disturbed.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_OCCUPIED</td>
+  <td><code>0x00000010</code></td>
+  <td>The user is occupied.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_NA</td>
+  <td><code>0x00000004</code></td>
+  <td>The user is not available.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_AWAY</td>
+  <td><code>0x00000001</code></td>
+  <td>The user is away.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_FFC</td>
+  <td><code>0x00000020</code></td>
+  <td>The user is free for chat.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUS_ONLINE</td>
+  <td><code>0x00000000</code></td>
+  <td>The user is online. / Set status to online.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUS_INVISIBLE</td>
+  <td><code>0x00000100</code></td>
+  <td>Set status to invisible.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUS_DND</td>
+  <td><code>0x00000013</code></td>
+  <td>Set status to do not disturb.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUS_OCCUPIED</td>
+  <td><code>0x00000011</code></td>
+  <td>Set status to occupied.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUS_NA</td>
+  <td><code>0x00000005</code></td>
+  <td>Set status to not available.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUS_AWAY</td>
+  <td><code>0x00000001</code></td>
+  <td>Set status to away.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUS_FFC</td>
+  <td><code>0x00000020</code></td>
+  <td>Set status to free for chat.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_WEBAWARE</td>
+  <td><code>0x00010000</code></td>
+  <td>The user is web-aware.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_IP</td>
+  <td><code>0x00020000</code></td>
+  <td>The user allows his IP to be shown. (that must actually be wrong)</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_BIRTH</td>
+  <td><code>0x00080000</code></td>
+  <td>The user's birthday is today.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_UNK</td>
+  <td><code>0x00100000</code></td>
+  <td>Unknown.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_DCAUTH</td>
+  <td><code>0x10000000</code></td>
+  <td>The user allows direct connections only upon authorization.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_DCCONTACT</td>
+  <td><code>0x20000000</code></td>
+  <td>The user allows direct connections only with contacts.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STATUSF_UNUSED</td>
+  <td><code>0xcfe4fec8</code></td>
+  <td>As of yet unused flags.</td>
+ </tr>
+</table>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">packets</a>
+  <a class=tut href="../Packets/Fam1.html">fam 1: service</a>
+  <a class=tut href="../Packets/Fam2.html">fam 2: location</a>
+  <a class=tut href="../Packets/Fam3.html">fam 3: contact</a>
+  <a class=tut href="../Packets/Fam4.html">fam 4: icbm</a>
+  <a class=tut href="../Packets/Fam9.html">fam 9: bos</a>
+  <a class=tut href="../Packets/Fam11.html">fam 11: interval</a>
+  <a class=tut href="../Packets/Fam19.html">fam 19: roster</a>
+  <a class=tut href="../Packets/Fam21.html">fam 21: old icq</a>
+  <a class=tut href="../Packets/Fam23.html">fam 23: new user</a>
+  <a class=tut href="../Packets/Peer.html">peer to peer</a>
+  <hr>
+  <a href="../tut_login.html">tutorial login</a>
+  <hr>
+  <a href="../Define.html">defines</a>
+
+<a class=tut href="CAPABILITIES.html">CAPABILITIES</a><a class=tut href="STATUS.html">STATUS</a><a class=tut href="MESSAGETYPE.html">MESSAGETYPE</a><a class=tut href="ROSTERTYPE.html">ROSTERTYPE</a><a class=tut href="MESSAGEFORMAT.html">MESSAGEFORMAT</a><a class=tut href="META_GENDERTYPE.html">META_GENDERTYPE</a><a class=tut href="META_MARITALSTATUS.html">META_MARITALSTATUS</a><a class=tut href="META_OCCUPATIONTYPE.html">META_OCCUPATIONTYPE</a><a class=tut href="META_GROUPTYPE.html">META_GROUPTYPE</a><a class=tut href="META_PASTTYPE.html">META_PASTTYPE</a><a class=tut href="META_INTERESTTYPE.html">META_INTERESTTYPE</a><a class=tut href="META_COUNTRYCODE.html">META_COUNTRYCODE</a><a class=tut href="META_LANGUAGECODE.html">META_LANGUAGECODE</a><a class=tut href="CHATGROUP.html">CHATGROUP</a><a class=tut href="DATATYPES.html">DATATYPES</a><a class=tut href="ERROR.html">ERROR</a> </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

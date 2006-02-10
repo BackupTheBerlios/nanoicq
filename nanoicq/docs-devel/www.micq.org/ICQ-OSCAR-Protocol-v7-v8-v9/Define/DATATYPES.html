@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM DEFINES ORDER BY Sett,Sort -->
+<!-- SELECT Sett FROM DEFINES WHERE Name = 'DATATYPES' AND Sort = 0 -->
+<html><head>
+<title>ICQ protocol version 8 - #define </title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<h2><a name="DATATYPES">#define DATATYPES</h2>
+<p>Describes the data types used in this documentation.</p>
+<table>
+ <tr>
+  <td></td>
+  <td>BYTE</td>
+  <td><code></code></td>
+  <td>A single, lonely octet.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>WORD</td>
+  <td><code></code></td>
+  <td>A two-byte integer. Its endianness unknown, because the value it contains is yet unknown, it's always 0, or nobody entered the correct endianness yet.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>WORD.B</td>
+  <td><code></code></td>
+  <td>A two-byte integer in big-endian byte order, that is, the byte sequence 0xab 0xcd represents the value 0xabcd = 43981.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>WORD.L</td>
+  <td><code></code></td>
+  <td>A two-byte integer in little-endian byte order, that is, the byte sequence 0xab 0xcd represents the value 0xcdab = 52651.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>DWORD</td>
+  <td><code></code></td>
+  <td>A four-byte integer. Its endianness unknown, because the value it contains is yet unknown, it's always 0, or nobody entered the correct endianness yet.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>DWORD.B</td>
+  <td><code></code></td>
+  <td>A four-byte integer in big-endian byte order, that is, the byte sequence 0x12 0x34 0x56 0x78 represents the value 0x12345678 = 305419896.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>DWORD.L</td>
+  <td><code></code></td>
+  <td>A four-byte integer in little-endian byte order, that is, the byte sequence 0x12 0x34 0x56 0x78 represents the value 0x78563412 = 2018915346.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>IP</td>
+  <td><code></code></td>
+  <td>A four byte IP number, that is, the byte sequence 0x12 0x34 0x56 0x78 represents the IP address 18.52.86.120.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>COLOR</td>
+  <td><code></code></td>
+  <td>A four byte set of values for the three colors red, green, blue, where the last byte is unused and always zero, that is, the byte sequence 0x11 0xbb 0x66 0x00 represents <span style="textcolor: #11bb66">the color</span> with red at 6.6%, green at 73.3%, and blue at 40%.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>TIME</td>
+  <td><code></code></td>
+  <td>A time stamp in in seconds since the Computer epoch as a DWORD.B, that is, the current time, time(NULL), would be like the byte stream 0x3f 0x8e 0xfe 0x37.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>WTIME</td>
+  <td><code></code></td>
+  <td>A time stamp in 1/1500 seconds since 8am of that Sunday. From a struct timeval tv, as gotten by gettimeofday(), this value can be computed as: ((tv.tv_sec - 8 * 60 * 60) % (7 * 24 * 60 * 60)) * 1500 + (tv.tv_usec * 3) / 2000.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>STR</td>
+  <td><code></code></td>
+  <td>A string, that is, a byte sequence. It's encoding is detemined by external properties (it doesn't even have to be a C string), as well as its length. To make it explicit: there is no trailing zero in it.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>BUIN</td>
+  <td><code></code></td>
+  <td>The sequence BYTE STR, where the leading byte gives the length of the string. If you don't understand by looking up STR: no trailing zero again.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>BSTR</td>
+  <td><code></code></td>
+  <td>The sequence WORD.B STR, where the leading bytes give the length of the string. Did I already repeat "no trailing zero"?</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>LNTS</td>
+  <td><code></code></td>
+  <td>The sequence WORD.L STR 0x00, where the leading bytes give the length of the string, including trailing null byte. E.g., the sequence 0x04 0x00 0x30 0x31 0x32 0x00 represents the string "012" in the US-ASCII character encoding.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>LLNTS</td>
+  <td><code></code></td>
+  <td>The sequence WORD.L LNTS, where the leading two bytes give the length in bytes of the LNTS and are redundant. E.g., the sequence 0x06 0x00 0x04 0x00 0x61 0x62 0x63 0x00 is the representation of the string "abc" in the US-ASCII encoding.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>DLStr</td>
+  <td><code></code></td>
+  <td>The sequence DWORD.L STR, where the leading four bytes determine the length of the string. Again, no trailing zero.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>CAP</td>
+  <td><code></code></td>
+  <td>A sequence of 16 bytes, dubbed capability, that often is a Windows ClassID. E.g. the sequence 0x09 0x46 0x13 0x4E 0x4C 0x7F 0x11 0xD1 0x82 0x22 0x44 0x45 0x53 0x54 0x00 0x00 represents the capability
+"{0946134E-4C7F-11D1-8222-444553540000}", dubbed CAP_UTF8. See <a href="CAPABILITIES.html">CAPABILITIES</a> for other used values.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>UINLIST</td>
+  <td><code></code></td>
+  <td>A sequence of BUINs. It's count is determined by external properties, e.g. a count or the remaining length of its container.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>DATA</td>
+  <td><code></code></td>
+  <td>A sequence of BYTEs. It's count is determined by external properties, e.g. a count or the remaining length of its container. Often, it represents a placed to be filled with (depending on some other value) some otehr sub-packet. E.g., the DATA part in a FLAC is often a SNAC.</td>
+ </tr>
+ <tr>
+  <td></td>
+  <td>&lt;numerical&gt;</td>
+  <td><code></code></td>
+  <td>A sequence of <numerical> bytes. This is usually used for unknown data.</td>
+ </tr>
+</table>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">packets</a>
+  <a class=tut href="../Packets/Fam1.html">fam 1: service</a>
+  <a class=tut href="../Packets/Fam2.html">fam 2: location</a>
+  <a class=tut href="../Packets/Fam3.html">fam 3: contact</a>
+  <a class=tut href="../Packets/Fam4.html">fam 4: icbm</a>
+  <a class=tut href="../Packets/Fam9.html">fam 9: bos</a>
+  <a class=tut href="../Packets/Fam11.html">fam 11: interval</a>
+  <a class=tut href="../Packets/Fam19.html">fam 19: roster</a>
+  <a class=tut href="../Packets/Fam21.html">fam 21: old icq</a>
+  <a class=tut href="../Packets/Fam23.html">fam 23: new user</a>
+  <a class=tut href="../Packets/Peer.html">peer to peer</a>
+  <hr>
+  <a href="../tut_login.html">tutorial login</a>
+  <hr>
+  <a href="../Define.html">defines</a>
+
+<a class=tut href="CAPABILITIES.html">CAPABILITIES</a><a class=tut href="STATUS.html">STATUS</a><a class=tut href="MESSAGETYPE.html">MESSAGETYPE</a><a class=tut href="ROSTERTYPE.html">ROSTERTYPE</a><a class=tut href="MESSAGEFORMAT.html">MESSAGEFORMAT</a><a class=tut href="META_GENDERTYPE.html">META_GENDERTYPE</a><a class=tut href="META_MARITALSTATUS.html">META_MARITALSTATUS</a><a class=tut href="META_OCCUPATIONTYPE.html">META_OCCUPATIONTYPE</a><a class=tut href="META_GROUPTYPE.html">META_GROUPTYPE</a><a class=tut href="META_PASTTYPE.html">META_PASTTYPE</a><a class=tut href="META_INTERESTTYPE.html">META_INTERESTTYPE</a><a class=tut href="META_COUNTRYCODE.html">META_COUNTRYCODE</a><a class=tut href="META_LANGUAGECODE.html">META_LANGUAGECODE</a><a class=tut href="CHATGROUP.html">CHATGROUP</a><a class=tut href="DATATYPES.html">DATATYPES</a><a class=tut href="ERROR.html">ERROR</a> </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

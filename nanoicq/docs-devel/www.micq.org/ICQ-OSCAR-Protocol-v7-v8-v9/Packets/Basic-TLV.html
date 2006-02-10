@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Channel = 0 AND Name = 'TLV' AND 1 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=34 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=34 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - TLV</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">TLV</h1></td>
+ <td><h1 style="text-align:right">Channel: 0</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>An (optional) data item.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.B</td>
+     <td class=id>xx xx</td>
+     <td class=id>TYPE</td>
+     <td>The type of this TLV; it determines the meaning of the data it contains.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.B</td>
+     <td class=id>xx xx</td>
+     <td class=id>LENGTH</td>
+     <td>The length of the following data.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DATA</td>
+     <td class=id>...</td>
+     <td class=id>DATA</td>
+     <td>The data the TLV contains.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<p>No examples.</p>
+<h2>Attribution</h2>
+<p>Submitted by: .</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../Packets.html">generic packets</a>
+  <a href="Fam1.html">fam 1: service</a>
+  <a href="Fam2.html">fam 2: location</a>
+  <a href="Fam3.html">fam 3: contact</a>
+  <a href="Fam4.html">fam 4: icbm</a>
+  <a href="Fam9.html">fam 9: bos</a>
+  <a href="Fam11.html">fam 11: interval</a>
+  <a href="Fam19.html">fam 19: roster</a>
+  <a href="Fam21.html">fam 21: old icq</a>
+  <a href="Fam23.html">fam 23: new user</a>
+  <a href="Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE byPeer = 0 AND Family = 0 ORDER BY Channel,Family,Command,Subcommand,Type -->
+  <a class=tut href="Basic-TLV.html">TLV</a>
+  <a class=tut href="Basic-FLAP.html">FLAP</a>
+  <a class=tut href="Flap1.html">HELLO</a>
+  <a class=tut href="Flap2.html">SNAC</a>
+  <a class=tut href="Flap4.html">DISCONNECT</a>
+  <a class=tut href="Flap5.html">KEEPALIVE</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

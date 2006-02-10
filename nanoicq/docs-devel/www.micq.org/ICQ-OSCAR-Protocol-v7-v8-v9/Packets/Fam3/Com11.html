@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Family = 3 AND Command = 11 AND Subcommand = 0 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=52 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=52 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - SRV_USERONLINE</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">SRV_USERONLINE</h1></td>
+ <td><h1 style="text-align:right">Channel: 2 SNAC(3,11)</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>This SNAC is sent whenever a contact in your contact list goes online or changes status.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>BUIN</td>
+     <td class=id>...</td>
+     <td class=id>UIN</td>
+     <td>The UIN of the contact changing status.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD</td>
+     <td class=id>00 00</td>
+     <td class=id>NULL</td>
+     <td>Unknown: empty.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>WORD.B</td>
+     <td class=id>xx xx</td>
+     <td class=id>COUNT</td>
+     <td>The number of following TLVs.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(1)</td>
+     <td class=id>00 01 00 02 00 50</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: 00 50 = 80.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(12)</td>
+     <td class=id>00 0c xx xx ...</td>
+     <td class=id>CLI2CLI</td>
+     <td>The same as in <a href="../Fam1/Com30.html">CLI_SETSTATUS</a>.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(10)</td>
+     <td class=id>00 0a 00 04 DWORD</td>
+     <td class=id>IP</td>
+     <td>The external IP of this contact.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(6)</td>
+     <td class=id>00 06 00 04 DWORD</td>
+     <td class=id>STATUS</td>
+     <td>The new status of the contact.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(13)</td>
+     <td class=id>00 0d xx xx ...</td>
+     <td class=id>CAPABILITIES</td>
+     <td>The capabilities of this client.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(15)</td>
+     <td class=id>00 0f 00 04 xx xx xx xx</td>
+     <td class=id>UNKNOWN</td>
+     <td>This looks like the number of seconds since user logged on. It does not get reset when contact goes to/from invisible.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(2)</td>
+     <td class=id>00 03 00 04 TIME</td>
+     <td class=id>MEMBERSINCE</td>
+     <td>A timestamp. Member of ICQ since this time.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(3)</td>
+     <td class=id>00 03 00 04 TIME</td>
+     <td class=id>ONLINESINCE</td>
+     <td>A timestamp. Online since this time.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(4)</td>
+     <td class=id>00 04 00 04 TIME</td>
+     <td class=id>IDLE</td>
+     <td>time in minutes cince last incoming idle-tlv-timestamp... you have to store a timestamp when you received this tlv example: now-storedtimestamp+idle=idletime (wrong: Idle Time in seconds)
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(17)</td>
+     <td class=id>00 11 00 22 xx xx ...</td>
+     <td class=id> SECSETTINGS</td>
+     <td>List of numbers; nonsensical at first glance. Occured when user altered his 'let other people see my mobile phone number' etc. settings. ### has somthing to do with the >>Phone "Follow Me"<< service and the settings "I'm  Currently At" with the options: "Dont't Show", "Available" and "Busy"
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>2A 02 DD 9A 00 92                               FLAP: Channel 2, Seq 0xDD9A, Length 0x92
+   00 03 00 0B 00 00 83 2F DA C1                SNAC: 0x03/0x0B, Ref 0x832FDAC1, Flags 0
+      08                                        Length of UIN
+         36 36 36 30 34 34 35 39                UIN in ASCII
+      00 00                                     Unknown
+      00 08                                     Number of following TLVs
+         00 01 00 02 00 50                      TLV(1), Unknown
+         00 0C 00 25 C0 A8 00 03                TLV(C), Internal IP
+                     00 00 4B 94                TCP connection port
+                     04                         TCP connection flag
+                     00 07                      TCP protocol version
+                     2F 83 DB FA                Direct connect cookie
+                     00 00 00 50                Unknown
+                     00 00 00 03                Unknown
+                     3C 27 31 3F                time(NULL), recent
+                     3C 0A B1 7C                time(NULL)
+                     00 00 00 00                time(NULL), usually
+                     00 00                      Unknown
+         00 0A 00 04 D9 D0 4F F7                TLV(A), External IP
+         00 06 00 04 00 03 00 05                TLV(6), Online status
+         00 0D 00 20 09 46 13 49 4C 7F 11 D1    TLV(D), Capabilities
+                     82 22 44 45 53 54 00 00
+                     09 46 13 44 4C 7F 11 D1
+                     82 22 44 45 53 54 00 00
+         00 0F 00 04 00 00 8B 2C                TLV(F), Unknown
+         00 02 00 04 38 C3 6B E3                TLV(2), Member since
+         00 03 00 04 3C 37 FA FE                TLV(3), Online since</pre>
+<h2>Attribution</h2>
+<p>Submitted by: stricq@owlnet.net.</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../../Packets.html">generic packets</a>
+  <a href="../Fam1.html">fam 1: service</a>
+  <a href="../Fam2.html">fam 2: location</a>
+  <a href="../Fam3.html">fam 3: contact</a>
+  <a href="../Fam4.html">fam 4: icbm</a>
+  <a href="../Fam9.html">fam 9: bos</a>
+  <a href="../Fam11.html">fam 11: interval</a>
+  <a href="../Fam19.html">fam 19: roster</a>
+  <a href="../Fam21.html">fam 21: old icq</a>
+  <a href="../Fam23.html">fam 23: new user</a>
+  <a href="../Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE Family = 3 ORDER BY Channel,Family,Command,Subcommand,Type,Name -->
+  <a class=tut href="Com1.html">SRV_CONTACTERR</a>
+  <a class=tut href="Com2.html">CLI_REQBUDDY</a>
+  <a class=tut href="Com3.html">SRV_REPLYBUDDY</a>
+  <a class=tut href="Com4.html">CLI_ADDCONTACT</a>
+  <a class=tut href="Com5.html">CLI_REMCONTACT</a>
+  <a class=tut href="Com10.html">SRV_REFUSED</a>
+  <a class=tut href="Com11.html">SRV_USERONLINE</a>
+  <a class=tut href="Com12.html">SRV_USEROFFLINE</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- SELECT * FROM PAKETE WHERE Family = 3 AND Command = 12 AND Subcommand = 0 -->
+<!-- SELECT * FROM PARAMETER WHERE Paket=53 ORDER BY Sort -->
+<!-- SELECT * FROM BEISPIELE WHERE Packet=53 -->
+<html><!--[if IE]><input type crash><![endif]--><head>
+<title>ICQ protocol version 8 - SRV_USEROFFLINE</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="../../style-default.css" type="text/css">
+<body> <div id=main>
+
+<table width="100%"><tr>
+ <td style="width: 40px" align=left><img src="../../micq-24.png" alt="*"></td>
+ <td><h1 style="text-align: left">SRV_USEROFFLINE</h1></td>
+ <td><h1 style="text-align:right">Channel: 2 SNAC(3,12)</h1></td>
+</tr></table>
+
+<div></div>
+
+<p>This is sent when a user goes offline.</p>
+
+<h2>Parameters</h2><table width="100%"><colgroup><col width=\"1*\" span=3><col width=\"7*\"></colgroup>
+    <tr>
+     <td style="text-decoration: underline">Data type</td>
+     <td style="text-decoration: underline">Content</td>
+     <td style="text-decoration: underline">Name</td>
+     <td style="text-decoration: underline">Description
+     </td>
+    </tr>
+    <tr>
+     <td class=id>BUIN</td>
+     <td class=id>...</td>
+     <td class=id>UIN</td>
+     <td>The UIN of the contact that goes offline.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>DWORD</td>
+     <td class=id>00 00 00 01</td>
+     <td class=id>NULL</td>
+     <td>Unknown: empty.
+     </td>
+    </tr>
+    <tr>
+     <td class=id>TLV(1)</td>
+     <td class=id>00 01 00 02 00 00</td>
+     <td class=id>UNKNOWN</td>
+     <td>Unknown: 0.
+     </td>
+    </tr>
+   </table>
+<h2>Examples</h2>
+<pre>2A 02 B4 BA 00 1E                      FLAP
+   00 03 00 0C 00 00 81 83 9B 56       SNAC
+      09                               Length = 9
+         31 31 32 33 34 35 36 37 38    UIN = 112345678
+      00 00 00 01                      Unknowns
+      00 01 00 02                      TLV(1)
+         00 00                         0</pre>
+<h2>Attribution</h2>
+<p>Submitted by: Ben@Mythos.com.</p>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="../../index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="../../Packets.html">generic packets</a>
+  <a href="../Fam1.html">fam 1: service</a>
+  <a href="../Fam2.html">fam 2: location</a>
+  <a href="../Fam3.html">fam 3: contact</a>
+  <a href="../Fam4.html">fam 4: icbm</a>
+  <a href="../Fam9.html">fam 9: bos</a>
+  <a href="../Fam11.html">fam 11: interval</a>
+  <a href="../Fam19.html">fam 19: roster</a>
+  <a href="../Fam21.html">fam 21: old icq</a>
+  <a href="../Fam23.html">fam 23: new user</a>
+  <a href="../Peer.html">peer to peer</a>
+  <hr>
+<!-- SELECT * FROM PAKETE WHERE Family = 3 ORDER BY Channel,Family,Command,Subcommand,Type,Name -->
+  <a class=tut href="Com1.html">SRV_CONTACTERR</a>
+  <a class=tut href="Com2.html">CLI_REQBUDDY</a>
+  <a class=tut href="Com3.html">SRV_REPLYBUDDY</a>
+  <a class=tut href="Com4.html">CLI_ADDCONTACT</a>
+  <a class=tut href="Com5.html">CLI_REMCONTACT</a>
+  <a class=tut href="Com10.html">SRV_REFUSED</a>
+  <a class=tut href="Com11.html">SRV_USERONLINE</a>
+  <a class=tut href="Com12.html">SRV_USEROFFLINE</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="../../micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>

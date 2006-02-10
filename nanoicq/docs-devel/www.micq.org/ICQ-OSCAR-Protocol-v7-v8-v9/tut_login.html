@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html> <head>
+<title>ICQ/OSCAR Protocol version 8 - login tutorial</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" title="Left" href="style-default.css" type="text/css">
+<body> <div id=main>
+
+<h1>Version 8 of the ICQ/OSCAR Protocol</h1>
+<h2>Login tutorial</h2>
+
+<table>
+<tr><td colspan=2>To do a successfull login, you first need to authenticate yourself. Connect
+                  to the login server <code>login.icq.com</code>:</td></tr>
+
+<tr><td></td><td><a class=srv href="Packets/Flap1.html">SRV_HELLO</a></td></tr>
+<tr><td><a class=cli href="Packets/Flap1.html">CLI_IDENT</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Flap1.html">SRV_COOKIE</a></td></tr>
+<tr><td><a class=cli href="Packets/Flap4.html">CLI_DISCONNECT</a></td><td></td></tr>
+
+<tr><td colspan=2>With the authorization cookie from SRV_COOKIE, connect to the service 
+                  server indicated and send:</td></tr>
+
+<tr><td></td><td><a class=srv href="Packets/Flap1.html">SRV_HELLO</a></td></tr>
+<tr><td><a class=cli href="Packets/Flap1.html">CLI_COOKIE</a></td><td></td></tr>
+
+<tr><td colspan=2>After this, the protocol needs to be setup by agreeing on
+                  the version number of the protocol families to use and the
+                  speed with which packets are allowed to be sent:</td></tr>
+
+<tr><td></td><td><a class=srv href="Packets/Fam1/Com3.html">SNAC(1,3) SRV_FAMILIES</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam1/Com23.html">SNAC(1,23) CLI_FAMILIES</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam1/Com24.html">SNAC(1,24) SRV_FAMILIES2</a></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam1/Com19.html">SNAC(1,19) SRV_MOTD</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam1/Com6.html">SNAC(1,6) CLI_RATESREQUEST</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam1/Com7.html">SNAC(1,7) SRV_RATES</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam1/Com8.html">SNAC(1,8) CLI_ACKRATES</a></td><td></td></tr>
+
+<tr><td colspan=2>Now, each family to be used needs to be requested to be allowed to be used. The
+                  order of these request doesn't matter, the server will act upon them in the
+                  order sent:</td></tr>
+
+<tr><td><a class=cli href="Packets/Fam2/Com3.html">SNAC(2,2) CLI_REQLOCATION</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam2/Com2.html">SNAC(2,3) SRV_REPLYLOCATION</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam2/Com4.html">SNAC(2,4) CLI_SETUSERINFO</a></td><td></td></tr>
+<tr><td><a class=cli href="Packets/Fam3/Com2.html">SNAC(3,2) CLI_REQBUDDY</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam3/Com3.html">SNAC(3,3) SRV_REPLYBUDDY</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam4/Com4.html">SNAC(4,4) CLI_REQICBM</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam4/Com5.html">SNAC(4,5) SRV_REPLYICBM</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam4/Com2.html">SNAC(4,2) CLI_SETICBM</a></td><td></td></tr>
+<tr><td><a class=cli href="Packets/Fam9/Com2.html">SNAC(9,2) CLI_REQBOS</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam9/Com3.html">SNAC(9,3) SRV_REPLYBOS</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam19/Com2.html">SNAC(19,2) CLI_REQLISTS</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam19/Com3.html">SNAC(19,3) SRV_REPLYLISTS</a></td></tr>
+
+<tr><td colspan=2>With these set up, the client can select contacts and
+                  signal to be ready.  To select contacts, either the server
+                  side contact list can be used, or contacts can be added by
+                  the client. You cannot use <a
+                  href="Packets/Fam3/Com4.html">SNAC(3,4) CLI_ADDCONTACT</a> after you have
+                  loaded the server side contact list using <a
+                  href="Packets/Fam19/Com7.html">SNAC(19,7) CLI_ROSTERACK</a>, or subtle
+                  breakages will appear.</td></tr>
+
+<tr><td><a class=cli href="Packets/Fam19/Com5.html">SNAC(19,5) CLI_CHECKROSTER</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam19/Com15.html">SNAC(19,15) SRV_REPLYROSTEROK</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam19/Com7.html">SNAC(19,7) CLI_ROSTERACK</a></td><td></td></tr>
+<tr><td><a class=cli href="Packets/Fam1/Com30.html">SNAC(1,30) CLI_SETSTATUS</a></td><td></td></tr>
+<tr><td><a class=cli href="Packets/Fam1/Com2.html">SNAC(1,2) CLI_READY</a></td><td></td></tr>
+
+<tr><td colspan=2>Finally, you should fetch offline messages that might have accumulated
+                  on the server:</td></tr>
+
+<tr><td><a class=cli href="Packets/Fam21/Com2/Sub60.html">SNAC(21,2) CLI_REQOFFLINEMSGS</a></td><td></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam21/Com3/Sub65.html">SNAC(21,3) SRV_OFFLINEMSG</a></td></tr>
+<tr><td></td><td><a class=srv href="Packets/Fam21/Com3/Sub66.html">SNAC(21,3) SRV_DONEOFFLINEMSGS</a></td></tr>
+<tr><td><a class=cli href="Packets/Fam21/Com2/Sub62.html">SNAC(21,2) CLI_ACKOFFLINEMSGS</a></td><td></td></tr>
+</table>
+
+</div>
+
+<div id=navbar>
+ <div class=banner><a href="index.html">OSCAR</a></div>
+ <div class=navlinks>
+  <a href="tut_login.html">tutorial login</a>
+  <hr>
+  <a class="tut" href="Packets/Flap1.html">SRV_HELLO</a>
+  <a class="tut" href="Packets/Flap1.html">CLI_IDENT</a>
+  <a class="tut" href="Packets/Flap1.html">SRV_COOKIE</a>
+  <a class="tut" href="Packets/Flap4.html">CLI_DISCONNECT</a>
+  <a class="tut" href="Packets/Flap1.html">SRV_HELLO</a>
+  <a class="tut" href="Packets/Flap1.html">CLI_COOKIE</a>
+
+  <a class="tut" href="Packets/Fam1/Com3.html">SRV_FAMILIES</a>
+  <a class="tut" href="Packets/Fam1/Com23.html">CLI_FAMILIES</a>
+  <a class="tut" href="Packets/Fam1/Com24.html">SRV_FAMILIES2</a>
+  <a class="tut" href="Packets/Fam1/Com19.html">SRV_MOTD</a>
+  <a class="tut" href="Packets/Fam1/Com6.html">CLI_RATESREQUEST</a>
+  <a class="tut" href="Packets/Fam1/Com7.html">SRV_RATES</a>
+  <a class="tut" href="Packets/Fam1/Com8.html">CLI_ACKRATES</a>
+
+  <a class="tut" href="Packets/Fam2/Com2.html">CLI_REQLOCATION</a>
+  <a class="tut" href="Packets/Fam2/Com3.html">SRV_REPLYLOCATION</a>
+  <a class="tut" href="Packets/Fam2/Com4.html">CLI_SETUSERINFO</a>
+  <a class="tut" href="Packets/Fam3/Com2.html">CLI_REQBUDDY</a>
+  <a class="tut" href="Packets/Fam3/Com3.html">SRV_REPLYBUDDY</a>
+  <a class="tut" href="Packets/Fam4/Com4.html">CLI_REQICBM</a>
+  <a class="tut" href="Packets/Fam4/Com5.html">SRV_REPLYICBM</a>
+  <a class="tut" href="Packets/Fam4/Com2.html">CLI_SETICBM</a>
+  <a class="tut" href="Packets/Fam9/Com2.html">CLI_REQBOS</a>
+  <a class="tut" href="Packets/Fam9/Com3.html">SRV_REPLYBOS</a>
+  <a class="tut" href="Packets/Fam19/Com2.html">CLI_REQLISTS</a>
+  <a class="tut" href="Packets/Fam19/Com3.html">SRV_REPLYLISTS</a>
+
+  <a class="tut" href="Packets/Fam19/Com5.html">CLI_CHECKROSTER</a>
+  <a class="tut" href="Packets/Fam19/Com15.html">SRV_REPLYROSTEROK</a>
+  <a class="tut" href="Packets/Fam19/Com7.html">CLI_ROSTERACK</a>
+  <a class="tut" href="Packets/Fam1/Com30.html">CLI_SETSTATUS</a>
+  <a class="tut" href="Packets/Fam1/Com2.html">CLI_READY</a>
+
+  <a class="tut" href="Packets/Fam21/Com2/Sub60.html">CLI_REQOFFLINEMSGS</a>
+  <a class="tut" href="Packets/Fam21/Com3/Sub65.html">SRV_OFFLINEMSG</a>
+  <a class="tut" href="Packets/Fam21/Com3/Sub66.html">SRV_DONEOFFLINEMSGS</a>
+  <a class="tut" href="Packets/Fam21/Com2/Sub62.html">CLI_ACKOFFLINEMSGS</a>
+ </div>
+</div>
+
+<div id=sigbar>
+ <span>
+  <img src="micq-16.png" alt=icq width=16 height=16>
+  <a href="mailto:info@ruediger-kuhlmann.de">R&uuml;diger Kuhlmann</a>
+ </span>
+</div>
+          
+</body></html>
