@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.43 2006/02/10 15:59:20 lightdruid Exp $
+# $Id: icq.py,v 1.44 2006/02/11 00:31:15 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -915,6 +915,10 @@ class Protocol:
         '''
         log().log("Master group IDs: " + coldump(t))
 
+    def parseSSIItem_5D47(self, t, flag):
+        ''' Unknown '''
+        log().log('Called unknown handler parseSSIItem_5D47')
+
     def proc_2_3_12(self, data):
         ''' Server send this when user from your contact list goes 
         offline. See also additional information about online userinfo block.
@@ -995,6 +999,7 @@ class Protocol:
 
             log().log("dcProtocolVersion: %d, dcAuthCookie: %d, webFrontPort: %d, clientFutures: %d" % \
                 (dcProtocolVersion, dcAuthCookie, webFrontPort, clientFutures))
+            log().log("Client uses protocol v%d" % dcProtocolVersion)
 
             assert clientFutures == 0x03
 
@@ -1018,10 +1023,15 @@ class Protocol:
             pass # FIXME
         log().log("External IP: %s" % externalIP)
 
+        print tlvs
+
         # TLV.Type(0x06) - user status
-        userStatus = tlvs[0x06][0 : 4]
-        status = self._parseUserStatus(userStatus)
-        log().log("User status: %s" % status)
+        if tlvs.has_key(0x06):
+            userStatus = tlvs[0x06][0 : 4]
+            log().log("User status: %s" % self._parseUserStatus(userStatus))
+        else:
+            log().log("Unable to get user status, setting default to online")
+            userStatus = '\x00\x00\x00\x00' # online
 
         # TLV.Type(0x0D) - user capabilities
         try:

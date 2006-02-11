@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.55 2006/02/10 15:59:20 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.56 2006/02/11 00:31:15 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.55 2006/02/10 15:59:20 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.56 2006/02/11 00:31:15 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -53,7 +53,7 @@ _topMenu = (
     ("File",
         (
             (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin", 0),
-            (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onHideOffline", wx.ITEM_CHECK),
+            (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onToggleHideOffline", wx.ITEM_CHECK),
             (),
             (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit", 0),
         )
@@ -185,14 +185,20 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def onToggleHideOffline(self, evt):
         self.hideOffline(evt.Checked())
 
+    def hideOffline(self, flag):
+        blist = self.connector['icq'].getBuddies(status = 'offline')
+        self.topPanel.userList.onHideOffline(blist, flag)
+
     def onSendMessage(self, evt):
         log().log('GUI sending message: ' + str(evt))
         ids, message = evt.getVal()
 
         # FIXME: only icq handled
         b = self.connector['icq'].getBuddyByUin(message.getUIN())
-        offline = b.status == 'offline'
-        self.connector['icq'].sendMessage(message, offline)
+        log().log('User is ' + b.status)
+
+        status = b.status == 'offline'
+        self.connector['icq'].sendMessage(message, offline = status)
 
     def onMessagePrepare(self, evt):
         evt.Skip()
@@ -370,13 +376,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].connect()
         self.connector['icq'].login()
         self.connector['icq'].Start()
-
-    def onHideOffline(self, evt):
-        #self.topPanel.userList.onHideOffline(self.connector['icq'].getBuddies(status = 'offline'))
-        evt.Skip()
-
-    def hideOffline(self, flag):
-        self.topPanel.userList.onHideOffline(self.connector['icq'].getBuddies(status = 'offline'), flag)
 
     def showMessage(self, userName, message, hide = False):
         print 'showMessage()'

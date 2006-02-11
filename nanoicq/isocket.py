@@ -1,11 +1,12 @@
 
 #
-# $Id: isocket.py,v 1.14 2006/02/10 15:59:20 lightdruid Exp $
+# $Id: isocket.py,v 1.15 2006/02/11 00:31:15 lightdruid Exp $
 #
 
 import socket
 import thread
 import struct
+import time
 
 class ISocket:
     _mutex = thread.allocate_lock()
@@ -66,8 +67,27 @@ class ISocket:
             self._mutex.release()
             raise
 
-        if len(buf) != length + 6:
-            print "Actual packet length differs from header length"
+        length += 6
+        lnbuf = len(buf)
+
+        if lnbuf != length:
+            print "Actual packet length (%d) differs from header length (%d)" %\
+                (lnbuf, length)
+
+            if length > lnbuf:
+                gap = length - lnbuf
+                print 'Trying to recover and read %d bytes...' % gap
+
+                try:
+                    self._mutex.acquire()
+                    buf2 = self._sock.recv(gap)
+                    self._mutex.release()
+                    buf += buf2
+                except socket.error, err:
+                    self._mutex.release()
+                    print 'Unable to recover:' + str(err)
+            else:
+                print 'Unable to recover'
 
         return buf
 

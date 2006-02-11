@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.9 2006/02/08 12:36:12 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.10 2006/02/11 00:31:15 lightdruid Exp $
 #
 
 import sys
@@ -53,6 +53,8 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
  
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDoubleClick)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onItemDeselected, self)
+        self.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.onRightClick)
 
     def addBuddy(self, b):
         index = self.InsertImageStringItem(sys.maxint, '', 0)
@@ -75,6 +77,12 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
 
     def onItemSelected(self, evt):
         self.currentItem = evt.m_itemIndex
+
+    def onItemDeselected(self, evt):
+        self.currentItem = -1
+
+    def onRightClick(self, evt):
+        print self.currentItem
 
     def changeStatus(self, b):
         userName = b.name
@@ -112,15 +120,16 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
         #        self.DeleteItem(item)
 
         assert flag in [True, False]
+        print 'onHideOffline, flag: ', flag
 
-        for b in blist:
-            item = self.FindItemData(-1, int(b.uin))
-            if item != -1:
-                if flag:
+        if flag:
+            for b in blist:
+                item = self.FindItemData(-1, int(b.uin))
+                if item != -1:
                     self.DeleteItem(item)
-                else:
-                    # FIXME
-                    pass
+        else:
+            for b in blist:
+                self.addBuddy(b)
 
 
 def _test():
