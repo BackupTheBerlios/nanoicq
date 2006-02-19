@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIcon.py,v 1.6 2006/01/25 15:59:16 lightdruid Exp $
+# $Id: TrayIcon.py,v 1.7 2006/02/19 14:49:52 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -11,7 +11,10 @@ if sys.platform == 'win32':
     from TrayIconWindows import *
 else:
     class TrayIcon:
-        def __init__(self, frame, iconSet):
+        def __init__(self, frame, icon, iconSet):
+            pass
+
+        def setToolTip(self, toolTip):
             pass
 
         def CreatePopupMenu(self):

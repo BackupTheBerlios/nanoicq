@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.44 2006/02/11 00:31:15 lightdruid Exp $
+# $Id: icq.py,v 1.45 2006/02/19 14:49:52 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -584,8 +584,14 @@ class Protocol:
         ''' List service granted, request roster from server '''
         self.sendSNAC(0x13, 0x07, 0, '')
 
+        # Status
         icqStatus = 0x00
-        self.sendSNAC(0x01, 0x1e, 0, tlv(0x06, struct.pack(">HH", self.statusindicators, icqStatus)))
+        t = tlv(0x06, struct.pack(">HH", self.statusindicators, icqStatus))
+
+        # DC data
+        t += tlv(0x0C, dcData)
+
+        self.sendSNAC(0x01, 0x1e, 0, t)
 
         sf = {
             0x01:(3, 0x0110, 0x059b),
