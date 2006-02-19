@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.56 2006/02/11 00:31:15 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.57 2006/02/19 19:49:40 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.56 2006/02/11 00:31:15 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.57 2006/02/19 19:49:40 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -177,10 +177,15 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_SEND_MESSAGE, self.onSendMessage)
         self.Bind(EVT_INCOMING_MESSAGE, self.onIncomingMessage)
         self.Bind(EVT_BUDDY_STATUS_CHANGED, self.onBuddyStatusChanged)
+        self.Bind(EVT_MY_STATUS_CHANGED, self.onMyStatusChanged)
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
 
         # ---
+
+    def onMyStatusChanged(self, evt):
+        evt.Skip()
+        self.connector['icq'].changeStatus(evt.getVal())
 
     def onToggleHideOffline(self, evt):
         self.hideOffline(evt.Checked())

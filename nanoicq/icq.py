@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.45 2006/02/19 14:49:52 lightdruid Exp $
+# $Id: icq.py,v 1.46 2006/02/19 19:49:39 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -413,6 +413,8 @@ class Protocol:
         self.username = username
         encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
 
+        #print "[%s] [%s] " % (self.username, os.getenv("TEST_ICQ_PASS"))
+
         self.sendFLAP(0x01, '\000\000\000\001'+
             tlv(0x01, self.username)+
             tlv(0x02, encpass)+
@@ -589,9 +591,79 @@ class Protocol:
         t = tlv(0x06, struct.pack(">HH", self.statusindicators, icqStatus))
 
         # DC data
-        t += tlv(0x0C, dcData)
+        # DC Internal ip address
 
+        try:
+            myip = socket.gethostbyname(socket.gethostname())
+            dcData = socket.inet_aton(myip)
+        except Exception, exc:
+            log().log("Unable to get local host name/address: " + str(exc))
+            dcData  = '\x01\x02\x03\x04'
+
+        # DC tcp port
+        dcData += '\x00\x00\x00\x00'
+
+        # 0x0000      DC_DISABLED         Direct connection disabled / auth required
+        dcData += '\x00'
+
+        # DC protocol version
+        dcData += '\x00\x0A'
+
+        # xx xx xx xx       dword       DC auth cookie
+        # xx xx xx xx       dword       Web front port
+        # 00 00 00 03       dword       Client futures
+        dcData += '\x00\x00\x00\x00'
+        dcData += '\x00\x00\x00\x00'
+        dcData += '\x00\x00\x00\x03'
+
+        # xx xx xx xx       dword       last info update time
+        # xx xx xx xx       dword       last ext info update time (i.e. icqphone status)
+        # xx xx xx xx       dword       last ext status update time (i.e. phonebook)
+        # xx xx             word        unknown
+        dcData += '\x00\x00\x00\x00'
+        dcData += '\x00\x00\x00\x00'
+        dcData += '\x00\x00\x00\x00'
+        dcData += '\x00\x00'
+
+        t += tlv(0x0C, dcData)
         self.sendSNAC(0x01, 0x1e, 0, t)
+
+        # CLI_READY
+        self.sendClientReady()
+
+    def sendClientReady(self):
+        '''
+        This is Miranda's version of CLI_READY
+        '''
+        d = ''
+        d += '\x00\x01\x00\x04'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x13\x00\x04'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x02\x00\x01'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x03\x00\x01'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x15\x00\x01'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x04\x00\x01'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x06\x00\x01'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x09\x00\x01'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x0A\x00\x01'
+        d += '\x01\x10\x08\xE4'
+        d += '\x00\x0B\x00\x01'
+        d += '\x01\x10\x08\xE4'
+
+        self.sendSNAC(0x01, 0x02, 0, d)
+
+    def sendClientReady_original(self):
+        '''
+        This is original version of CLI_READY,
+        it's replaced with Miranda's one
+        '''
 
         sf = {
             0x01:(3, 0x0110, 0x059b),
@@ -614,7 +686,19 @@ class Protocol:
                 d = d + struct.pack('!4H', fam, version, toolID, toolVersion)
         self.sendSNAC(0x01, 0x02, 0, d)
 
+    def changeStatus(self, status):
+        assert type(status) == type('')
 
+        icqStatus = 0
+
+        for k in _userStatusP2:
+            if status == _userStatusP2[k]:
+                icqStatus = k
+                break
+
+        t = tlv(0x06, struct.pack(">HH", self.statusindicators, icqStatus))
+        self.sendSNAC(0x01, 0x1e, 0, t)
+        
     def proc_2_4_20(self, data):
         '''
         SNAC(04,14)     TYPING_NOTIFICATION     
@@ -691,7 +775,11 @@ class Protocol:
 #        self.sendSNAC(0x13, 0x05, 0, struct.pack('!LH', 0, 0))
 
     def parseSelfStatus(self, data):
-        self.userClass = int(struct.unpack('!H', data[1])[0])
+        try:
+            self.userClass = int(struct.unpack('!H', data[1])[0])
+        except Exception, exc:
+            # FIXME: bad way
+            log().log("Unable to parse my status: " + str(exc))
         self.parseUserClass()
 
     def parseUserClass(self, userClass = None):

@@ -1,11 +1,13 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.4 2006/02/08 12:36:12 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.5 2006/02/19 19:49:39 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
 
 import wx
+
+from events import *
 
 class TrayIcon(wx.TaskBarIcon):
     TBMENU_RESTORE = wx.NewId()
@@ -46,10 +48,26 @@ class TrayIcon(wx.TaskBarIcon):
 
         # bind some events
         self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.onCancelTaskBarActivate)
+
+        self.Bind(wx.EVT_MENU, self.onStatusChange)
+
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarActivate, id = self.TBMENU_RESTORE)
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarClose, id = self.TBMENU_CLOSE)
         #self.Bind(wx.EVT_MENU, self.onCancelTaskBarChange, id=self.TBMENU_CHANGE)
         #self.Bind(wx.EVT_MENU, self.onCancelTaskBarRemove, id=self.TBMENU_REMOVE)
+
+    def onStatusChange(self, evt):
+        evt.Skip()
+
+        eds = evt.GetId()
+        for ids, txt, alias in self._statusMenuItems:
+            if getattr(self, ids) == eds:
+                evt = NanoEvent(nanoEVT_MY_STATUS_CHANGED, eds)
+                evt.setVal(alias)
+                self.frame.GetEventHandler().AddPendingEvent(evt)
+                return
+
+        assert 1 == 2
 
     def setToolTip(self, toolTip):
         self.SetIcon(self._icon, toolTip)
@@ -78,7 +96,6 @@ class TrayIcon(wx.TaskBarIcon):
         #menu.Append(self.TBMENU_REMOVE, "Remove the TB Icon")
         return menu
 
-
     def MakeIcon(self, img):
         """
         The various platforms have different requirements for the
@@ -103,10 +120,8 @@ class TrayIcon(wx.TaskBarIcon):
                 self.frame.Show(False)
         self.frame.Raise()
 
-
     def onCancelTaskBarClose(self, evt):
         self.frame.Close()
-
 
     def onCancelTaskBarChange(self, evt):
         names = [ "WXPdemo", "Mondrian", "Pencil", "Carrot" ]
@@ -119,7 +134,6 @@ class TrayIcon(wx.TaskBarIcon):
 
         icon = self.MakeIcon(getFunc())
         self.SetIcon(icon, "This is a new icon: " + name)
-
 
     def onCancelTaskBarRemove(self, evt):
         self.RemoveIcon()
