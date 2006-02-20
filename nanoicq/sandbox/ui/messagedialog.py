@@ -1,10 +1,11 @@
 
 #
-# $Id: messagedialog.py,v 1.22 2006/02/09 13:20:36 lightdruid Exp $
+# $Id: messagedialog.py,v 1.23 2006/02/20 16:19:32 lightdruid Exp $
 #
 
 import sys
 import wx
+from wx.lib.splitter import MultiSplitterWindow
 
 from persistence import PersistenceMixin
 
@@ -17,9 +18,9 @@ from buddy import Buddy
 # Default colorset bg/fg for incoming/outgoing messages
 _DEFAULT_COLORSET = ("white", "black", "white", "black")
 
-class MySplitter(wx.SplitterWindow):
+class MySplitter(MultiSplitterWindow):
     def __init__(self, parent, ID, name):
-        wx.SplitterWindow.__init__(self, parent, ID,
+        MultiSplitterWindow.__init__(self, parent, ID,
             style = wx.SP_LIVE_UPDATE, name = name)
 
 ID_SPLITTER = 8000
@@ -39,29 +40,9 @@ class NanoTextDropTarget(wx.TextDropTarget):
         print wx.DragCopy
         return wx.DragCopy
 
-
-class MessageDialog(wx.Dialog, PersistenceMixin):
-    def __init__(self, parent, ID, user, message, history, colorSet = _DEFAULT_COLORSET,
-            size = wx.DefaultSize, 
-            pos = wx.DefaultPosition,
-            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX  | wx.MINIMIZE_BOX):
-
-        wx.Dialog.__init__(self, parent, ID, user.name, size = size,
-            style = style, name = 'message_dialog_' + user.name)
-
-        PersistenceMixin.__init__(self, 'test.save')
-
-        assert isinstance(user, Buddy)
-        self._user = user
-        userName = self._user.name
-
-        self._parent = parent
-
-        assert isinstance(history, History)
-        self._history = history
-
-        assert len(colorSet) == 4
-        self._colorSet = colorSet
+class MessagePanel(wx.Panel):
+    def __init__(self, parent, userName):
+        wx.Panel.__init__(self, parent, -1)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -76,8 +57,6 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         # TODO: status must be set by passing argumant or using buddy's properties
         self._status = wx.StaticText(self, -1, 'offline')
         self.boxSizer1.Add(self._status, 1, wx.ALIGN_RIGHT | wx.EXPAND | wx.ALL, 3)
-
-        self.sizer.Add(self.boxSizer1, 0, wx.EXPAND)
 
         # 2nd
         box2 = wx.StaticBox(self, -1)
@@ -103,7 +82,7 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
             size=wx.DefaultSize, style = wx.TE_MULTILINE | wx.TE_RICH2)
 
         # Send messages on Ctrl-Enter
-        self._outgoing.Bind(wx.EVT_KEY_DOWN, self.onCtrlEnter)
+        #self._outgoing.Bind(wx.EVT_KEY_DOWN, self.onCtrlEnter)
 
         self.dropTarget = NanoTextDropTarget(self._outgoing)
         self._outgoing.SetDropTarget(self.dropTarget)
@@ -113,8 +92,10 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         self.outgoing.SetAutoLayout(True)
         self.outgoingSizer.Fit(self.incoming)
 
+        self.splitter.SetOrientation(wx.VERTICAL)
         self.splitter.SetMinimumPaneSize(20)
-        self.splitter.SplitHorizontally(self.incoming, self.outgoing, -100)
+        self.splitter.AppendWindow(self.incoming)
+        self.splitter.AppendWindow(self.outgoing)
 
         self._pane = self.splitter
         self.outgoing.SetFocus()
@@ -128,10 +109,44 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
             name = 'buttonOk_' + userName)
         self.boxSizer3.Add(self.buttonOk, 0, wx.ALIGN_RIGHT)
 
-        # -- wrap up
+        #
+        self.sizer.Add(self.boxSizer1, 0, wx.EXPAND)
         self.sizer.Add(self.boxSizer2, 4, wx.EXPAND)
         self.sizer.Add(self.boxSizer3, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
+
+        self.SetAutoLayout(True)
+
+        # Bug fix for [ wxwindows-Bugs-1428169 ] wx.StaticBox seems to be interfering  with DnD
+        box1.Lower()
+        box2.Lower()
+        box3.Lower()
+
+
+class MessageDialog(wx.Frame, PersistenceMixin):
+    def __init__(self, parentFrame, ID, user, message, history, colorSet = _DEFAULT_COLORSET,
+            size = wx.DefaultSize, 
+            pos = wx.DefaultPosition,
+            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX  | wx.MINIMIZE_BOX):
+
+        wx.Frame.__init__(self, None, ID, user.name, size = size,
+            style = style, name = 'message_dialog_' + user.name)
+
+        PersistenceMixin.__init__(self, 'test.save')
+
+        assert isinstance(user, Buddy)
+        self._user = user
+        userName = self._user.name
+
+        self._parentFrame = parentFrame
+
+        assert isinstance(history, History)
+        self._history = history
+
+        assert len(colorSet) == 4
+        self._colorSet = colorSet
+
+        self.topPanel = MessagePanel(self, 'text')
 
         # ---
         # In this case title = username
@@ -144,19 +159,22 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         except Exception, e:
             print e.__class__, e
 
+        # Shortcuts
+        self._incoming = self.topPanel._incoming
+        self._outgoing = self.topPanel._outgoing
+
         # ---
         self.Bind(wx.EVT_BUTTON, self.onSendMessage, id = ID_BUTTON_SEND)
         self.Bind(wx.EVT_BUTTON, self.onCancel, id = wx.ID_CANCEL)
-
-        self.SetAutoLayout(True)
-
-        # Bug fix for [ wxwindows-Bugs-1428169 ] wx.StaticBox seems to be interfering  with DnD
-        box1.Lower()
-        box2.Lower()
-        box3.Lower()
+        self.Bind(wx.EVT_CLOSE, self.onClose)
 
         if message is not None:
             self.updateMessage(message)
+
+    def onClose(self, evt):
+        self.storeWidgets()
+        self.Hide()
+        # Do not process event, just hide window
 
     def setStatus(self, status):
         self._status.SetLabel(status)
@@ -178,12 +196,12 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
         return self._user
 
     def storeWidgets(self):
-        self.storeObjects([self, self.buttonOk, self.splitter],
+        self.storeObjects([self, self.topPanel.buttonOk, self.topPanel.splitter],
             name = self._userName)
 
         evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
         evt.setVal(self.GetId())
-        self._parent.GetEventHandler().AddPendingEvent(evt)
+        self._parentFrame.GetEventHandler().AddPendingEvent(evt)
 
     def onCancel(self, evt):
         self.storeWidgets()
@@ -242,13 +260,13 @@ class MessageDialog(wx.Dialog, PersistenceMixin):
 
     def setUserName(self, userName):
         self._userName = userName
-        self._userText.SetLabel(userName)
+        self.topPanel._userText.SetLabel(userName)
 
 
 def _test():
     class TopFrame(wx.Frame):
-        def __init__(self, parent, title):
-            wx.Frame.__init__(self, parent, -1, title,
+        def __init__(self, parentFrame, title):
+            wx.Frame.__init__(self, parentFrame, -1, title,
                 pos=(150, 150), size=(350, 200))
             wx.Panel(self, -1)
 

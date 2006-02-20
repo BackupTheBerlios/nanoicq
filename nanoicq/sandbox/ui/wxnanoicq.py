@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.57 2006/02/19 19:49:40 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.58 2006/02/20 16:19:32 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.57 2006/02/19 19:49:40 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.58 2006/02/20 16:19:32 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -180,6 +180,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_MY_STATUS_CHANGED, self.onMyStatusChanged)
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
+
+        #self.topPanel.userList.sampleFill()
 
         # ---
 
@@ -363,8 +365,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def OnClose(self, evt):
         evt.Skip()
         self.storeGeometry()
+
         for d in self._dialogs:
             d.storeWidgets()
+
+            # We need to explicitly destroy frames because they
+            # done't have parents
+            d.Destroy()
+
         self.trayIcon.Destroy()
 
     def OnExit(self, *evts):

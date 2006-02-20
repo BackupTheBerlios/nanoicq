@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.10 2006/02/11 00:31:15 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.11 2006/02/20 16:19:32 lightdruid Exp $
 #
 
 import sys
@@ -131,6 +131,34 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
             for b in blist:
                 self.addBuddy(b)
 
+    def sampleFill(self):
+
+        musicdata = {
+        1 : ("", "a"),
+        2 : ("", "b"),
+        3 : ("", "c"),
+        4 : ("", "d"),
+        5 : ("", "e"),
+        6 : ("", "f"),
+        7 : ("", "g"),
+        }
+
+        ii = 0
+        items = musicdata.items()
+        for key, data in items:
+            index = self.InsertImageStringItem(sys.maxint, data[0], ii)
+            self.SetStringItem(index, 1, IconSet.FULL_SET[ii])
+            b = Buddy()
+            b.name = str(key)
+            self.buddies[key] = b
+            self.itemDataMap[key] = (b.status, b.name)
+            self.SetItemData(index, key)
+            ii += 1
+
+            #break
+
+        self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
 def _test():
     class TopFrame(wx.Frame):
@@ -153,45 +181,8 @@ def _test():
             self.iconSet.setActiveSet('aox')            
 
             self.ul = UserListCtrl(self.p, -1, self.iconSet)
-            self.sampleFill()
+            self.ul.sampleFill()
 
-        def sampleFill(self):
-
-            musicdata = {
-            1 : ("", "a"),
-            2 : ("", "b"),
-            3 : ("", "c"),
-            4 : ("", "d"),
-            5 : ("", "e"),
-            6 : ("", "f"),
-            7 : ("", "g"),
-            }
-
-
-#            self.il = wx.ImageList(16, 16)
-#
-#            for status in IconSet.FULL_SET:
-#                self.idx1 = self.il.Add(self.iconSet[status])
-#            self.ul.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
-
-            # Here we need to setup a list data
-
-            ii = 0
-            items = musicdata.items()
-            for key, data in items:
-                index = self.ul.InsertImageStringItem(sys.maxint, data[0], ii)
-                self.ul.SetStringItem(index, 1, IconSet.FULL_SET[ii])
-                b = Buddy()
-                b.name = str(key)
-                self.ul.buddies[key] = b
-                self.ul.itemDataMap[key] = (b.status, b.name)
-                self.ul.SetItemData(index, key)
-                ii += 1
-
-                #break
-
-            self.ul.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-            self.ul.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     class NanoApp(wx.App):
         def OnInit(self):
