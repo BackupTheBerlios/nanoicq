@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.23 2006/02/20 16:19:32 lightdruid Exp $
+# $Id: messagedialog.py,v 1.24 2006/02/20 16:37:41 lightdruid Exp $
 #
 
 import sys
@@ -40,7 +40,7 @@ class NanoTextDropTarget(wx.TextDropTarget):
         print wx.DragCopy
         return wx.DragCopy
 
-class MessagePanel(wx.Panel):
+class MessagePanel(wx.Panel, PersistenceMixin):
     def __init__(self, parent, userName):
         wx.Panel.__init__(self, parent, -1)
 
@@ -177,8 +177,8 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         # Do not process event, just hide window
 
     def setStatus(self, status):
-        self._status.SetLabel(status)
-        self._status.Refresh()
+        self.topPanel._status.SetLabel(status)
+        self.topPanel._status.Refresh()
 
     def onCtrlEnter(self, evt):
         keycode = evt.GetKeyCode()

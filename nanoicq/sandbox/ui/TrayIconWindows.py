@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.5 2006/02/19 19:49:39 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.6 2006/02/20 16:37:41 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -15,6 +15,14 @@ class TrayIcon(wx.TaskBarIcon):
     TBMENU_CHANGE  = wx.NewId()
     TBMENU_REMOVE  = wx.NewId()
 
+    TBMENU_MAIN                     = wx.NewId()
+    TBMENU_MAIN_FIND_CONTACTS       = wx.NewId()
+    TBMENU_MAIN_IMPORT              = wx.NewId()
+    TBMENU_MAIN_CHANGE_DETAILS      = wx.NewId()
+    TBMENU_MAIN_OPTIONS             = wx.NewId()
+    TBMENU_MAIN_HELP                = wx.NewId()
+    TBMENU_MAIN_EXIT                = wx.NewId()
+
     TBMENU_STATUS_MENU          = wx.NewId()
     TBMENU_STATUS_OFFLINE       = wx.NewId()
     TBMENU_STATUS_ONLINE        = wx.NewId()
@@ -24,6 +32,18 @@ class TrayIcon(wx.TaskBarIcon):
     TBMENU_STATUS_DND           = wx.NewId()
     TBMENU_STATUS_FREE          = wx.NewId()
     TBMENU_STATUS_INVISIBLE     = wx.NewId()
+
+    _mainMenuItems = [
+        ("TBMENU_MAIN_FIND_CONTACTS"        , "Find/Add Contacts..."),
+        ("TBMENU_MAIN_IMPORT"               , "Import..."),
+        ("TBMENU_MAIN_CHANGE_DETAILS"       , "View/Change My Details..."),
+        ("", ""),
+        ("TBMENU_MAIN_OPTIONS"              , "Options..."),
+        ("", ""),
+        ("TBMENU_MAIN_HELP"                 , "Help"),
+        ("", ""),
+        ("TBMENU_MAIN_EXIT"                 , "Exit"),
+    ]
 
     _statusMenuItems = [
         ("TBMENU_STATUS_OFFLINE"       , "Offline",         "offline"),
@@ -73,12 +93,6 @@ class TrayIcon(wx.TaskBarIcon):
         self.SetIcon(self._icon, toolTip)
 
     def CreatePopupMenu(self):
-        """
-        This method is called by the base class when it needs to popup
-        the menu for the default EVT_RIGHT_DOWN event.  Just create
-        the menu how you want it and return it from this function,
-        the base class takes care of the rest.
-        """
         statusMenu = wx.Menu()
         for ids, txt, alias in self._statusMenuItems:
             item = wx.MenuItem(statusMenu, getattr(self, ids), txt, txt)
@@ -87,13 +101,21 @@ class TrayIcon(wx.TaskBarIcon):
 
             #statusMenu.Append(getattr(self, ids), txt)
 
+        mainMenu = wx.Menu()
+        for ids, txt in self._mainMenuItems:
+            if txt == '':
+                mainMenu.AppendSeparator()
+            else:
+                item = wx.MenuItem(mainMenu, getattr(self, ids), txt, txt)
+                #item.SetBitmap(self._iconSet[alias])
+                mainMenu.AppendItem(item)
+
         menu = wx.Menu()
         menu.Append(self.TBMENU_RESTORE, "Hide/Show")
+        menu.AppendMenu(self.TBMENU_MAIN, 'Main Menu', mainMenu)
         menu.AppendMenu(self.TBMENU_STATUS_ONLINE, 'Status', statusMenu)
         menu.AppendSeparator()
         menu.Append(self.TBMENU_CLOSE,   "Exit")
-        #menu.Append(self.TBMENU_CHANGE, "Change the TB Icon")
-        #menu.Append(self.TBMENU_REMOVE, "Remove the TB Icon")
         return menu
 
     def MakeIcon(self, img):
