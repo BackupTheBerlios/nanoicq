@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.62 2006/02/21 14:37:42 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.63 2006/02/21 15:02:10 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.62 2006/02/21 14:37:42 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.63 2006/02/21 15:02:10 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -395,10 +395,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print "username: '%s'" % userName
         print "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
 
-        h = History()
         b = self.connector["icq"].getBuddy(userName)
         colorSet = self.connector["icq"].getColorSet()
-        d = MessageDialog(self, -1, b, message, h, colorSet)
+        d = MessageDialog(self, -1, b, message, colorSet)
         d.SetIcon(self.mainIcon)
 
         if not hide:

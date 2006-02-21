@@ -1,10 +1,12 @@
 
 #
-# $Id: history.py,v 1.8 2006/02/02 16:23:02 lightdruid Exp $
+# $Id: history.py,v 1.9 2006/02/21 15:02:10 lightdruid Exp $
 #
 
 import time
 import cPickle
+
+from buddy import Buddy
 
 class History:
     Incoming = 0
@@ -30,14 +32,30 @@ class History:
             assert direction in self._allowed
             self._d.append( (direction, v) )
 
-    def store(self, fileName):
+    def store(self, b):
+        assert isinstance(b, Buddy)
+        fn = "history.save.%s" % b.uin
+        self._store(fn)
+
+    def _store(self, fileName):
         f = open(fileName, 'wb')
         try:
             cPickle.dump(self._d, f)
         finally:
             f.close()
 
-    def restore(self, fileName):
+    @staticmethod
+    def restore(b):
+        assert isinstance(b, Buddy)
+        fn = "history.save.%s" % b.uin
+        h = History()
+        try:
+            h._restore(fn)
+        except Exception, exc:
+            print exc
+        return h
+
+    def _restore(self, fileName):
         f = open(fileName, 'rb')
         try:
             self._d = cPickle.load(f)
@@ -108,20 +126,26 @@ if __name__ == '__main__':
             assert len(self.h) == 1
 
         def testPersistance(self):
-            fn = 'test.history.dump'
+            b = Buddy()
+            b.uin = '123456'
 
             item1 = History.Incoming, 'incoming 1'
             self.h.append(item1)
 
-            self.h.store(fn)
+            self.h.store(b)
             self.h = None
             del self.h
 
             self.h = History()
-            self.h.restore(fn)
+            h2 = History.restore(b)
 
-            d = self.h.dump()
+            d = h2.dump()
             assert d.split('\n')[0] == '>> : incoming 1'
+
+            b.uin = ''
+            h3 = History.restore(b)
+            d = h3.dump()
+            assert len(d) == 0
 
     unittest.main()
  

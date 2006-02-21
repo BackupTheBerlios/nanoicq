@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.26 2006/02/21 14:36:52 lightdruid Exp $
+# $Id: messagedialog.py,v 1.27 2006/02/21 15:02:10 lightdruid Exp $
 #
 
 import sys
@@ -134,7 +134,7 @@ class MessagePanel(wx.Panel):
 
 
 class MessageDialog(wx.Frame, PersistenceMixin):
-    def __init__(self, parentFrame, ID, user, message, history, colorSet = _DEFAULT_COLORSET,
+    def __init__(self, parentFrame, ID, user, message, colorSet = _DEFAULT_COLORSET,
             size = wx.DefaultSize, 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX  | wx.MINIMIZE_BOX):
@@ -148,8 +148,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         self._parentFrame = parentFrame
 
-        assert isinstance(history, History)
-        self._history = history
+        self._history = History.restore(self._user)
 
         assert len(colorSet) == 4
         self._colorSet = colorSet
@@ -190,8 +189,12 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
     def onClose(self, evt):
         self.storeWidgets()
+        self.storeHistory()
         self.Hide()
         # Do not process event, just hide window
+
+    def storeHistory(self):
+        self._history.store(self._user)
 
     def setStatus(self, status):
         self.topPanel._status.SetLabel(status)
