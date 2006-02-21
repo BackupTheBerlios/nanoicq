@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.60 2006/02/21 13:28:36 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.61 2006/02/21 14:36:52 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.60 2006/02/21 13:28:36 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.61 2006/02/21 14:36:52 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -84,7 +84,11 @@ class ICQThreaded(icq.Protocol):
         while self.keepGoing:
 
             try:
+<<<<<<< wxnanoicq.py
+                wx.YieldIfNeeded()
+=======
                 wx.GetApp().Yield()
+>>>>>>> 1.60
                 buf = self.read()
                 log().packetin_col(buf)
 
@@ -92,12 +96,6 @@ class ICQThreaded(icq.Protocol):
                 snac = self.readSNAC(c)
                 print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
                 print 'for this snac: ', unicode(snac)
-
-                if snac[0] == 3 and snac[1] == 11:
-                    #print "Buffer (bub): " + coldump(buf)
-                    #print "Buffer (b): " + coldump(b)
-                    #print "Data (c): " + coldump(c)
-                    pass
 
                 tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
                 func = getattr(self, tmp)
@@ -172,6 +170,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         # Events
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_ICONIZE, self.onIconfiy)
         self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
         self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
         self.Bind(EVT_SEND_MESSAGE, self.onSendMessage)
@@ -184,6 +183,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.topPanel.userList.sampleFill()
 
         # ---
+
+    def onIconfiy(self, evt):
+        if self.config.getboolean('ui', 'minimize.to.tray'):
+            self.Hide()
+        evt.Skip()
 
     def onMyStatusChanged(self, evt):
         evt.Skip()
@@ -445,6 +449,7 @@ class TopPanel(wx.Panel):
             b.name = str(key)
             self.userList.buddies[key] = b
             self.userList.SetItemData(index, key)
+
 
 def main(args = []):
     class NanoApp(wx.App):
