@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.46 2006/02/19 19:49:39 lightdruid Exp $
+# $Id: icq.py,v 1.47 2006/02/21 11:29:07 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -868,6 +868,11 @@ class Protocol:
     def getBuddies(self, gid = None, status = None):
         return self._groups.getBuddies(gid = gid, status = status)
 
+    def getBuddy_____(self, userName):
+        b = Buddy()
+        b.name = 'some'
+        return b
+
     def getBuddy(self, userName):
         return self._groups.getBuddy(userName)
 
@@ -921,12 +926,17 @@ class Protocol:
         '''
         log().log('Called unknown handler parseSSIItem_7605')
 
+    def parseSSIItem_13C(self, t, b):
+        '''
+        Unknown
+        '''
+        log().log('Called unknown handler parseSSIItem_13C')
+
     def parseSSIItem_6D(self, t, b):
         '''
         Unknown
         '''
         log().log('Called unknown handler parseSSIItem_6D')
-
 
     def parseSSIItem_D4(self, t, b):
         '''

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.58 2006/02/20 16:19:32 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.59 2006/02/21 11:29:07 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.58 2006/02/20 16:19:32 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.59 2006/02/21 11:29:07 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -136,7 +136,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title,
             pos=(150, 150), size=(350, 200))
-        PersistenceMixin.__init__(self, "frame.position")
+        PersistenceMixin.__init__(self, self, "frame.position")
 
         # ---
         self._dialogs = []
@@ -181,7 +181,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
 
-        #self.topPanel.userList.sampleFill()
+        self.topPanel.userList.sampleFill()
 
         # ---
 

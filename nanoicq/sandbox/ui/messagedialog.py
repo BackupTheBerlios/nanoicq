@@ -1,10 +1,12 @@
 
 #
-# $Id: messagedialog.py,v 1.24 2006/02/20 16:37:41 lightdruid Exp $
+# $Id: messagedialog.py,v 1.25 2006/02/21 11:29:07 lightdruid Exp $
 #
 
 import sys
+import traceback
 import wx
+
 from wx.lib.splitter import MultiSplitterWindow
 
 from persistence import PersistenceMixin
@@ -18,13 +20,18 @@ from buddy import Buddy
 # Default colorset bg/fg for incoming/outgoing messages
 _DEFAULT_COLORSET = ("white", "black", "white", "black")
 
+ID_SPLITTER = 8000
+ID_BUTTON_SEND = 8001
+
+
 class MySplitter(MultiSplitterWindow):
     def __init__(self, parent, ID, name):
         MultiSplitterWindow.__init__(self, parent, ID,
             style = wx.SP_LIVE_UPDATE, name = name)
 
-ID_SPLITTER = 8000
-ID_BUTTON_SEND = 8001
+    def SetSashPosition(self, idx, newPos1):
+        print '_DoSetSashPosition:', idx, newPos1
+        self._DoSetSashPosition(idx, newPos1)
 
 
 class NanoTextDropTarget(wx.TextDropTarget):
@@ -40,10 +47,12 @@ class NanoTextDropTarget(wx.TextDropTarget):
         print wx.DragCopy
         return wx.DragCopy
 
-class MessagePanel(wx.Panel, PersistenceMixin):
+
+class MessagePanel(wx.Panel):
     def __init__(self, parent, userName):
         wx.Panel.__init__(self, parent, -1)
 
+        self._parent = parent
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
         box1 = wx.StaticBox(self, -1)
@@ -82,7 +91,8 @@ class MessagePanel(wx.Panel, PersistenceMixin):
             size=wx.DefaultSize, style = wx.TE_MULTILINE | wx.TE_RICH2)
 
         # Send messages on Ctrl-Enter
-        #self._outgoing.Bind(wx.EVT_KEY_DOWN, self.onCtrlEnter)
+        # FIXME: ugly
+        self._outgoing.Bind(wx.EVT_KEY_DOWN, self._parent.onCtrlEnter)
 
         self.dropTarget = NanoTextDropTarget(self._outgoing)
         self._outgoing.SetDropTarget(self.dropTarget)
@@ -132,7 +142,6 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         wx.Frame.__init__(self, None, ID, user.name, size = size,
             style = style, name = 'message_dialog_' + user.name)
 
-        PersistenceMixin.__init__(self, 'test.save')
 
         assert isinstance(user, Buddy)
         self._user = user
@@ -147,6 +156,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         self._colorSet = colorSet
 
         self.topPanel = MessagePanel(self, 'text')
+        PersistenceMixin.__init__(self, self.topPanel, 'test.save')
 
         # ---
         # In this case title = username
@@ -156,8 +166,16 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         try:
             self.restoreObjects([self.GetId(), ID_BUTTON_SEND, ID_SPLITTER],
                 name = self._userName)
-        except Exception, e:
-            print e.__class__, e
+        except:
+            typ, value, tb = sys.exc_info()
+            list = traceback.format_tb(tb, None) + \
+                traceback.format_exception_only(type, value)
+            err = "%s %s" % (
+                "".join(list[:-1]),
+                list[-1],
+            )
+            print 'restoreObjects: '
+            print err
 
         # Shortcuts
         self._incoming = self.topPanel._incoming

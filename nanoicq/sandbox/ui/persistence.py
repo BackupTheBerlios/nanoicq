@@ -1,14 +1,15 @@
 
 #
-# $Id: persistence.py,v 1.6 2006/02/03 10:41:36 lightdruid Exp $
+# $Id: persistence.py,v 1.7 2006/02/21 11:29:07 lightdruid Exp $
 #
 
 import wx
 import cPickle
 
 class PersistenceMixin:
-    def __init__(self, fileName, objs = []):
+    def __init__(self, frame, fileName, objs = []):
         self._fileName = fileName
+        self._frame = frame
 
         # objs is a list of objects we want to store too
         # ATTENTION: all their IDs must be unique and DEFINED explicitly
@@ -29,8 +30,10 @@ class PersistenceMixin:
             size = self.FindWindowByName(ids).GetSize()
 
             try:
-                sash = self.FindWindowByName(ids).GetSashPosition()
-            except:
+                sash = self._frame.FindWindowByName(ids).GetSashPosition(0)
+                print 'Got ashs position: ', sash
+            except Exception, exc:
+                if __debug__: print "Unable to find sash: " + str(exc)
                 sash = None
 
             d[ids] = (pos, size, sash)
@@ -53,7 +56,7 @@ class PersistenceMixin:
             self.FindWindowByName(ids).SetPosition(pos)
             self.FindWindowByName(ids).SetSize(size)
             if sash is not None:
-                self.FindWindowByName(ids).SetSashPosition(sash)
+                self._frame.FindWindowByName(ids).SetSashPosition(0, sash)
             self.FindWindowByName(ids).Layout()
 
     def storeGeometry(self):
