@@ -1,7 +1,9 @@
 
 #
-# $Id: message.py,v 1.10 2006/02/21 16:01:29 lightdruid Exp $
+# $Id: message.py,v 1.11 2006/02/21 16:15:09 lightdruid Exp $
 #
+
+import time
 
 from utils import *
 from HistoryDirection import Incoming, Outgoing
@@ -9,7 +11,7 @@ from HistoryDirection import Incoming, Outgoing
 class Message:
     ICQ_MESSAGE = 0
 
-    def __init__(self, context, user, content, direction):
+    def __init__(self, context, user, content, direction, timeStamp = None):
         self.MessageTypes = [Message.ICQ_MESSAGE]
         assert context in self.MessageTypes
         assert direction in [Incoming, Outgoing]
@@ -18,11 +20,16 @@ class Message:
         self._user = user
         self._content = content
         self._direction = direction
-
+        if timeStamp is None:
+            self._timeStamp = time.localtime()
+        else:
+            self._timeStamp = timeStamp
+        
     def getContext(self): return self._context
     def getUser(self): return self._user
     def getDirection(self): return self._direction
     def getContents(self): return self._content
+    def getTimeStamp(self): return self._timeStamp
 
     def _decodeDirection(self, d):
         assert d in [Incoming, Outgoing]
@@ -39,8 +46,8 @@ class Message:
 
 class ICQMessage(Message):
 
-    def __init__(self, user, uin, content, direction):
-        Message.__init__(self, Message.ICQ_MESSAGE, user, content, direction)
+    def __init__(self, user, uin, content, direction, timeStamp = None):
+        Message.__init__(self, Message.ICQ_MESSAGE, user, content, direction, timeStamp)
         assert type(uin) == type('')
         self._uin = uin
 
