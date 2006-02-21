@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.61 2006/02/21 14:36:52 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.62 2006/02/21 14:37:42 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.61 2006/02/21 14:36:52 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.62 2006/02/21 14:37:42 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -84,11 +84,7 @@ class ICQThreaded(icq.Protocol):
         while self.keepGoing:
 
             try:
-<<<<<<< wxnanoicq.py
                 wx.YieldIfNeeded()
-=======
-                wx.GetApp().Yield()
->>>>>>> 1.60
                 buf = self.read()
                 log().packetin_col(buf)
 

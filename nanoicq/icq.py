@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.49 2006/02/21 13:28:36 lightdruid Exp $
+# $Id: icq.py,v 1.50 2006/02/21 14:36:52 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -629,7 +629,8 @@ class Protocol:
         self.sendSNAC(0x01, 0x1e, 0, t)
 
         # CLI_READY
-        self.sendClientReady()
+        log().log('Sending CLI_READY...')
+        self.sendClientReady_original()
 
     def sendClientReady(self):
         '''

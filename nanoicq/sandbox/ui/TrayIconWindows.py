@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.7 2006/02/20 16:43:39 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.8 2006/02/21 14:36:52 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -73,8 +73,6 @@ class TrayIcon(wx.TaskBarIcon):
 
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarActivate, id = self.TBMENU_RESTORE)
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarClose, id = self.TBMENU_CLOSE)
-        #self.Bind(wx.EVT_MENU, self.onCancelTaskBarChange, id=self.TBMENU_CHANGE)
-        #self.Bind(wx.EVT_MENU, self.onCancelTaskBarRemove, id=self.TBMENU_REMOVE)
 
     def onStatusChange(self, evt):
         evt.Skip()
@@ -149,20 +147,5 @@ class TrayIcon(wx.TaskBarIcon):
 
     def onCancelTaskBarClose(self, evt):
         self.frame.Close()
-
-    def onCancelTaskBarChange(self, evt):
-        names = [ "WXPdemo", "Mondrian", "Pencil", "Carrot" ]
-        name = names[self.imgidx]
-
-        getFunc = getattr(images, "get%sImage" % name)
-        self.imgidx += 1
-        if self.imgidx >= len(names):
-            self.imgidx = 0
-
-        icon = self.MakeIcon(getFunc())
-        self.SetIcon(icon, "This is a new icon: " + name)
-
-    def onCancelTaskBarRemove(self, evt):
-        self.RemoveIcon()
 
 # ---
