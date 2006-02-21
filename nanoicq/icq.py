@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.47 2006/02/21 11:29:07 lightdruid Exp $
+# $Id: icq.py,v 1.48 2006/02/21 12:34:12 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -824,9 +824,25 @@ class Protocol:
             
         log().log('Current list of groups: %s' % self._groups)
 
+        log().log('Notify server about our buddy list')
+        self.sendBuddyList()
+
         log().log('Activate server-side contact... (SNAC(13,07)')
         self.sendSNAC(0x13, 0x07, 0, '')
         log().log('Activation done (SNAC(13,07)')
+
+    def sendBuddyList(self):
+        '''
+        SNAC(03,04)     CLI_BUDDYLIST_ADD   
+
+        Use this this to add new buddies to your client-side contact list. 
+        You can delete buddies from contact using SNAC(03,05). 
+        See also complete snac list for this service here.
+        '''
+        data = ''
+        for b in self._groups.getBuddies():
+            data += struct.pack('!H', len(b.name)) + b.name
+        self.sendSNAC(0x03, 0x04, 0, data)
 
     def parseSSIBuddy(self, groupID, name, tlvs):
         '''
@@ -1529,16 +1545,12 @@ class Protocol:
         self._host, self._port = server.split(':')
         self._port = int(self._port)
 
-        # ===============
         self.connect()
 
-        # ================================
         buf = self.read()
         log().packetin(buf)
 
         self.sendFLAP(0x01, '\000\000\000\001' + tlv(0x06, tlvs[TLV_Cookie]))
-
-        log().log('Login done')
 
         log().log('Post login, getting meta information')
         uin = struct.pack('<L', int(self._config.get('icq', 'uin')))
@@ -1549,6 +1561,7 @@ class Protocol:
         tlvs = tlv(1, data)
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
+        log().log('Login done')
         self.react('Login done')
 
         if mainLoop:
