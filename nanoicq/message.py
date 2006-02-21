@@ -1,10 +1,10 @@
 
 #
-# $Id: message.py,v 1.9 2006/01/22 22:53:10 lightdruid Exp $
+# $Id: message.py,v 1.10 2006/02/21 16:01:29 lightdruid Exp $
 #
 
 from utils import *
-from history import History
+from HistoryDirection import Incoming, Outgoing
 
 class Message:
     ICQ_MESSAGE = 0
@@ -12,7 +12,7 @@ class Message:
     def __init__(self, context, user, content, direction):
         self.MessageTypes = [Message.ICQ_MESSAGE]
         assert context in self.MessageTypes
-        assert direction in [History.Incoming, History.Outgoing]
+        assert direction in [Incoming, Outgoing]
 
         self._context = context
         self._user = user
@@ -25,8 +25,8 @@ class Message:
     def getContents(self): return self._content
 
     def _decodeDirection(self, d):
-        assert d in [History.Incoming, History.Outgoing]
-        if d == History.Incoming: return 'incoming'
+        assert d in [Incoming, Outgoing]
+        if d == Incoming: return 'incoming'
         return 'outgoing'
 
     def __repr__(self):
@@ -65,19 +65,19 @@ def messageFactory(context, *kw, **kws):
     raise Exception("Unknown messaeg type: " + str(context))
 
 def _test():
-    m = Message(Message.ICQ_MESSAGE, '', 'aaa', History.Incoming)
+    m = Message(Message.ICQ_MESSAGE, '', 'aaa', Incoming)
     print m
-    im = ICQMessage('user', '12345', 'text', History.Incoming)
+    im = ICQMessage('user', '12345', 'text', Incoming)
     print im
     assert im.getContents() == 'text'
 
-    mm = messageFactory("icq", 'user', '12345', 'text', History.Incoming)
+    mm = messageFactory("icq", 'user', '12345', 'text', Incoming)
     assert mm == im
-    assert mm.getDirection() == History.Incoming
+    assert mm.getDirection() == Incoming
 
-    mm2 = messageFactory("icq", 'user', '12345', 'text', History.Outgoing)
+    mm2 = messageFactory("icq", 'user', '12345', 'text', Outgoing)
     assert mm2 != im
-    assert mm2.getDirection() == History.Outgoing
+    assert mm2.getDirection() == Outgoing
 
 if __name__ == '__main__':
     _test()

@@ -1,16 +1,15 @@
 
 #
-# $Id: history.py,v 1.9 2006/02/21 15:02:10 lightdruid Exp $
+# $Id: history.py,v 1.10 2006/02/21 16:01:29 lightdruid Exp $
 #
 
 import time
 import cPickle
 
 from buddy import Buddy
+from HistoryDirection import *
 
 class History:
-    Incoming = 0
-    Outgoing = 1
     _allowed = [Incoming, Outgoing]
 
     def __init__(self):
@@ -22,15 +21,9 @@ class History:
     def __delitem__(self, n):
         del self._d[n]
 
-    def append(self, direction, v = None):
-        if v is None:
-            # direction contains tuple(direction, message)
-            assert type(direction) == type(())
-            assert direction[0] in self._allowed
-            self._d.append(direction)
-        else:
-            assert direction in self._allowed
-            self._d.append( (direction, v) )
+    def append(self, msg):
+        #assert isinstance(msg, Message)
+        self._d.append(msg)
 
     def store(self, b):
         assert isinstance(b, Buddy)
@@ -64,13 +57,13 @@ class History:
 
     def dump(self):
         out = []
-        for d, v in self._d:
-            out.append("%s : %s" % (self._convDir(d), unicode(v)))
+        for m in self._d:
+            out.append("%s : %s" % (self._convDir(m.getDirection()), unicode(m.getContents())))
         return '\n'.join(out)
 
     def _convDir(self, d):
         assert d in self._allowed
-        if d == self.Incoming:
+        if d == Incoming:
             return '>>'
         return '<<'
 
@@ -102,8 +95,9 @@ if __name__ == '__main__':
         def testAdd(self):
             assert len(self.h) == 0
 
-            item1 = History.Incoming, 'incoming 1'
-            item2 = History.Outgoing, 'outgoing 1'
+            import message
+            item1 = message.messageFactory("icq", 'user', '12345', 'incoming 1', Incoming)
+            item2 = message.messageFactory("icq", 'user', '12345', 'outgoing 1', Outgoing)
 
             self.h.append(item1)
             self.h.append(item2)
@@ -126,10 +120,15 @@ if __name__ == '__main__':
             assert len(self.h) == 1
 
         def testPersistance(self):
+
+#            for i in h:
+#                print h
+
             b = Buddy()
             b.uin = '123456'
 
-            item1 = History.Incoming, 'incoming 1'
+            import message
+            item1 = message.messageFactory("icq", 'user', '12345', 'incoming 1', Incoming)
             self.h.append(item1)
 
             self.h.store(b)
@@ -146,6 +145,7 @@ if __name__ == '__main__':
             h3 = History.restore(b)
             d = h3.dump()
             assert len(d) == 0
+
 
     unittest.main()
  

@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.27 2006/02/21 15:02:10 lightdruid Exp $
+# $Id: messagedialog.py,v 1.29 2006/02/21 16:05:51 lightdruid Exp $
 #
 
 import sys
@@ -16,6 +16,7 @@ from events import *
 from message import Message, messageFactory
 from history import History
 from buddy import Buddy
+import HistoryDirection
 
 # Default colorset bg/fg for incoming/outgoing messages
 _DEFAULT_COLORSET = ("white", "black", "white", "black")
@@ -187,6 +188,13 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         if message is not None:
             self.updateMessage(message)
 
+    def populateHistory(self, mmax = None):
+        '''
+        Fill 'incoming' text with messages from history, up to mmax messages
+        '''
+        for h in self._history:
+            pass
+
     def onClose(self, evt):
         self.storeWidgets()
         self.storeHistory()
@@ -230,7 +238,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
     def _colorize(self, message):
         txt = self._history.format(message, timestamp = True) + '\n'
 
-        if message.getDirection() == History.Incoming:
+        if message.getDirection() == HistoryDirection.Incoming:
             bg, fg = self._colorSet[0 : 2]
         else:
             bg, fg = self._colorSet[2 : 4]
@@ -251,7 +259,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         self._incoming.Refresh()
         self._incoming.Update()
 
-        if message.getDirection() == History.Outgoing:
+        if message.getDirection() == HistoryDirection.Outgoing:
             self._outgoing.Clear()
             self._outgoing.Update()
         
@@ -259,11 +267,11 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         print 'onSendMessage()'
         print 'Sending send message event for dialog...', self.GetId()
 
-        self._history.append(History.Outgoing, self._outgoing.GetValue())
-
         message = messageFactory("icq",
             self._user.name, self._user.uin,
-            self._outgoing.GetValue(), History.Outgoing)
+            self._outgoing.GetValue(), HistoryDirection.Outgoing)
+
+        self._history.append(message)
 
         evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
         evt.setVal( (self.GetId(), message) )
@@ -290,7 +298,7 @@ def _test():
                 pos=(150, 150), size=(350, 200))
             wx.Panel(self, -1)
 
-            message = messageFactory("icq", 'user', '12345', 'text', History.Incoming)
+            message = messageFactory("icq", 'user', '12345', 'text', HistoryDirection.Incoming)
 
             h = History()
             b = Buddy()

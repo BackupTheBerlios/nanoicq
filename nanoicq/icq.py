@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.50 2006/02/21 14:36:52 lightdruid Exp $
+# $Id: icq.py,v 1.51 2006/02/21 16:05:51 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -22,6 +22,7 @@ from isocket import ISocket
 from buddy import Buddy
 from group import Group
 from history import History
+import HistoryDirection
 
 import caps
 from logger import log, LogException
@@ -1378,7 +1379,7 @@ class Protocol:
         b = self._groups.getBuddyByUin(sname)
 
         m = messageFactory("icq",
-            b.name, b.uin, msg, History.Incoming)
+            b.name, b.uin, msg, HistoryDirection.Incoming)
 
         self.react("Incoming message", buddy = b, message = m)
 
