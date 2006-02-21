@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.29 2006/02/21 16:05:51 lightdruid Exp $
+# $Id: messagedialog.py,v 1.28 2006/02/21 16:01:29 lightdruid Exp $
 #
 
 import sys
@@ -16,7 +16,6 @@ from events import *
 from message import Message, messageFactory
 from history import History
 from buddy import Buddy
-import HistoryDirection
 
 # Default colorset bg/fg for incoming/outgoing messages
 _DEFAULT_COLORSET = ("white", "black", "white", "black")
@@ -238,7 +237,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
     def _colorize(self, message):
         txt = self._history.format(message, timestamp = True) + '\n'
 
-        if message.getDirection() == HistoryDirection.Incoming:
+        if message.getDirection() == History.Incoming:
             bg, fg = self._colorSet[0 : 2]
         else:
             bg, fg = self._colorSet[2 : 4]
@@ -259,7 +258,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         self._incoming.Refresh()
         self._incoming.Update()
 
-        if message.getDirection() == HistoryDirection.Outgoing:
+        if message.getDirection() == History.Outgoing:
             self._outgoing.Clear()
             self._outgoing.Update()
         
@@ -269,7 +268,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         message = messageFactory("icq",
             self._user.name, self._user.uin,
-            self._outgoing.GetValue(), HistoryDirection.Outgoing)
+            self._outgoing.GetValue(), History.Outgoing)
 
         self._history.append(message)
 
@@ -298,7 +297,7 @@ def _test():
                 pos=(150, 150), size=(350, 200))
             wx.Panel(self, -1)
 
-            message = messageFactory("icq", 'user', '12345', 'text', HistoryDirection.Incoming)
+            message = messageFactory("icq", 'user', '12345', 'text', History.Incoming)
 
             h = History()
             b = Buddy()
