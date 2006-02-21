@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.48 2006/02/21 12:34:12 lightdruid Exp $
+# $Id: icq.py,v 1.49 2006/02/21 13:28:36 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -790,6 +790,19 @@ class Protocol:
             if userClass & c: out.append(_userClasses[c])
         log().log("User class: " + ' '.join(out))
 
+    def proc_2_3_1(self, data):
+        '''
+        SNAC(03,01)     SRV_BLM_ERROR   
+        This is an error notification snac.
+        '''
+        errCode = struct.unpack('!H', data[0:2])[0]
+        tlvs = readTLVs(data[2:])
+        if tlvs.has_key(0x08):
+            errSubCode = struct.unpack('!H', tlvs[0x08][0:2])[0]
+        else:
+            errSubCode = 0
+        log().log("SRV_BLM_ERROR: %d/%d" % (errCode, errSubCode))
+
     def proc_2_19_6(self, data):
         ''' This is the server reply to client roster 
         requests: SNAC(13,04) - Request contact list (first time),
@@ -824,8 +837,8 @@ class Protocol:
             
         log().log('Current list of groups: %s' % self._groups)
 
-        log().log('Notify server about our buddy list')
-        self.sendBuddyList()
+        #log().log('Notify server about our buddy list')
+        #self.sendBuddyList()
 
         log().log('Activate server-side contact... (SNAC(13,07)')
         self.sendSNAC(0x13, 0x07, 0, '')
@@ -841,7 +854,7 @@ class Protocol:
         '''
         data = ''
         for b in self._groups.getBuddies():
-            data += struct.pack('!H', len(b.name)) + b.name
+            data += struct.pack('!H', len(b.uin)) + b.uin
         self.sendSNAC(0x03, 0x04, 0, data)
 
     def parseSSIBuddy(self, groupID, name, tlvs):
@@ -854,6 +867,7 @@ class Protocol:
         # Setup it's GID and UIN right now
         b.gid = groupID
         b.uin = name
+        b.name = name
 
         for t in tlvs:
             tmp = "parseSSIItem_%02X" % t
