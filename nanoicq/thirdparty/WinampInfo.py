@@ -1,6 +1,6 @@
 
 #
-# $Id: WinampInfo.py,v 1.1 2006/01/17 12:21:41 lightdruid Exp $
+# $Id: WinampInfo.py,v 1.2 2006/02/22 16:25:43 lightdruid Exp $
 #
 
 import winamp
@@ -26,11 +26,11 @@ class WinampInfo:
     def __getattr__(self, a):
         return getattr(self._w, a)
 
-
-#w = WinampInfo()
-#print w.getPlayingStatus()
-#print w.getCurrentTrackName()
-#print w.getTrackInfo()
-#print w.dumpList()
+if __name__ == '__main__':
+    w = WinampInfo()
+    print w.getPlayingStatus()
+    print w.getCurrentTrackName()
+    print w.getTrackInfo()
+    print w.dumpList()
 
 # ---

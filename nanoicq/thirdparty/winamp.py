@@ -138,7 +138,7 @@ class winamp:
         return self.usercommand(125)
 
     def getCurrentTrackName(self):
-        return win32gui.GetWindowText(self.hWinamp)
+        return win32gui.GetWindowText(self.hWinamp)[: - len(' - Winamp')]
 
     def seekWithinTrack(self, iPositionMsecs):
         "seeks within currently playing track to specified milliseconds since start"
