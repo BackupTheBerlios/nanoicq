@@ -1,6 +1,6 @@
 
 #
-# $Id: history.py,v 1.10 2006/02/21 16:01:29 lightdruid Exp $
+# $Id: history.py,v 1.11 2006/02/22 15:46:18 lightdruid Exp $
 #
 
 import time
@@ -22,7 +22,6 @@ class History:
         del self._d[n]
 
     def append(self, msg):
-        #assert isinstance(msg, Message)
         self._d.append(msg)
 
     def store(self, b):
@@ -71,9 +70,11 @@ class History:
         txt = self._convDir(msg.getDirection()) + ' '
 
         if timestamp:
-            if longdate: fmt = '%d.%m.%Y %H:%M:%S'
-            else: fmt = '%x %X'
-            txt += time.strftime(fmt, time.localtime()) + ' '
+            if longdate:
+                fmt = '%d.%m.%Y %H:%M:%S'
+            else:
+                fmt = '%x %X'
+            txt += time.strftime(fmt, msg.getTimeStamp()) + ' '
         txt += msg.getContents()
 
         return txt

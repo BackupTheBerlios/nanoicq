@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.30 2006/02/22 10:23:47 lightdruid Exp $
+# $Id: messagedialog.py,v 1.31 2006/02/22 15:46:18 lightdruid Exp $
 #
 
 import sys
@@ -150,11 +150,12 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         self._history = History.restore(self._user)
 
+        print len(colorSet), len(_DEFAULT_COLORSET)
         assert len(colorSet) == 4
         self._colorSet = colorSet
 
         self.topPanel = MessagePanel(self, 'junk')
-        PersistenceMixin.__init__(self, self.topPanel, 'test.save')
+        PersistenceMixin.__init__(self, self.topPanel, 'widgets.save')
 
         # ---
         self.setUserName(self._user)
@@ -183,6 +184,8 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         self.Bind(wx.EVT_BUTTON, self.onCancel, id = wx.ID_CANCEL)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
+        self.populateHistory()
+
         if message is not None:
             self.updateMessage(message)
 
@@ -191,7 +194,8 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         Fill 'incoming' text with messages from history, up to mmax messages
         '''
         for h in self._history:
-            pass
+            if h is not None:
+                self.updateMessage(h)
 
     def onClose(self, evt):
         self.storeWidgets()
@@ -217,6 +221,9 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         evt.Skip()
 
+    def addToHistory(self, msg):
+        self._history.append(msg)
+
     def getBuddy(self):
         ''' Return buddy assigned to this conversation '''
         return self._user
@@ -224,6 +231,8 @@ class MessageDialog(wx.Frame, PersistenceMixin):
     def storeWidgets(self):
         self.storeObjects([self, self.topPanel.buttonOk, self.topPanel.splitter],
             name = self._user.name)
+
+        self.storeHistory()
 
         evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
         evt.setVal(self.GetId())
@@ -296,10 +305,11 @@ def _test():
 
             message = messageFactory("icq", 'user', '12345', 'text', HistoryDirection.Incoming)
 
-            h = History()
+#            h = History()
             b = Buddy()
             b.name = 'user'
-            d = MessageDialog(self, -1, b, message, h)
+            b.uin = '123456'
+            d = MessageDialog(self, -1, b, message)
             d.Show(True)
 
     class NanoApp(wx.App):

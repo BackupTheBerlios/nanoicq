@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.65 2006/02/22 13:01:03 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.66 2006/02/22 15:46:18 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.65 2006/02/22 13:01:03 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.66 2006/02/22 15:46:18 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -139,10 +139,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.config = Config()
         self.config.read('sample.config')
 
+        iconSetName = self.config.get('ui', 'iconset')
         self.iconSet = IconSet()
-        self.iconSet.addPath('icons/aox')
+        self.iconSet.addPath('icons/' + iconSetName)
         self.iconSet.loadIcons()
-        self.iconSet.setActiveSet('aox')
+        self.iconSet.setActiveSet(iconSetName)
 
         #---
         self.createTopMenuBar()
@@ -176,13 +177,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_MY_STATUS_CHANGED, self.onMyStatusChanged)
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
-        self.Bind(wx.EVT_MENU, self.showHelp, id = ID_HELP)
+        self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
 
         self.topPanel.userList.sampleFill()
 
         # ---
 
-    def showHelp(self, event):
+    def onShowHelp(self, event):
         try:
             import webbrowser
             webbrowser.open("http://nanoicq.berlios.de", 1)
@@ -230,8 +231,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         b = self.connector['icq'].getBuddy(userName)
 
         message = None
-        #self.showMessage(userName, message)
-
         self._showMessageDialog(message, b)
 
     def dialogClose(self, evt):
@@ -304,16 +303,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 # Do not try to update dialog when dialog is fresh
                 # and there is no message yet
                 d.updateMessage(m)
+                d.addToHistory(m)
             d.Show(True)
             d.SetFocus()
         else:
             self.showMessage(b.name, m)
 
-
     def event_New_buddy(self, kw):
-        print 'Called event_New_Buddy with '
-        print str(kw)
-
         b = kw['buddy']
         try:
             self.addBuddy(b)
@@ -416,6 +412,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         colorSet = self.connector["icq"].getColorSet()
         d = MessageDialog(self, -1, b, message, colorSet)
         d.SetIcon(self.mainIcon)
+        d.addToHistory(message)
 
         if not hide:
             d.Show()
