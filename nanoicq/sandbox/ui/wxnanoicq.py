@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.64 2006/02/22 12:44:42 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.65 2006/02/22 13:01:03 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.64 2006/02/22 12:44:42 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.65 2006/02/22 13:01:03 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -176,10 +176,24 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_MY_STATUS_CHANGED, self.onMyStatusChanged)
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
+        self.Bind(wx.EVT_MENU, self.showHelp, id = ID_HELP)
 
         self.topPanel.userList.sampleFill()
 
         # ---
+
+    def showHelp(self, event):
+        try:
+            import webbrowser
+            webbrowser.open("http://nanoicq.berlios.de", 1)
+        except:
+            from wx.lib.dialogs import ScrolledMessageDialog
+            dlg = ScrolledMessageDialog(parent = self, 
+                    caption = "Help",
+                    msg = """NanoICQ - alternative help (see the http://nanoicq.berlios.de for more elaborate information)                    
+                          """)
+            dlg.ShowModal()
+            dlg.Destroy()
 
     def onIconfiy(self, evt):
         if self.config.getboolean('ui', 'minimize.to.tray'):
