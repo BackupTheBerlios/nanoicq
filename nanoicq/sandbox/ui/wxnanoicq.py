@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.63 2006/02/21 15:02:10 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.64 2006/02/22 12:44:42 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.63 2006/02/21 15:02:10 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.64 2006/02/22 12:44:42 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -37,6 +37,7 @@ from message import Message
 from history import History
 from userlistctrl import UserListCtrl
 from iconset import *
+from AboutDialog import AboutDialog
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -384,6 +385,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def OnAbout(self, evt):
         evt.Skip()
+        ad = AboutDialog(self)
+        ad.Show()
 
     def OnIcqLogin(self, evt):
         self.connector['icq'].connect()
