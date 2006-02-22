@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.11 2006/02/21 16:15:09 lightdruid Exp $
+# $Id: message.py,v 1.12 2006/02/22 16:13:56 lightdruid Exp $
 #
 
 import time
@@ -9,7 +9,7 @@ from utils import *
 from HistoryDirection import Incoming, Outgoing
 
 class Message:
-    ICQ_MESSAGE = 0
+    ICQ_MESSAGE = "icq"
 
     def __init__(self, context, user, content, direction, timeStamp = None):
         self.MessageTypes = [Message.ICQ_MESSAGE]
@@ -37,7 +37,7 @@ class Message:
         return 'outgoing'
 
     def __repr__(self):
-        return "Class Message (type: %d, dest: %s, content: %s, dir: %s)" %\
+        return "Class Message (type: %s, dest: %s, content: %s, dir: %s)" %\
             (self._context, str(self._user), punicode(str(self._content)), self._decodeDirection(self._direction))
 
     def __eq__(self, m):
@@ -54,7 +54,7 @@ class ICQMessage(Message):
     def getUIN(self): return self._uin
 
     def __repr__(self):
-        return "Class ICQMessage (type: %d, dest: %s, uin: %s, content: %s, dir: %s)" %\
+        return "Class ICQMessage (type: %s, dest: %s, uin: %s, content: %s, dir: %s)" %\
             (self._context, str(self._user), self._uin, punicode(str(self._content)), self._decodeDirection(self._direction))
 
     def __eq__(self, m):
