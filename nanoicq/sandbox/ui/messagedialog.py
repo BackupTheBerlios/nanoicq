@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.28 2006/02/21 16:01:29 lightdruid Exp $
+# $Id: messagedialog.py,v 1.30 2006/02/22 10:23:47 lightdruid Exp $
 #
 
 import sys
@@ -16,6 +16,7 @@ from events import *
 from message import Message, messageFactory
 from history import History
 from buddy import Buddy
+import HistoryDirection
 
 # Default colorset bg/fg for incoming/outgoing messages
 _DEFAULT_COLORSET = ("white", "black", "white", "black")
@@ -58,8 +59,8 @@ class MessagePanel(wx.Panel):
         box1 = wx.StaticBox(self, -1)
         self.boxSizer1 = wx.StaticBoxSizer(box1, wx.HORIZONTAL)
 
-        self._userText = wx.StaticText(self, -1, '')
-        self.boxSizer1.Add(self._userText, 0, wx.ALIGN_LEFT | wx.ALL, 3)
+        self._userUin = wx.StaticText(self, -1, '')
+        self.boxSizer1.Add(self._userUin, 0, wx.ALIGN_LEFT | wx.ALL, 3)
 
         self.boxSizer1.Add(wx.StaticLine(self, -1, style = wx.LI_VERTICAL), 0, wx.EXPAND | wx.ALL, 3)
 
@@ -144,7 +145,6 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         assert isinstance(user, Buddy)
         self._user = user
-        userName = self._user.name
 
         self._parentFrame = parentFrame
 
@@ -153,17 +153,16 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         assert len(colorSet) == 4
         self._colorSet = colorSet
 
-        self.topPanel = MessagePanel(self, 'text')
+        self.topPanel = MessagePanel(self, 'junk')
         PersistenceMixin.__init__(self, self.topPanel, 'test.save')
 
         # ---
-        # In this case title = username
-        self.setUserName(userName)
-        self.setTitle(userName)
+        self.setUserName(self._user)
+        self.setTitle(self._user)
 
         try:
             self.restoreObjects([self.GetId(), ID_BUTTON_SEND, ID_SPLITTER],
-                name = self._userName)
+                name = self._user.name)
         except:
             typ, value, tb = sys.exc_info()
             list = traceback.format_tb(tb, None) + \
@@ -224,7 +223,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
     def storeWidgets(self):
         self.storeObjects([self, self.topPanel.buttonOk, self.topPanel.splitter],
-            name = self._userName)
+            name = self._user.name)
 
         evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
         evt.setVal(self.GetId())
@@ -237,7 +236,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
     def _colorize(self, message):
         txt = self._history.format(message, timestamp = True) + '\n'
 
-        if message.getDirection() == History.Incoming:
+        if message.getDirection() == HistoryDirection.Incoming:
             bg, fg = self._colorSet[0 : 2]
         else:
             bg, fg = self._colorSet[2 : 4]
@@ -258,7 +257,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         self._incoming.Refresh()
         self._incoming.Update()
 
-        if message.getDirection() == History.Outgoing:
+        if message.getDirection() == HistoryDirection.Outgoing:
             self._outgoing.Clear()
             self._outgoing.Update()
         
@@ -268,7 +267,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         message = messageFactory("icq",
             self._user.name, self._user.uin,
-            self._outgoing.GetValue(), History.Outgoing)
+            self._outgoing.GetValue(), HistoryDirection.Outgoing)
 
         self._history.append(message)
 
@@ -276,18 +275,16 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         evt.setVal( (self.GetId(), message) )
         wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
-        # ???
-        evt.Skip()
-
         # Update UI
+        evt.Skip()
         self.updateMessage(message)
 
-    def setTitle(self, title):
-        self.SetTitle(title)
+    def setTitle(self, b):
+        self.SetTitle(b.name)
 
-    def setUserName(self, userName):
-        self._userName = userName
-        self.topPanel._userText.SetLabel(userName)
+    def setUserName(self, b):
+        self.topPanel._userUin.SetLabel(b.uin)
+        self.topPanel._status.SetLabel(b.status)
 
 
 def _test():
@@ -297,7 +294,7 @@ def _test():
                 pos=(150, 150), size=(350, 200))
             wx.Panel(self, -1)
 
-            message = messageFactory("icq", 'user', '12345', 'text', History.Incoming)
+            message = messageFactory("icq", 'user', '12345', 'text', HistoryDirection.Incoming)
 
             h = History()
             b = Buddy()
