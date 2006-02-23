@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.66 2006/02/22 15:46:18 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.67 2006/02/23 14:23:30 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.66 2006/02/22 15:46:18 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.67 2006/02/23 14:23:30 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -179,7 +179,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
 
-        self.topPanel.userList.sampleFill()
+        #self.topPanel.userList.sampleFill()
 
         # ---
 

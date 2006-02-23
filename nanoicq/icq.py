@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.51 2006/02/21 16:05:51 lightdruid Exp $
+# $Id: icq.py,v 1.52 2006/02/23 14:23:30 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -405,6 +405,11 @@ class Protocol:
     def sendSNAC(self, family, subfamily, id, data):
         self.sendFLAP(0x02, self.encodeSNAC(family, subfamily, id, data))
 
+    def sendSNAC_C(self, ch, family, subfamily, id, data):
+        ''' Send SNAC using specific channel
+        '''
+        self.sendFLAP(ch, self.encodeSNAC(family, subfamily, id, data))
+
     def readSNAC(self, data):
         return list(struct.unpack("!HHBBL", data[:10])) + [data[10:]]
 
@@ -445,6 +450,28 @@ class Protocol:
             self.serverFamilies.append(struct.unpack("!H", data[:2])[0])
             data = data[2:]
 
+    def registrationRequest_plain(self, password):
+        r = ''
+        r += '\x00\x01\x00\x39'
+        r += '\x00\x00\x00\x00'
+        r += '\x28\x00\x03\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x62\x4e\x00\x00'
+        r += '\x62\x4e\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+
+        r += struct.pack("<H", len(password))
+        r += password + "\x00"
+        
+        r += '\x62\x4e\x00\x00'
+        r += '\x00\x00\xd6\x01'
+
+        self.sendFLAP(0x01, r)
+
     def registrationRequest(self, password):
         '''
         SNAC(17,04)     CLI_REGISTRATION_REQUEST 
@@ -463,8 +490,26 @@ class Protocol:
         # xx xx xx xx        dword       registration cookie 
         # xx xx xx xx        dword       registration cookie (the same)
 
-        req =  "\x00\x00\x00\x00\x28\x00\x03\x00"
-        req += "\x00\x00\x00\x00\x00\x00\x00\x00"
+        req =  "\x00\x00\x00\x00"
+        req += "\x28\x00"
+        req += "\x03\x00"
+        req += "\x00\x00\x00\x00"
+        req += "\x00\x00\x00\x00"
+        cookie = genCookie()[0:4]
+        req += cookie
+        req += cookie
+        req += "\x00\x00\x00\x00"
+        req += "\x00\x00\x00\x00"
+        req += "\x00\x00\x00\x00"
+        req += "\x00\x00\x00\x00"
+        req += struct.pack("<H", len(password))
+        req += password + "\x00"
+        req += cookie
+        req += "\x00\x00"
+        req += "\xD6\x01"
+
+        log().log("Sending new UIN registration request...")
+        self.sendSNAC(0x17, 0x04, 0, tlv(0x01, req))
 
     def proc_2_1_19(self, data):
         '''
@@ -1684,7 +1729,7 @@ def _test():
 
     # ===============
 
-    using_proxy = 1
+    using_proxy = 0
 
     if using_proxy == 0:
         s = ISocket(host, int(port))
@@ -1719,7 +1764,20 @@ def _test():
 
         func(snac[5])
 
+def _test_new_uin():
+
+    p = Protocol()
+    p.connect('login.icq.com', 5190)
+
+    buf = p.read()
+    log().packetin(buf)
+
+    p.registrationRequest('xyl')
+    buf = p.read()
+    log().packetin(buf)
+
+
 if __name__ == '__main__':
-    _test()
+    _test_new_uin()
 
 # ---
