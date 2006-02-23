@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.53 2006/02/23 15:37:01 lightdruid Exp $
+# $Id: icq.py,v 1.54 2006/02/23 16:32:47 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -472,7 +472,7 @@ class Protocol:
 
         self.sendFLAP(0x01, r)
 
-    def registrationRequest(self, password):
+    def registrationRequest_my(self, password):
         '''
         SNAC(17,04)     CLI_REGISTRATION_REQUEST 
         Use this snac when you need new ICQ account (uin/password). 
@@ -510,6 +510,28 @@ class Protocol:
 
         log().log("Sending new UIN registration request...")
         self.sendSNAC(0x17, 0x04, 0, tlv(0x01, req))
+
+    def registrationRequest(self, password):
+        r = ''
+        r += '\x00\x01'
+        r += struct.pack("<H", len(password) + 51)
+        r += '\x00\x00\x00\x00'
+        r += '\x28\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+
+        r += struct.pack("<H", len(password)) + password
+        r += '\x00\x00\x00\x00'
+        r += '\xf2\x07\x00\x00'
+
+        self.sendSNAC_C(1, 0x17, 0x04, 0, r)
 
     def proc_2_1_19(self, data):
         '''
@@ -1767,9 +1789,9 @@ def _test():
 def _test_new_uin():
 
     p = Protocol()
-    #p.connect('login.icq.com', 5190)
+    p.connect('login.icq.com', 5190)
     #p.connect('205.188.5.92', 5190)
-    p.connect('ibucp-vip-d.blue.aol.com', 5190)
+    #p.connect('ibucp-vip-d.blue.aol.com', 5190)
 
 
     buf = p.read()
