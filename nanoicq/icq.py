@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.52 2006/02/23 14:23:30 lightdruid Exp $
+# $Id: icq.py,v 1.53 2006/02/23 15:37:01 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1767,7 +1767,10 @@ def _test():
 def _test_new_uin():
 
     p = Protocol()
-    p.connect('login.icq.com', 5190)
+    #p.connect('login.icq.com', 5190)
+    #p.connect('205.188.5.92', 5190)
+    p.connect('ibucp-vip-d.blue.aol.com', 5190)
+
 
     buf = p.read()
     log().packetin(buf)
@@ -1778,6 +1781,7 @@ def _test_new_uin():
 
 
 if __name__ == '__main__':
+    #_test()
     _test_new_uin()
 
 # ---
