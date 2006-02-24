@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.3 2006/02/24 13:27:20 lightdruid Exp $
+# $Id: FindUser.py,v 1.4 2006/02/24 15:33:45 lightdruid Exp $
 #
 
 import sys
@@ -234,12 +234,27 @@ class FindUserPanel(wx.Panel):
         self.Bind(wx.EVT_TOGGLEBUTTON, self.onToggle, self.advancedButton)
         self.Bind(wx.EVT_TEXT, self.userIDText)
 
+        self.Bind(wx.EVT_BUTTON, self.doSearch, id = self.searchButton.GetId())
+
+        self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
+
         # ---
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
 
+    def onResultByUin(self, evt):
+        evt.Skip()
+        b = evt.getVal()
+        print 'Got it', b
+        self._foundBuddy(b)
+
+    def _foundBuddy(self, b):
+        #self.results
+        pass
+
     def userIDText(self, evt):
         evt.Skip()
+
         for id1, id2 in self._binds:
             if evt.GetId() == id1:
                 if not self.FindWindowById(id2).GetValue():
@@ -263,6 +278,13 @@ class FindUserPanel(wx.Panel):
     def setDefaults(self):
         self.userIDRadio.SetValue(True)
         self.userID.SetFocus()
+
+    def doSearch(self, evt):
+        evt.Skip()
+
+        evt = NanoEvent(nanoEVT_SEARCH_BY_UIN, self.GetId())
+        evt.setVal(self.userID.GetValue())
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
 
 class FindUserFrame(wx.Frame):

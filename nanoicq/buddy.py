@@ -1,11 +1,11 @@
 
 #
-# $Id: buddy.py,v 1.6 2006/02/07 13:04:06 lightdruid Exp $
+# $Id: buddy.py,v 1.7 2006/02/24 15:33:45 lightdruid Exp $
 #
 
 from antarctica import Frozen
 
-class Buddy(Frozen):
+class Buddy:
 
     def __init__(self):
         self.name = None

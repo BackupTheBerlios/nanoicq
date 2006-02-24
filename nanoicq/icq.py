@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.54 2006/02/23 16:32:47 lightdruid Exp $
+# $Id: icq.py,v 1.55 2006/02/24 15:33:45 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -532,6 +532,23 @@ class Protocol:
         r += '\xf2\x07\x00\x00'
 
         self.sendSNAC_C(1, 0x17, 0x04, 0, r)
+
+    def searchByUin(self, ownerUin, uin):
+        '''
+        SNAC(15,02)/07D0/051F   CLI_FIND_BY_UIN     
+
+        This is client search by uin request. Server should respond with 
+        last search found record SNAC(15,03)/07DA/01AE because uin 
+        number is unique. '''
+
+        data = struct.pack('<L', int(ownerUin))
+        data += "\xd0\x07\x02\x00\x1f\x05"
+        data += struct.pack('<L', int(uin))
+        data = struct.pack('<H', len(data)) + data
+
+        log().log("Sending UIN search request for " + uin)
+
+        self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
 
     def proc_2_1_19(self, data):
         '''
@@ -1559,7 +1576,75 @@ class Protocol:
         user information packet.
         '''
         tlvs = readTLVs(data)
-        print coldump(tlvs[1])
+        d = tlvs[1]
+        print coldump(d)
+
+        dsize, ownerUin, dataType, seqNum, dataSubType = struct.unpack("<HLHHH", d[:12])
+        print dsize, ownerUin, dataType, seqNum, dataSubType
+
+        dataTypeX = "%04X" % dataType
+        dataSubTypeX = "%04X" % dataSubType
+
+        tmp = "userFound_%s_%s" % (dataTypeX, dataSubTypeX)
+        print tmp
+        func = getattr(self, tmp)
+        func(d[12:])
+
+    def userFound_07DA_019A(self, data):
+        '''
+        SNAC(15,03)/07DA/01AE   SRV_LAST_USER_FOUND     
+
+        This is the server response to search request. This is the last 
+        search packet. SNAC flags bit1 allways=0. Server sends non-last 
+        search found records via SNAC(15,03)/07DA/01A4.
+        '''
+
+        successByte  = data[:1]
+        dsize = struct.unpack("<H", data[1:3])
+        uin = data[3 : 7]
+        data = data[7:]
+
+        nickLen = int(struct.unpack('<H', data[0:2])[0])
+        nick = str(data[2 : nickLen + 1])
+        data = data[nickLen + 2:]
+
+        firstLen = int(struct.unpack('<H', data[0:2])[0])
+        first = str(data[2 : firstLen + 1])
+        data = data[firstLen + 2:]
+
+        lastLen = int(struct.unpack('<H', data[0:2])[0])
+        last = str(data[2 : lastLen + 1])
+        data = data[lastLen + 2:]
+
+        emailLen = int(struct.unpack('<H', data[0:2])[0])
+        email = str(data[2 : emailLen + 1])
+        data = data[emailLen + 2:]
+
+        authFlag = data[:1]
+        status = struct.unpack("<H", data[1:3])[0]
+        data = data[3:]
+
+        gender = data[:1]
+
+        age = int(struct.unpack("<H", data[0:2])[0])
+        data = data[2:]
+
+        usersLeft = struct.unpack("<L", data)[0]
+
+        log().log("Nick: %s, First: %s, Last: %s, E-mail: %s, Age: %d" %\
+            (nick, first, last, email, age))
+        log().log("User left: %d" % usersLeft)
+
+        b = Buddy()
+        b.uin = uin
+        b.name = nick
+        b.first = first
+        b.last = last
+        b.email = email
+        b.gender = gender
+        b.age = age
+
+        self.react("Results", buddy = b)
 
     def proc_2_3_10(self, data):
         '''
@@ -1803,7 +1888,7 @@ def _test_new_uin():
 
 
 if __name__ == '__main__':
-    #_test()
-    _test_new_uin()
+    _test()
+    #_test_new_uin()
 
 # ---

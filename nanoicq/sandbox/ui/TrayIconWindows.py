@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.8 2006/02/21 14:36:52 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.9 2006/02/24 15:33:45 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -8,6 +8,7 @@
 import wx
 
 from events import *
+from FindUser import FindUserFrame
 
 class TrayIcon(wx.TaskBarIcon):
     TBMENU_RESTORE = wx.NewId()
@@ -73,6 +74,12 @@ class TrayIcon(wx.TaskBarIcon):
 
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarActivate, id = self.TBMENU_RESTORE)
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarClose, id = self.TBMENU_CLOSE)
+
+        self.Bind(wx.EVT_MENU, self.onFindUser, id = self.TBMENU_MAIN_FIND_CONTACTS)
+
+    def onFindUser(self, evt):
+        self.fu = FindUserFrame(None, -1)
+        self.fu.Show(True)
 
     def onStatusChange(self, evt):
         evt.Skip()

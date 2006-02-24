@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.67 2006/02/23 14:23:30 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.68 2006/02/24 15:33:45 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.67 2006/02/23 14:23:30 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.68 2006/02/24 15:33:45 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -176,6 +176,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_BUDDY_STATUS_CHANGED, self.onBuddyStatusChanged)
         self.Bind(EVT_MY_STATUS_CHANGED, self.onMyStatusChanged)
 
+        self.Bind(EVT_SEARCH_BY_UIN, self.onSearchByUin)
+
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
 
@@ -183,7 +185,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         # ---
 
-    def onShowHelp(self, event):
+    def onSearchByUin(self, evt):
+        ownerUin = self.config.get("icq", "uin")
+        uin = evt.getVal()
+        self.connector["icq"].searchByUin(ownerUin, uin)
+
+    def onShowHelp(self, evt):
         try:
             import webbrowser
             webbrowser.open("http://nanoicq.berlios.de", 1)
@@ -309,6 +316,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
         else:
             self.showMessage(b.name, m)
 
+    def event_Results(self, kw):
+        b = kw['buddy']
+
+        evt = NanoEvent(nanoEVT_RESULT_BY_UIN, self.GetId())
+        evt.setVal(b)
+        self.trayIcon.fu.GetEventHandler().AddPendingEvent(evt)
+
     def event_New_buddy(self, kw):
         b = kw['buddy']
         try:
@@ -395,8 +409,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def OnAbout(self, evt):
         evt.Skip()
-        ad = AboutDialog(self)
-        ad.Show()
+
+        self.connector["icq"].searchByUin(self.config.get("icq", "uin"), "223606200")
+
+        #ad = AboutDialog(self)
+        #ad.Show()
 
     def OnIcqLogin(self, evt):
         self.connector['icq'].connect()
