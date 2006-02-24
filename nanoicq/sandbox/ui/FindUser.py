@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.1 2006/02/24 12:14:44 lightdruid Exp $
+# $Id: FindUser.py,v 1.2 2006/02/24 12:38:57 lightdruid Exp $
 #
 
 import sys
@@ -74,12 +74,12 @@ class FindUserPanel(wx.Panel):
         self.last = wx.TextCtrl(self, -1, '', size = (110, -1))
 
         self.nameSizer = rcs.RowColSizer()
-        self.nameSizer.Add(wx.StaticText(self, -1, 'Nick:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.nameSizer.Add(self.nick, row = 1, col = 3, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.nameSizer.Add(wx.StaticText(self, -1, 'First:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.nameSizer.Add(self.first, row = 2, col = 3, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.nameSizer.Add(wx.StaticText(self, -1, 'Last:'), row = 3, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.nameSizer.Add(self.last, row = 3, col = 3, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.nameSizer.Add(wx.StaticText(self, -1, 'Nick:'), row = 0, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.nameSizer.Add(self.nick, row = 0, col = 3, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.nameSizer.Add(wx.StaticText(self, -1, 'First:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.nameSizer.Add(self.first, row = 1, col = 3, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.nameSizer.Add(wx.StaticText(self, -1, 'Last:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.nameSizer.Add(self.last, row = 2, col = 3, flag = wx.ALIGN_CENTER_VERTICAL)
 
         boxSizer3.Add(self.nameRadio, 0, wx.ALL, 3)
         boxSizer3.Add(self.nameSizer, 0, wx.ALL, 3)
@@ -103,9 +103,53 @@ class FindUserPanel(wx.Panel):
 
         self.setDefaults()
 
+        self.Bind(wx.EVT_RADIOBUTTON, self.onUserIDSelect, self.userIDRadio)
+        self.Bind(wx.EVT_RADIOBUTTON, self.onEmailSelect, self.emailRadio)
+        self.Bind(wx.EVT_RADIOBUTTON, self.onNameSelect, self.nameRadio)
+
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.onToggle, self.advancedButton)
+
+        self._binds = [
+            (self.userID.GetId(), self.userIDRadio.GetId()),
+            (self.email.GetId(), self.emailRadio.GetId()),
+            (self.nick.GetId(), self.nameRadio.GetId()),
+            (self.first.GetId(), self.nameRadio.GetId()),
+            (self.last.GetId(), self.nameRadio.GetId()),
+        ]
+
+        self.Bind(wx.EVT_TEXT, self.userIDText)
+
         # ---
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
+
+    def userIDText(self, evt):
+        evt.Skip()
+        for id1, id2 in self._binds:
+            if evt.GetId() == id1:
+                if not self.FindWindowById(id2).GetValue():
+                    self.FindWindowById(id2).SetValue(True)
+                if self.advancedButton.GetValue():
+                    self.advancedButton.SetValue(False)
+
+    def onToggle(self, evt):
+        evt.Skip()
+        self.advancedRadio.SetValue(True)
+
+    def onUserIDSelect(self, evt):
+        evt.Skip()
+        self.userID.SetFocus()
+        self.advancedButton.SetValue(False)
+
+    def onEmailSelect(self, evt):
+        evt.Skip()
+        self.email.SetFocus()
+        self.advancedButton.SetValue(False)
+
+    def onNameSelect(self, evt):
+        evt.Skip()
+        self.nick.SetFocus()
+        self.advancedButton.SetValue(False)
 
     def setDefaults(self):
         self.userIDRadio.SetValue(True)
