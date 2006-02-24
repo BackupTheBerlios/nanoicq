@@ -1,16 +1,20 @@
 
 #
-# $Id: FindUser.py,v 1.2 2006/02/24 12:38:57 lightdruid Exp $
+# $Id: FindUser.py,v 1.3 2006/02/24 13:27:20 lightdruid Exp $
 #
 
 import sys
 import traceback
+import string
+
 import wx
 import wx.lib.rcsizer as rcs
+import wx.lib.mixins.listctrl as listmix
 
 sys.path.insert(0, '../..')
 from events import *
 from buddy import Buddy
+from iconset import IconSet
 
 
 class SearchStatusBar(wx.StatusBar):
@@ -18,6 +22,8 @@ class SearchStatusBar(wx.StatusBar):
         wx.StatusBar.__init__(self, parent, -1)
         self.SetFieldsCount(2)
         self.SetStatusWidths([-2, -1])
+
+        #self.Reposition()
 
     def setFileName(self, fn):
         path, fileName = os.path.split(fn)
@@ -32,6 +38,101 @@ class SearchStatusBar(wx.StatusBar):
         else:
             self.SetStatusText(" ", 2)
 
+    def __OnSize(self, evt):
+        self.Reposition()
+        self.sizeChanged = True
+
+    def __OnIdle(self, evt):
+        if self.sizeChanged:
+            self.Reposition()
+
+    def __Reposition(self):
+        rect = self.GetFieldRect(1)
+        self.g.SetPosition((rect.x+2, rect.y+2))
+        self.g.SetSize((rect.width-4, rect.height-4))
+        self.sizeChanged = False
+
+
+_DIGIT_ONLY = 2
+
+class DigitValidator(wx.PyValidator):
+    def __init__(self, flag = _DIGIT_ONLY, pyVar = None):
+        wx.PyValidator.__init__(self)
+        self.flag = flag
+        self.Bind(wx.EVT_CHAR, self.OnChar)
+
+    def Clone(self):
+        return DigitValidator(self.flag)
+
+    def Validate(self, win):
+        tc = self.GetWindow()
+        val = tc.GetValue()
+        
+        if self.flag == _DIGIT_ONLY:
+            for x in val:
+                if x not in string.digits:
+                    return False
+
+        return True
+
+    def OnChar(self, event):
+        key = event.KeyCode()
+
+        if key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255:
+            event.Skip()
+            return
+
+        if self.flag == _DIGIT_ONLY and chr(key) in string.digits:
+            event.Skip()
+            return
+
+        if not wx.Validator_IsSilent():
+            wx.Bell()
+
+        return
+
+
+class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+    def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
+            size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_SIMPLE):
+
+        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
+
+        self._parent = parent
+
+        assert isinstance(iconSet, IconSet)
+        self.iconSet = iconSet
+
+        self.currentItem = -1
+        self.buddies = {}
+
+        info = wx.ListItem()
+        info.m_mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT
+        info.m_image = -1
+        info.m_format = 0
+        info.m_text = ""
+        self.InsertColumnInfo(0, info)
+
+        self.SetColumnWidth(0, 22)
+
+        headers = ("Nick", "First Name", "Last Name", "E-mail", "User ID")
+        ii = 1
+        for t in headers:
+            info.m_text = t
+            self.InsertColumnInfo(ii, info)
+            ii += 1
+
+#        for ii in range(len(headers)):
+#            self.SetColumnWidth(ii, wx.LIST_AUTOSIZE)
+#            pass
+
+        self.il = wx.ImageList(16, 16)
+
+        for status in IconSet.FULL_SET:
+            self.idx1 = self.il.Add(self.iconSet[status])
+        self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
 
 class FindUserPanel(wx.Panel):
     protocolList = ["ICQ"]
@@ -39,21 +140,27 @@ class FindUserPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
 
-        #wx.StaticText(self, -1, '45')
-
         sizer = rcs.RowColSizer()
         r = 0
 
+        self.g = wx.Gauge(self, -1, size = (168, 15), style = wx.GA_SMOOTH)
+        self.g.SetBezelFace(0)
+        self.g.SetShadowWidth(0)
+        sizer.Add(self.g, row = r, col = 1)
+        self.g.Hide()
+        r += 1
+
         protoSizer = rcs.RowColSizer()
         self.protocol = wx.ComboBox(self, -1, self.protocolList[0], size = (110, -1), choices = self.protocolList, style = wx.CB_READONLY)
-        protoSizer.Add(wx.StaticText(self, -1, 'Search:'), row = 1, col = 0)
-        protoSizer.Add(self.protocol, row = 1, col = 3)
-        sizer.Add(protoSizer, row = r, col = 1)
+        protoSizer.Add(wx.StaticText(self, -1, 'Search:'), row = 0, col = 0)
+        protoSizer.Add(self.protocol, row = 0, col = 3)
+        sizer.Add(protoSizer, row = r, col = 1, flag = wx.EXPAND)
         r += 1
 
         boxSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
         self.userIDRadio = wx.RadioButton(self, -1, "User ID")
-        self.userID = wx.TextCtrl(self, -1, '', size = (155, -1))
+        self.userID = wx.TextCtrl(self, -1, '', size = (155, -1),
+            validator = DigitValidator())
         boxSizer1.Add(self.userIDRadio, 0, wx.ALL, 3)
         boxSizer1.Add(self.userID, 0, wx.ALL, 3)
         sizer.Add(boxSizer1, row = r, col = 1)
@@ -101,13 +208,19 @@ class FindUserPanel(wx.Panel):
         sizer.Add(searchSizer, row = r, col = 1)
         r += 1
 
+        ###
+        self.iconSet = IconSet()
+        self.iconSet.addPath('icons/aox')
+        self.iconSet.loadIcons()
+        self.iconSet.setActiveSet('aox')            
+
+        self.results = ResultsList(self, -1, self.iconSet)
+        sizer.Add(self.results, row = 0, col = 2, rowspan = r - 0, colspan = 10, flag = wx.EXPAND)
+
+        sizer.AddGrowableCol(2)
+        sizer.AddGrowableRow(r-1)
+
         self.setDefaults()
-
-        self.Bind(wx.EVT_RADIOBUTTON, self.onUserIDSelect, self.userIDRadio)
-        self.Bind(wx.EVT_RADIOBUTTON, self.onEmailSelect, self.emailRadio)
-        self.Bind(wx.EVT_RADIOBUTTON, self.onNameSelect, self.nameRadio)
-
-        self.Bind(wx.EVT_TOGGLEBUTTON, self.onToggle, self.advancedButton)
 
         self._binds = [
             (self.userID.GetId(), self.userIDRadio.GetId()),
@@ -117,6 +230,8 @@ class FindUserPanel(wx.Panel):
             (self.last.GetId(), self.nameRadio.GetId()),
         ]
 
+        self.Bind(wx.EVT_RADIOBUTTON, self.onUserIDSelect)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.onToggle, self.advancedButton)
         self.Bind(wx.EVT_TEXT, self.userIDText)
 
         # ---
@@ -131,6 +246,7 @@ class FindUserPanel(wx.Panel):
                     self.FindWindowById(id2).SetValue(True)
                 if self.advancedButton.GetValue():
                     self.advancedButton.SetValue(False)
+                break
 
     def onToggle(self, evt):
         evt.Skip()
@@ -138,18 +254,11 @@ class FindUserPanel(wx.Panel):
 
     def onUserIDSelect(self, evt):
         evt.Skip()
-        self.userID.SetFocus()
-        self.advancedButton.SetValue(False)
 
-    def onEmailSelect(self, evt):
-        evt.Skip()
-        self.email.SetFocus()
-        self.advancedButton.SetValue(False)
-
-    def onNameSelect(self, evt):
-        evt.Skip()
-        self.nick.SetFocus()
-        self.advancedButton.SetValue(False)
+        for id1, id2 in self._binds:
+            if evt.GetId() == id2:
+                self.FindWindowById(id1).SetFocus()
+                break
 
     def setDefaults(self):
         self.userIDRadio.SetValue(True)
