@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.9 2006/02/24 15:33:45 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.10 2006/02/25 17:13:58 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -57,9 +57,9 @@ class TrayIcon(wx.TaskBarIcon):
         ("TBMENU_STATUS_INVISIBLE"     , "Invisible",       "invisible"),
     ]
 
-    def __init__(self, frame, icon, iconSet):
+    def __init__(self, parent, icon, iconSet):
         wx.TaskBarIcon.__init__(self)
-        self.frame = frame
+        self.parent = parent
 
         # Set the image
         self._icon = icon
@@ -77,9 +77,12 @@ class TrayIcon(wx.TaskBarIcon):
 
         self.Bind(wx.EVT_MENU, self.onFindUser, id = self.TBMENU_MAIN_FIND_CONTACTS)
 
+    def onResultByUin(self, b):
+        print 'onResultByUin', b
+
     def onFindUser(self, evt):
-        self.fu = FindUserFrame(None, -1)
-        self.fu.Show(True)
+        evt.Skip()
+        self.parent.onFindUser(evt)
 
     def onStatusChange(self, evt):
         evt.Skip()

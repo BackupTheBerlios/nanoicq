@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.56 2006/02/25 13:57:47 lightdruid Exp $
+# $Id: icq.py,v 1.57 2006/02/25 17:13:58 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1605,7 +1605,7 @@ class Protocol:
 
         successByte  = data[:1]
         dsize = struct.unpack("<H", data[1:3])
-        uin = data[3 : 7]
+        uin = str(struct.unpack("<L", data[3:7])[0])
         data = data[7:]
 
         nickLen = int(struct.unpack('<H', data[0:2])[0])

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.68 2006/02/24 15:33:45 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.69 2006/02/25 17:13:58 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.68 2006/02/24 15:33:45 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.69 2006/02/25 17:13:58 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -38,6 +38,7 @@ from history import History
 from userlistctrl import UserListCtrl
 from iconset import *
 from AboutDialog import AboutDialog
+from FindUser import FindUserFrame
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -47,6 +48,7 @@ from TrayIcon import TrayIcon
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
 ID_ICQ_LOGIN = wx.NewId()
+ID_FIND_USER = wx.NewId()
 
 ID_HIDE_OFFLINE = wx.NewId()
 
@@ -55,6 +57,7 @@ _topMenu = (
         (
             (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin", 0),
             (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onToggleHideOffline", wx.ITEM_CHECK),
+            (ID_FIND_USER, "Find/Add Users...\tF7", "Find/Add Users...", "self.onFindUser", 0),
             (),
             (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit", 0),
         )
@@ -180,6 +183,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
+
+        #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
         #self.topPanel.userList.sampleFill()
 
@@ -321,7 +326,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         evt = NanoEvent(nanoEVT_RESULT_BY_UIN, self.GetId())
         evt.setVal(b)
-        self.trayIcon.fu.GetEventHandler().AddPendingEvent(evt)
+        self.fu.GetEventHandler().AddPendingEvent(evt)
 
     def event_New_buddy(self, kw):
         b = kw['buddy']
@@ -412,8 +417,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.connector["icq"].searchByUin(self.config.get("icq", "uin"), "223606200")
 
+        #b = Buddy()
+        #evt = NanoEvent(nanoEVT_RESULT_BY_UIN, self.GetId())
+        #evt.setVal(b)
+        #wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
         #ad = AboutDialog(self)
         #ad.Show()
+
+    def onFindUser(self, evt):
+        self.fu = FindUserFrame(None, -1)
+        self.fu.Show(True)
 
     def OnIcqLogin(self, evt):
         self.connector['icq'].connect()

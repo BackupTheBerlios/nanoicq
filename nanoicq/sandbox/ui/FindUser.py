@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.4 2006/02/24 15:33:45 lightdruid Exp $
+# $Id: FindUser.py,v 1.5 2006/02/25 17:13:58 lightdruid Exp $
 #
 
 import sys
@@ -232,27 +232,31 @@ class FindUserPanel(wx.Panel):
 
         self.Bind(wx.EVT_RADIOBUTTON, self.onUserIDSelect)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.onToggle, self.advancedButton)
-        self.Bind(wx.EVT_TEXT, self.userIDText)
+        self.Bind(wx.EVT_TEXT, self.onText)
+        self.Bind(wx.EVT_TEXT_ENTER, self.onTextEnter)
 
         self.Bind(wx.EVT_BUTTON, self.doSearch, id = self.searchButton.GetId())
-
-        self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
         # ---
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
 
-    def onResultByUin(self, evt):
+    def showBuddy(self, b):
+
+        index = self.results.InsertImageStringItem(sys.maxint, '', 0)
+        self.results.SetStringItem(index, 1, b.name)
+        self.results.SetStringItem(index, 2, b.first)
+        self.results.SetStringItem(index, 3, b.last)
+        self.results.SetStringItem(index, 4, b.email)
+        self.results.SetStringItem(index, 5, b.uin)
+        self.results.SetItemData(index, int(b.uin))
+
+    def onTextEnter(self, evt):
         evt.Skip()
-        b = evt.getVal()
-        print 'Got it', b
-        self._foundBuddy(b)
 
-    def _foundBuddy(self, b):
-        #self.results
-        pass
+        self.doSearch(evt)
 
-    def userIDText(self, evt):
+    def onText(self, evt):
         evt.Skip()
 
         for id1, id2 in self._binds:
@@ -294,10 +298,18 @@ class FindUserFrame(wx.Frame):
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX  | wx.MINIMIZE_BOX):
 
         wx.Frame.__init__(self, None, ID, size = size, style = style)
-        p = FindUserPanel(self)
+        self.panel = FindUserPanel(self)
 
         self.sb = SearchStatusBar(self)
         self.SetStatusBar(self.sb)
+
+        self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
+
+    def onResultByUin(self, evt):
+        evt.Skip()
+        b = evt.getVal()
+        print 'Got it', b
+        self.panel.showBuddy(b)
 
 def _test():
     class NanoApp(wx.App):
