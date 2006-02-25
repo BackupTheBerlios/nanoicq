@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.11 2006/02/25 19:53:51 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.12 2006/02/25 20:31:22 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -120,9 +120,9 @@ class TrayIcon(wx.TaskBarIcon):
 
         menu = wx.Menu()
         item = wx.MenuItem(menu, self.TBMENU_RESTORE, "Hide/Show", "")
-        font = item.GetFont()
-        font.SetWeight(wx.FONTWEIGHT_BOLD)
-        item.SetFont(font)
+        #font = item.GetFont()
+        #font.SetWeight(wx.FONTWEIGHT_BOLD)
+        #item.SetFont(font)
         menu.AppendItem(item)
 
         menu.AppendMenu(self.TBMENU_MAIN, 'Main Menu', mainMenu)
