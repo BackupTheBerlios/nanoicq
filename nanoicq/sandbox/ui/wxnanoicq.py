@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.69 2006/02/25 17:13:58 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.70 2006/02/25 19:53:51 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.69 2006/02/25 17:13:58 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.70 2006/02/25 19:53:51 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -43,13 +43,13 @@ from FindUser import FindUserFrame
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
 # interface with no functionality
+
 from TrayIcon import TrayIcon
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
 ID_ICQ_LOGIN = wx.NewId()
 ID_FIND_USER = wx.NewId()
-
 ID_HIDE_OFFLINE = wx.NewId()
 
 _topMenu = (
@@ -180,6 +180,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_MY_STATUS_CHANGED, self.onMyStatusChanged)
 
         self.Bind(EVT_SEARCH_BY_UIN, self.onSearchByUin)
+        self.Bind(EVT_SEARCH_BY_EMAIL, self.onSearchByEmail)
+        self.Bind(EVT_SEARCH_BY_NAME, self.onSearchByName)
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
@@ -191,9 +193,19 @@ class TopFrame(wx.Frame, PersistenceMixin):
         # ---
 
     def onSearchByUin(self, evt):
+        print 'onSearchByUin'
         ownerUin = self.config.get("icq", "uin")
         uin = evt.getVal()
         self.connector["icq"].searchByUin(ownerUin, uin)
+
+    def onSearchByEmail(self, evt):
+        print 'onSearchByEmail'
+        ownerUin = self.config.get("icq", "uin")
+        email = evt.getVal()
+        self.connector["icq"].searchByEmail(ownerUin, email)
+
+    def onSearchByName(self, evt):
+        print 'onSearchByName'
 
     def onShowHelp(self, evt):
         try:

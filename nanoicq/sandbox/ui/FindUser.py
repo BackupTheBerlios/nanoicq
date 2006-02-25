@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.5 2006/02/25 17:13:58 lightdruid Exp $
+# $Id: FindUser.py,v 1.6 2006/02/25 19:53:51 lightdruid Exp $
 #
 
 import sys
@@ -134,6 +134,11 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
 
+ID_userIDRadio = wx.NewId()
+ID_emailRadio = wx.NewId()
+ID_nameRadio = wx.NewId()
+
+
 class FindUserPanel(wx.Panel):
     protocolList = ["ICQ"]
 
@@ -158,7 +163,7 @@ class FindUserPanel(wx.Panel):
         r += 1
 
         boxSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
-        self.userIDRadio = wx.RadioButton(self, -1, "User ID")
+        self.userIDRadio = wx.RadioButton(self, ID_userIDRadio, "User ID")
         self.userID = wx.TextCtrl(self, -1, '', size = (155, -1),
             validator = DigitValidator())
         boxSizer1.Add(self.userIDRadio, 0, wx.ALL, 3)
@@ -167,7 +172,7 @@ class FindUserPanel(wx.Panel):
         r += 1
 
         boxSizer2 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
-        self.emailRadio = wx.RadioButton(self, -1, "E-mail address")
+        self.emailRadio = wx.RadioButton(self, ID_emailRadio, "E-mail address")
         self.email = wx.TextCtrl(self, -1, '', size = (155, -1))
         boxSizer2.Add(self.emailRadio, 0, wx.ALL, 3)
         boxSizer2.Add(self.email, 0, wx.ALL, 3)
@@ -175,7 +180,7 @@ class FindUserPanel(wx.Panel):
         r += 1
 
         boxSizer3 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
-        self.nameRadio = wx.RadioButton(self, -1, "Name")
+        self.nameRadio = wx.RadioButton(self, ID_nameRadio, "Name")
         self.nick = wx.TextCtrl(self, -1, '', size = (110, -1))
         self.first = wx.TextCtrl(self, -1, '', size = (110, -1))
         self.last = wx.TextCtrl(self, -1, '', size = (110, -1))
@@ -241,6 +246,31 @@ class FindUserPanel(wx.Panel):
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
 
+    def _getActiveSearch(self):
+        if self.FindWindowById(ID_userIDRadio).GetValue():
+            self._searchByUin()
+        elif self.FindWindowById(ID_emailRadio).GetValue():
+            self._searchByEmail()
+        elif self.FindWindowById(ID_nameRadio).GetValue():
+            self._searchByName()
+        else:
+            assert 1 == 2
+
+    def _searchByUin(self):
+        evt = NanoEvent(nanoEVT_SEARCH_BY_UIN, self.GetId())
+        evt.setVal(self.userID.GetValue())
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
+    def _searchByEmail(self):
+        evt = NanoEvent(nanoEVT_SEARCH_BY_EMAIL, self.GetId())
+        evt.setVal(self.email.GetValue())
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
+    def _searchByName(self):
+        evt = NanoEvent(nanoEVT_SEARCH_BY_NAME, self.GetId())
+        evt.setVal( (self.nick.GetValue(), self.first.GetValue(), self.last.GetValue()) )
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
     def showBuddy(self, b):
 
         index = self.results.InsertImageStringItem(sys.maxint, '', 0)
@@ -285,10 +315,7 @@ class FindUserPanel(wx.Panel):
 
     def doSearch(self, evt):
         evt.Skip()
-
-        evt = NanoEvent(nanoEVT_SEARCH_BY_UIN, self.GetId())
-        evt.setVal(self.userID.GetValue())
-        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+        self._getActiveSearch()
 
 
 class FindUserFrame(wx.Frame):

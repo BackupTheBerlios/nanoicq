@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.10 2006/02/25 17:13:58 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.11 2006/02/25 19:53:51 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -145,17 +145,17 @@ class TrayIcon(wx.TaskBarIcon):
         return icon
 
     def onCancelTaskBarActivate(self, evt):
-        if self.frame.IsIconized():
-            self.frame.Iconize(False)
-            if not self.frame.IsShown():
-                self.frame.Show(True)
+        if self.parent.IsIconized():
+            self.parent.Iconize(False)
+            if not self.parent.IsShown():
+                self.parent.Show(True)
         else:
-            self.frame.Iconize(True)
-            if self.frame.IsShown():
-                self.frame.Show(False)
-        self.frame.Raise()
+            self.parent.Iconize(True)
+            if self.parent.IsShown():
+                self.parent.Show(False)
+        self.parent.Raise()
 
     def onCancelTaskBarClose(self, evt):
-        self.frame.Close()
+        self.parent.Close()
 
 # ---

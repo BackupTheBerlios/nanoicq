@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.57 2006/02/25 17:13:58 lightdruid Exp $
+# $Id: icq.py,v 1.58 2006/02/25 19:53:51 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -249,11 +249,10 @@ def encryptPasswordICQ(password):
     return r
 
 def tlv(typ, val):
-#    try:
-#        sval = unicode(val)
-#    except:
-#        sval = str(val)
     return struct.pack("!HH", typ, len(val)) + val
+
+def tlv_le(typ, val):
+    return struct.pack("<HH", typ, len(val)) + val
 
 def detlv(data):
     return struct.unpack("!HH", data[:4])
@@ -533,6 +532,55 @@ class Protocol:
 
         self.sendSNAC_C(1, 0x17, 0x04, 0, r)
 
+    def searchByEmail_doesnt_work(self, ownerUin, email):
+        '''
+        SNAC(15,02)/07D0/0529   CLI_FIND_BY_EMAIL 
+
+        This is client search by email request. Server should respond 
+        with 1 or more packets. Last reply packet allways 
+        SNAC(15,03)/07DA/01AE, other reply packets SNAC(15,03)/07DA/01A4. 
+        '''
+
+        print "[%s]" % email
+        data = struct.pack('<L', int(ownerUin))
+        data += "\xd0\x07\x02\x00"
+
+        if email.find('*') == -1:
+            # CLI_FIND_BY_EMAIL
+            data += "\x29\x05"
+        else:
+            # CLI_FIND_BY_EMAIL_WILDCARD 
+            data += "\x47\x05"
+        data += struct.pack('<H', len(email))
+        data += str(email) + "\x00"
+        data = struct.pack('<H', len(data)) + data
+
+        log().log("Sending email search request for " + email)
+        self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
+
+    def searchByEmail(self, ownerUin, email):
+        '''
+        SNAC(15,02)/07D0/0573   CLI_FIND_BY_EMAIL3 
+
+        This is client search by email tlv-based request used by ICQ2001+. 
+        Server should respond with 1 or more packets. Last reply packet 
+        allways SNAC(15,03)/07DA/01AE, other reply packets 
+        SNAC(15,03)/07DA/01A4. See also list of TLVs that modern clients 
+        use in TLV-based requests.
+        '''
+
+        data = struct.pack('<L', int(ownerUin))
+        data += "\xd0\x07\x00\x4C\x73\x05"
+
+        data2  = struct.pack('<H', len(email))
+        data2 += str(email) + "\x00"
+
+        data += tlv_le(0x015E, data2)
+        data = struct.pack('<H', len(data)) + data
+
+        log().log("Sending email search request for " + email)
+        self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
+
     def searchByUin(self, ownerUin, uin):
         '''
         SNAC(15,02)/07D0/051F   CLI_FIND_BY_UIN     
@@ -547,7 +595,6 @@ class Protocol:
         data = struct.pack('<H', len(data)) + data
 
         log().log("Sending UIN search request for " + uin)
-
         self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
 
     def proc_2_1_19(self, data):
@@ -1594,7 +1641,28 @@ class Protocol:
         except AttributeError, exc:
             print exc
 
-    def userFound_07DA_019A(self, data):
+    def userFound_07DA_01A4(self, data):
+        '''
+        SNAC(15,03)/07DA/01A4   SRV_USER_FOUND  
+
+        This is the server response to search request. 
+        This is not last search packet. SNAC flags bit1 allways=1. 
+        Server sends last search found record via SNAC(15,03)/07DA/01AE. 
+        Success byte allways = 0xA (SEARCH_SUCCESS). 
+        '''
+        self.userFound_07DA_019A(data, skipUserLeft = True)
+
+    def userFound_07DA_01AE(self, data):
+        '''
+        SNAC(15,03)/07DA/01AE   SRV_LAST_USER_FOUND  
+
+        This is the server response to search request. 
+        This is the last search packet. SNAC flags bit1 allways=0. 
+        Server sends non-last search found records via SNAC(15,03)/07DA/01A4. 
+        '''
+        self.userFound_07DA_019A(data)
+
+    def userFound_07DA_019A(self, data, skipUserLeft = False):
         '''
         SNAC(15,03)/07DA/01AE   SRV_LAST_USER_FOUND     
 
@@ -1602,6 +1670,8 @@ class Protocol:
         search packet. SNAC flags bit1 allways=0. Server sends non-last 
         search found records via SNAC(15,03)/07DA/01A4.
         '''
+
+        print coldump(data)
 
         successByte  = data[:1]
         dsize = struct.unpack("<H", data[1:3])
@@ -1633,11 +1703,16 @@ class Protocol:
         age = int(struct.unpack("<H", data[0:2])[0])
         data = data[2:]
 
-        usersLeft = struct.unpack("<L", data)[0]
 
         log().log("Nick: %s, First: %s, Last: %s, E-mail: %s, Age: %d" %\
             (nick, first, last, email, age))
-        log().log("User left: %d" % usersLeft)
+
+        try:
+            if not skipUserLeft:
+                usersLeft = struct.unpack("<L", data)[0]
+                log().log("User left: %d" % usersLeft)
+        except struct.error, exc:
+            log().log("Unable to get count of users left")
 
         b = Buddy()
         b.uin = uin
