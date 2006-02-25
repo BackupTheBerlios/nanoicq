@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.55 2006/02/24 15:33:45 lightdruid Exp $
+# $Id: icq.py,v 1.56 2006/02/25 13:57:47 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1587,8 +1587,12 @@ class Protocol:
 
         tmp = "userFound_%s_%s" % (dataTypeX, dataSubTypeX)
         print tmp
-        func = getattr(self, tmp)
-        func(d[12:])
+
+        try:
+            func = getattr(self, tmp)
+            func(d[12:])
+        except AttributeError, exc:
+            print exc
 
     def userFound_07DA_019A(self, data):
         '''
