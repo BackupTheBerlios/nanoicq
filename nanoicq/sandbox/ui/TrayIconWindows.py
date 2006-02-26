@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.12 2006/02/25 20:31:22 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.13 2006/02/26 21:59:06 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -145,6 +145,11 @@ class TrayIcon(wx.TaskBarIcon):
         return icon
 
     def onCancelTaskBarActivate(self, evt):
+
+        # FIXME: hide on MS only
+        if "wxMSW" not in wx.PlatformInfo:
+            return
+
         if self.parent.IsIconized():
             self.parent.Iconize(False)
             if not self.parent.IsShown():

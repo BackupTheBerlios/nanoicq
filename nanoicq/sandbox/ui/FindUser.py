@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.7 2006/02/26 21:37:31 lightdruid Exp $
+# $Id: FindUser.py,v 1.8 2006/02/26 21:59:06 lightdruid Exp $
 #
 
 import sys
@@ -142,7 +142,7 @@ ID_nameRadio = wx.NewId()
 class FindUserPanel(wx.Panel):
     protocolList = ["ICQ"]
 
-    def __init__(self, parent):
+    def __init__(self, parent, iconSet):
         wx.Panel.__init__(self, parent, -1)
 
         sizer = rcs.RowColSizer()
@@ -214,14 +214,11 @@ class FindUserPanel(wx.Panel):
         r += 1
 
         ###
-        self.iconSet = IconSet()
-        self.iconSet.addPath('icons/aox')
-        self.iconSet.loadIcons()
-        self.iconSet.setActiveSet('aox')            
+        self.iconSet = iconSet
 
         resultsSizer = wx.BoxSizer(wx.VERTICAL)
         self.results = ResultsList(self, -1, self.iconSet)
-        resultsSizer.Add(self.results, 1, wx.ALL | wx.GROW | wx.EXPAND, 5)
+        resultsSizer.Add(self.results, 1, wx.ALL | wx.GROW | wx.EXPAND, 8)
         sizer.Add(resultsSizer, row = 0, col = 2, rowspan = r - 0, colspan = 10, flag = wx.EXPAND)
 
         sizer.AddGrowableCol(2)
@@ -258,20 +255,35 @@ class FindUserPanel(wx.Panel):
         else:
             assert 1 == 2
 
+
+    def _checkFilled(self, requestedId):
+        rc = False
+        for tid, rid in self._binds:
+            if rid == requestedId:
+                if len(self.FindWindowById(tid).GetValue()) > 0:
+                    rc = True
+                    break
+        if not rc:
+            wx.MessageBox('''You haven't filled in the search field. Please enter a search term and try again.''', "Search", wx.OK)
+        return rc
+
     def _searchByUin(self):
-        evt = NanoEvent(nanoEVT_SEARCH_BY_UIN, self.GetId())
-        evt.setVal(self.userID.GetValue())
-        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+        if self._checkFilled(ID_userIDRadio):
+            evt = NanoEvent(nanoEVT_SEARCH_BY_UIN, self.GetId())
+            evt.setVal(self.userID.GetValue())
+            wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
     def _searchByEmail(self):
-        evt = NanoEvent(nanoEVT_SEARCH_BY_EMAIL, self.GetId())
-        evt.setVal(self.email.GetValue())
-        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+        if self._checkFilled(ID_emailRadio):
+            evt = NanoEvent(nanoEVT_SEARCH_BY_EMAIL, self.GetId())
+            evt.setVal(self.email.GetValue())
+            wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
     def _searchByName(self):
-        evt = NanoEvent(nanoEVT_SEARCH_BY_NAME, self.GetId())
-        evt.setVal( (self.nick.GetValue(), self.first.GetValue(), self.last.GetValue()) )
-        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+        if self._checkFilled(ID_nameRadio):
+            evt = NanoEvent(nanoEVT_SEARCH_BY_NAME, self.GetId())
+            evt.setVal( (self.nick.GetValue(), self.first.GetValue(), self.last.GetValue()) )
+            wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
     def showBuddy(self, b):
 
@@ -321,13 +333,24 @@ class FindUserPanel(wx.Panel):
 
 
 class FindUserFrame(wx.Frame):
-    def __init__(self, parentFrame, ID,
+    def __init__(self, parentFrame, ID, title = 'Find/Add Contacts...',
             size = (650, 465), 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX  | wx.MINIMIZE_BOX):
 
-        wx.Frame.__init__(self, None, ID, size = size, style = style)
-        self.panel = FindUserPanel(self)
+        wx.Frame.__init__(self, None, ID, size = size, style = style,
+            title = title)
+
+        self.iconSet = IconSet()
+        self.iconSet.addPath('icons/aox')
+        self.iconSet.loadIcons()
+        self.iconSet.setActiveSet('aox')            
+
+        self.mainIcon = wx.EmptyIcon()
+        self.mainIcon.CopyFromBitmap(self.iconSet['main'])
+        self.SetIcon(self.mainIcon)
+
+        self.panel = FindUserPanel(self, self.iconSet)
 
         self.sb = SearchStatusBar(self)
         self.SetStatusBar(self.sb)

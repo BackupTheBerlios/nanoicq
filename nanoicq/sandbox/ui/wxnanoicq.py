@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.71 2006/02/26 21:35:21 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.72 2006/02/26 21:59:06 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.71 2006/02/26 21:35:21 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.72 2006/02/26 21:59:06 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -57,7 +57,7 @@ _topMenu = (
         (
             (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin", 0),
             (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onToggleHideOffline", wx.ITEM_CHECK),
-            (ID_FIND_USER, "Find/Add Users...\tF7", "Find/Add Users...", "self.onFindUser", 0),
+            (ID_FIND_USER, "Find/Add Contacts...\tF7", "Find/Add Contacts...", "self.onFindUser", 0),
             (),
             (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit", 0),
         )
