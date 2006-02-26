@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.58 2006/02/25 19:53:51 lightdruid Exp $
+# $Id: icq.py,v 1.59 2006/02/26 21:35:21 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -532,30 +532,32 @@ class Protocol:
 
         self.sendSNAC_C(1, 0x17, 0x04, 0, r)
 
-    def searchByEmail_doesnt_work(self, ownerUin, email):
+    def searchByName(self, ownerUin, nick, first, last):
         '''
-        SNAC(15,02)/07D0/0529   CLI_FIND_BY_EMAIL 
+        SNAC(15,02)/07D0/055F   CLI_WHITE_PAGES_SEARCH2 
 
-        This is client search by email request. Server should respond 
-        with 1 or more packets. Last reply packet allways 
-        SNAC(15,03)/07DA/01AE, other reply packets SNAC(15,03)/07DA/01A4. 
+        This is client tlv-based white pages search request used by ICQ2001+. 
+        Server should respond with 1 or more packets. Last reply packet 
+        allways SNAC(15,03)/07DA/01AE, other reply packets 
+        SNAC(15,03)/07DA/01A4. See also list of TLVs that modern 
+        clients use in TLV-based requests.
         '''
 
-        print "[%s]" % email
+        data2 = ''
+        if len(nick) > 0:
+            data2 += tlv_le(0x0154, struct.pack('<H', len(nick)) + nick + "\x00")
+        if len(first) > 0:
+            data2 += tlv_le(0x0140, struct.pack('<H', len(first)) + first + "\x00")
+        if len(last) > 0:
+            data2 += tlv_le(0x014A, struct.pack('<H', len(last)) + last + "\x00")
+
         data = struct.pack('<L', int(ownerUin))
-        data += "\xd0\x07\x02\x00"
+        data += "\xd0\x07\x02\x00\x5f\x05"
+        data += str(data2)
 
-        if email.find('*') == -1:
-            # CLI_FIND_BY_EMAIL
-            data += "\x29\x05"
-        else:
-            # CLI_FIND_BY_EMAIL_WILDCARD 
-            data += "\x47\x05"
-        data += struct.pack('<H', len(email))
-        data += str(email) + "\x00"
         data = struct.pack('<H', len(data)) + data
 
-        log().log("Sending email search request for " + email)
+        log().log("Sending name search request for '%s', '%s', '%s'" % (nick, first, last))
         self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
 
     def searchByEmail(self, ownerUin, email):

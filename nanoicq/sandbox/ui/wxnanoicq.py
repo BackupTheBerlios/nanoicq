@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.70 2006/02/25 19:53:51 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.71 2006/02/26 21:35:21 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.70 2006/02/25 19:53:51 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.71 2006/02/26 21:35:21 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -206,6 +206,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onSearchByName(self, evt):
         print 'onSearchByName'
+        ownerUin = self.config.get("icq", "uin")
+        nick, first, last = evt.getVal()
+        self.connector["icq"].searchByName(ownerUin, nick, first, last)
 
     def onShowHelp(self, evt):
         try:

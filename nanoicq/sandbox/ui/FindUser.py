@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.6 2006/02/25 19:53:51 lightdruid Exp $
+# $Id: FindUser.py,v 1.7 2006/02/26 21:37:31 lightdruid Exp $
 #
 
 import sys
@@ -219,8 +219,10 @@ class FindUserPanel(wx.Panel):
         self.iconSet.loadIcons()
         self.iconSet.setActiveSet('aox')            
 
+        resultsSizer = wx.BoxSizer(wx.VERTICAL)
         self.results = ResultsList(self, -1, self.iconSet)
-        sizer.Add(self.results, row = 0, col = 2, rowspan = r - 0, colspan = 10, flag = wx.EXPAND)
+        resultsSizer.Add(self.results, 1, wx.ALL | wx.GROW | wx.EXPAND, 5)
+        sizer.Add(resultsSizer, row = 0, col = 2, rowspan = r - 0, colspan = 10, flag = wx.EXPAND)
 
         sizer.AddGrowableCol(2)
         sizer.AddGrowableRow(r-1)
