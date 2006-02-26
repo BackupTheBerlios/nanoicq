@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.8 2006/02/26 21:59:06 lightdruid Exp $
+# $Id: FindUser.py,v 1.9 2006/02/26 22:11:53 lightdruid Exp $
 #
 
 import sys
@@ -246,6 +246,8 @@ class FindUserPanel(wx.Panel):
         self.SetAutoLayout(True)
 
     def _getActiveSearch(self):
+        self.results.DeleteAllItems()
+
         if self.FindWindowById(ID_userIDRadio).GetValue():
             self._searchByUin()
         elif self.FindWindowById(ID_emailRadio).GetValue():
@@ -254,7 +256,6 @@ class FindUserPanel(wx.Panel):
             self._searchByName()
         else:
             assert 1 == 2
-
 
     def _checkFilled(self, requestedId):
         rc = False
