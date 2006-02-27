@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.59 2006/02/26 21:35:21 lightdruid Exp $
+# $Id: icq.py,v 1.60 2006/02/27 13:55:46 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -510,7 +510,7 @@ class Protocol:
         log().log("Sending new UIN registration request...")
         self.sendSNAC(0x17, 0x04, 0, tlv(0x01, req))
 
-    def registrationRequest(self, password):
+    def registrationRequest_ff(self, password):
         r = ''
         r += '\x00\x01'
         r += struct.pack("<H", len(password) + 51)
@@ -531,6 +531,28 @@ class Protocol:
         r += '\xf2\x07\x00\x00'
 
         self.sendSNAC_C(1, 0x17, 0x04, 0, r)
+
+    def registrationRequest(self, password):
+        r = ''
+        r += '\x00\x00\x00\x00'
+        r += '\x28\x00\x03\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+
+        r += '\x03\x46\x00\x00'
+        r += '\x03\x46\x00\x00'
+
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+        r += '\x00\x00\x00\x00'
+
+        r += struct.pack("<H", len(password)) + password + '\x00'
+        r += '\x03\x46\x00\x00'
+        r += '\x00\x00'
+        r += '\x03\x02'
+
+        self.sendSNAC(0x17, 0x04, 0, tlv(1, r))
 
     def searchByName(self, ownerUin, nick, first, last):
         '''
@@ -1969,7 +1991,7 @@ def _test_new_uin():
 
 
 if __name__ == '__main__':
-    _test()
-    #_test_new_uin()
+    #_test()
+    _test_new_uin()
 
 # ---
