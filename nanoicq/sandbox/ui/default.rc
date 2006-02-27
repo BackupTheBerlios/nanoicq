@@ -1,0 +1,21 @@
+
+#
+# $Id: default.rc,v 1.1 2006/02/27 10:29:29 lightdruid Exp $
+#
+
+[icq]
+uin=1
+host=login.icq.com:5190
+default_charset=cp1251
+incoming.bg = white
+incoming.fg = red
+outgoing.bg = white
+outgoing.fg = blue
+#proxy.type = http
+#proxy.server = localhost:3128
+
+[ui]
+show.offline = false
+minimize.to.tray = true
+iconset = aox
+# ---

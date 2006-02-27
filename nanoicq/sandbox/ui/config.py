@@ -1,12 +1,15 @@
 
 #
-# $Id: config.py,v 1.4 2006/02/03 10:41:36 lightdruid Exp $
+# $Id: config.py,v 1.5 2006/02/27 10:29:29 lightdruid Exp $
 #
+
+import os
 
 from ConfigParser import SafeConfigParser
 
 class Config(SafeConfigParser):
-    SUPPORTED_PROXIES = ['socks5']
+    SUPPORTED_PROXIES = ['socks5', 'http']
+    _DEFAULT_CONFIG = 'default.rc'
 
     def __init__(defaults = None):
         SafeConfigParser.__init__(defaults)
@@ -23,12 +26,27 @@ class Config(SafeConfigParser):
                     (pt, ", ".join(self.SUPPORTED_PROXIES)))
         return problems
 
+    def checkFile(self, fn):
+        full_fn = os.path.join(os.getcwd(), fn)
+        if os.path.exists(full_fn):
+            return True
+        print "Config file '%s' does not exits, creating default one" % fn
+        if os.name == 'nt':
+            dest_dir = os.getcwd()
+        else:
+            dest_dir = "~"
+        f1 = open(os.path.join(os.getcwd(), self._DEFAULT_CONFIG), 'rb')
+        f2 = open(full_fn, 'wb')
+        f2.write(f1.read())
+        f1.close(); f2.close()
+
 
 def _test():
     c = Config()
     c.read('sample.config')
     print c.get('icq', 'uin')
     print c.validate()
+    c.checkFile("nanoicqrc")
 
 if __name__ == '__main__':
     _test()
