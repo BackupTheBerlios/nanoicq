@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.9 2006/02/26 22:11:53 lightdruid Exp $
+# $Id: FindUser.py,v 1.10 2006/02/27 10:08:40 lightdruid Exp $
 #
 
 import sys
@@ -15,6 +15,7 @@ sys.path.insert(0, '../..')
 from events import *
 from buddy import Buddy
 from iconset import IconSet
+from persistence import PersistenceMixin
 
 
 class SearchStatusBar(wx.StatusBar):
@@ -333,7 +334,7 @@ class FindUserPanel(wx.Panel):
         self._getActiveSearch()
 
 
-class FindUserFrame(wx.Frame):
+class FindUserFrame(wx.Frame, PersistenceMixin):
     def __init__(self, parentFrame, ID, title = 'Find/Add Contacts...',
             size = (650, 465), 
             pos = wx.DefaultPosition,
@@ -353,10 +354,33 @@ class FindUserFrame(wx.Frame):
 
         self.panel = FindUserPanel(self, self.iconSet)
 
+        PersistenceMixin.__init__(self, self.panel, 'searchPanel.save')
+
         self.sb = SearchStatusBar(self)
         self.SetStatusBar(self.sb)
 
         self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+
+        try:
+            self.restoreObjects([self.GetId()], name = "icq")
+        except:
+            typ, value, tb = sys.exc_info()
+            list = traceback.format_tb(tb, None) + \
+                traceback.format_exception_only(type, value)
+            err = "%s %s" % (
+                "".join(list[:-1]),
+                list[-1],
+            )
+            print 'restoreObjects: '
+            print err
+
+    def storeWidgets(self):
+        self.storeObjects([self], name = "icq")
+
+    def onClose(self, evt):
+        self.storeWidgets()
+        evt.Skip()
 
     def onResultByUin(self, evt):
         evt.Skip()
