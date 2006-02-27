@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.72 2006/02/26 21:59:06 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.73 2006/02/27 14:55:18 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.72 2006/02/26 21:59:06 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.73 2006/02/27 14:55:18 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -189,6 +189,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
         #self.topPanel.userList.sampleFill()
+        import Plugin
+        self._plugins = Plugin.load_plugins('../../plugins', '../plugins')
 
         # ---
 

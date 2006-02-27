@@ -1,6 +1,6 @@
 
 #
-# $Id: weather.py,v 1.1 2006/02/27 13:55:46 lightdruid Exp $
+# $Id: weather.py,v 1.2 2006/02/27 14:55:18 lightdruid Exp $
 #
 
 import sys
@@ -16,7 +16,14 @@ except ImportError, exc:
     _loaded = False
 
 class Weather(Plugin):
+    def onIncomingMessage(self, buddy, message):
+        print 'onIncomingMessage', message.__dict__.keys(), message.__dict__['_user']
+
+    # ---
+
     def __init__(self, station = 'UMMS'):
+        Plugin.__init__(self)
+
         self._station = station
         self.report = None
 
