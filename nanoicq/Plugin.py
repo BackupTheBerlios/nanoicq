@@ -1,6 +1,6 @@
 
 #
-# $Id: Plugin.py,v 1.2 2006/02/27 14:55:17 lightdruid Exp $
+# $Id: Plugin.py,v 1.3 2006/02/28 13:33:01 lightdruid Exp $
 #
 
 import os
@@ -8,12 +8,14 @@ import sys
 import glob
 import traceback
 
+import wx
+
 from message import *
 from buddy import Buddy
 
-class Plugin:
+class Plugin(wx.EvtHandler):
     def __init__(self):
-        pass
+        wx.EvtHandler.__init__(self)
 
     def onIncomingMessage(self, buddy = None, message = None):
         raise NotImplementedError('onIncomingMessage')

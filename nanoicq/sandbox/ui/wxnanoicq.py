@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.73 2006/02/27 14:55:18 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.74 2006/02/28 13:33:02 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.73 2006/02/27 14:55:18 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.74 2006/02/28 13:33:02 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -183,6 +183,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_SEARCH_BY_EMAIL, self.onSearchByEmail)
         self.Bind(EVT_SEARCH_BY_NAME, self.onSearchByName)
 
+        self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
+
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
 
@@ -193,6 +195,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self._plugins = Plugin.load_plugins('../../plugins', '../plugins')
 
         # ---
+
+    def onGotCaptcha(self, evt):
+        evt.Skip()
 
     def onSearchByUin(self, evt):
         print 'onSearchByUin'
@@ -288,6 +293,15 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'going to call ' + fn + '()'
 
         func(kw[1:][0])
+
+    def event_Got_CAPTCHA(self, kw):
+        print 'Called event_Got_CAPTCHA'
+
+        img = kw['image']
+
+        evt = NanoEvent(nanoEVT_GOT_CAPTCHA, self.GetId())
+        evt.setVal(img)
+        self.GetEventHandler().AddPendingEvent(evt)
 
     def event_Incoming_message(self, kw):
         print 'Called event_Incoming_message with '
@@ -431,16 +445,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def OnAbout(self, evt):
         evt.Skip()
-
-        self.connector["icq"].searchByUin(self.config.get("icq", "uin"), "223606200")
-
-        #b = Buddy()
-        #evt = NanoEvent(nanoEVT_RESULT_BY_UIN, self.GetId())
-        #evt.setVal(b)
-        #wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
-
-        #ad = AboutDialog(self)
-        #ad.Show()
+        ad = AboutDialog(self)
+        ad.Show()
 
     def onFindUser(self, evt):
         self.fu = FindUserFrame(None, -1)

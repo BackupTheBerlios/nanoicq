@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.60 2006/02/27 13:55:46 lightdruid Exp $
+# $Id: icq.py,v 1.61 2006/02/28 13:33:01 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -14,6 +14,7 @@ import time
 import struct
 import socket
 import types
+import cStringIO
 
 from utils import *
 from snacs import *
@@ -412,6 +413,16 @@ class Protocol:
     def readSNAC(self, data):
         return list(struct.unpack("!HHBBL", data[:10])) + [data[10:]]
 
+    def sendCliHello(self):
+        '''
+        The packet sent upon establishing a connection. 
+        If the client wants to login to login.icq.com, it sends all 
+        TLVs (CLI_IDENT) except TLV(6), which is for login to the 
+        redirected server (CLI_COOKIE). 
+        * To request a new UIN, no TLV is sent (CLI_HELLO). *
+        '''
+        self.sendFLAP(0x01, '\000\000\000\001')
+
     def sendAuth(self, username = None):
         if username is None:
             username = self._config.get('icq', 'uin')
@@ -553,6 +564,32 @@ class Protocol:
         r += '\x03\x02'
 
         self.sendSNAC(0x17, 0x04, 0, tlv(1, r))
+
+    def registrationImageRequest(self):
+        ''' SNAC(17,0C) Request picture for registration?
+        2a 02 3e fd 00 0a 00 17-00 0c 00 00 00 00 00 0c 
+        '''
+        data = '\x00\x00\x00\x00'
+        data += '\x00\x0C'
+
+        self.sendSNAC(0x17, 0x0C, 0, data)
+
+    def proc_2_23_13(self, data):
+        '''
+        SNAC(17,0D), Server send CAPTCHA picture after registration request
+        http://www.captcha.net/
+        '''
+
+        tlvs = readTLVs(data)
+
+        if not tlvs.has_key(0x01) or not tlvs.has_key(0x02):
+            raise Exception("Unknown registration seuqnce response (expected CAPTCHA picture)")
+        if tlvs[0x01] != 'image/jpeg':
+            raise Exception("Unknown format of registration CAPTCHA picture (%s)" % tlvs[0x01])
+
+        img = wx.ImageFromStream(cStringIO.StringIO(tlvs[0x02]))
+        #dump2file('tlvs.req', tlvs[0x02])
+        self.react("Got CAPTCHA", image = img)
 
     def searchByName(self, ownerUin, nick, first, last):
         '''
@@ -1981,17 +2018,44 @@ def _test_new_uin():
     #p.connect('205.188.5.92', 5190)
     #p.connect('ibucp-vip-d.blue.aol.com', 5190)
 
-
     buf = p.read()
     log().packetin(buf)
 
-    p.registrationRequest('xyl')
+    p.sendCliHello()
+
+    p.registrationImageRequest()
     buf = p.read()
     log().packetin(buf)
 
+    dump2file('pic.req', buf)
+
+    ch, b, c = p.readFLAP(buf)
+    snac = p.readSNAC(c)
+    print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
+    print 'for this snac: ', snac
+
+    tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
+    func = getattr(p, tmp)
+
+    func(snac[5])
 
 if __name__ == '__main__':
     #_test()
-    _test_new_uin()
+    #_test_new_uin()
+
+    if 1:
+        p = Protocol()
+
+        buf = restoreFromFile('pic.req')
+        print coldump(buf)
+
+        ch, b, c = p.readFLAP(buf)
+        snac = p.readSNAC(c)
+        print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
+        print 'for this snac: ', snac
+
+        tlvs = readTLVs(snac[5])
+
+        p.proc_2_23_13(snac[5])
 
 # ---

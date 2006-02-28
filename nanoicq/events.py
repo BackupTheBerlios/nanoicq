@@ -1,9 +1,12 @@
 
 #
-# $Id: events.py,v 1.8 2006/02/25 19:53:50 lightdruid Exp $
+# $Id: events.py,v 1.9 2006/02/28 13:33:01 lightdruid Exp $
 #
 
 import wx
+
+nanoEVT_GOT_CAPTCHA = wx.NewEventType()
+EVT_GOT_CAPTCHA = wx.PyEventBinder(nanoEVT_GOT_CAPTCHA, 1)
 
 nanoEVT_DIALOG_CLOSE = wx.NewEventType()
 EVT_DIALOG_CLOSE = wx.PyEventBinder(nanoEVT_DIALOG_CLOSE, 1)
