@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.74 2006/02/28 13:33:02 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.75 2006/02/28 14:45:11 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.74 2006/02/28 13:33:02 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.75 2006/02/28 14:45:11 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -39,6 +39,7 @@ from userlistctrl import UserListCtrl
 from iconset import *
 from AboutDialog import AboutDialog
 from FindUser import FindUserFrame
+from Captcha import CaptchaFrame
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -51,6 +52,7 @@ ID_ABOUT = wx.NewId()
 ID_ICQ_LOGIN = wx.NewId()
 ID_FIND_USER = wx.NewId()
 ID_HIDE_OFFLINE = wx.NewId()
+ID_NEW_USER = wx.NewId()
 
 _topMenu = (
     ("File",
@@ -58,6 +60,7 @@ _topMenu = (
             (ID_ICQ_LOGIN, "ICQ login\tF2", "ICQ login", "self.OnIcqLogin", 0),
             (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onToggleHideOffline", wx.ITEM_CHECK),
             (ID_FIND_USER, "Find/Add Contacts...\tF7", "Find/Add Contacts...", "self.onFindUser", 0),
+            (ID_NEW_USER, "Register new UIN...\tCtrl-F12", "Register new UIN...", "self.onNewUser", 0),
             (),
             (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit", 0),
         )
@@ -198,6 +201,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onGotCaptcha(self, evt):
         evt.Skip()
+
+    def onNewUser(self, evt):
+        evt.Skip()
+        c = CaptchaFrame(None, -1)
+        c.Show()
 
     def onSearchByUin(self, evt):
         print 'onSearchByUin'

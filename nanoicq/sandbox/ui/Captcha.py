@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.1 2006/02/28 13:33:02 lightdruid Exp $
+# $Id: Captcha.py,v 1.2 2006/02/28 14:45:11 lightdruid Exp $
 #
 
 import sys
@@ -25,12 +25,13 @@ class CaptchaPanel(wx.Panel):
 
         txt = 'Please retype letters from the picture above:'
         self.text = wx.TextCtrl(self, self.ID_TEXT, "")
-        self.button = wx.Button(self, wx.ID_OK, "Ok")
         sizer.Add(wx.StaticText(self, -1, txt), 0, wx.ALL | wx.ALIGN_CENTER, 5)
         sizer.Add(self.text, 0, wx.ALL | wx.ALIGN_CENTER, 5)
-        sizer.Add(self.button, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
-        self.button.Enable(False)
+#        self.button = wx.Button(self, wx.ID_OK, "Ok")
+#        sizer.Add(self.button, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+
+#        self.button.Enable(False)
 
         # ---
         self.SetSizer(sizer)
@@ -38,7 +39,8 @@ class CaptchaPanel(wx.Panel):
 
         self.Bind(wx.EVT_TEXT, self.onText)
         self.Bind(wx.EVT_TEXT_ENTER, self.postPictureText)
-        self.Bind(wx.EVT_BUTTON, self.postPictureText, id = self.button.GetId())
+
+        #self.Bind(wx.EVT_BUTTON, self.postPictureText, id = self.button.GetId())
 
     def postPictureText(self, evt):
         evt.Skip()
@@ -49,7 +51,7 @@ class CaptchaPanel(wx.Panel):
 
     def onText(self, evt):
         evt.Skip()
-        self.button.Enable(len(self.text.GetValue()) > 0)
+#        self.button.Enable(len(self.text.GetValue()) > 0)
 
 class CaptchaFrame(wx.Frame):
     def __init__(self, parentFrame, ID, title = 'New UIN registration',
