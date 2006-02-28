@@ -1,6 +1,6 @@
 
 #
-# $Id: Register.py,v 1.1 2006/02/28 14:45:11 lightdruid Exp $
+# $Id: Register.py,v 1.2 2006/02/28 16:37:39 lightdruid Exp $
 #
 
 import sys
@@ -32,6 +32,16 @@ def makePageTitle(wizPg, title):
 
 
 class TitledPage(wiz.WizardPageSimple):
+    protocolList = ["ICQ"]
+
+    def __init__(self, parent, title):
+        wiz.WizardPageSimple.__init__(self, parent)
+        self.sizer = makePageTitle(self, title)
+
+        self.protocol = wx.ComboBox(self, -1, self.protocolList[0], size = (110, -1), choices = self.protocolList, style = wx.CB_READONLY)
+        self.sizer.Add(self.protocol, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+
+class FinalPage(wiz.WizardPageSimple):
     def __init__(self, parent, title):
         wiz.WizardPageSimple.__init__(self, parent)
         self.sizer = makePageTitle(self, title)
@@ -49,6 +59,7 @@ class ProcessingTimer(wx.Timer):
 
 
 class ImagePage(wiz.WizardPageSimple):
+#class ImagePage(wiz.WizardPage):
     MC = 100
     count = 0
 
@@ -59,7 +70,7 @@ class ImagePage(wiz.WizardPageSimple):
         self.panel = CaptchaPanel(self, iconSet, img)
         self.sizer.Add(self.panel, 0, wx.ALL | wx.ALIGN_CENTER, 3)
 
-        self.g = wx.Gauge(self, -1, self.MC, size = (-1, 5), style = wx.GA_SMOOTH)
+        self.g = wx.Gauge(self, -1, self.MC, size = (-1, 7), style = wx.GA_SMOOTH)
         self.g.SetBezelFace(0)
         self.g.SetShadowWidth(0)
 
@@ -70,6 +81,16 @@ class ImagePage(wiz.WizardPageSimple):
 
         self._timer = ProcessingTimer()
         self._timer.subscribe(self)
+
+        self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
+
+    def getCaptchaText(self):
+        return self.panel.text.GetValue()
+
+    def onSendCaptchaText(self, evt):
+        print 'WIZ: onSendCaptchaText'
+        #evt.Skip()
+        self.startProcessing()
 
     def notify(self):
         self.count = self.count + 1
@@ -85,6 +106,8 @@ class ImagePage(wiz.WizardPageSimple):
     def stopProcessing(self):
         self._timer.Stop()
 
+    def GetNext(*args, **kwargs):
+        print 'got next'
 
 class RegisterWizard(wiz.Wizard):
     def __init__(self, parentFrame, ID, title = 'New UIN registration'):
@@ -106,19 +129,45 @@ class RegisterWizard(wiz.Wizard):
 
         page1 = TitledPage(self, "Choose protocol")
         page2 = ImagePage(self, "Confirmation", self.iconSet, img)
+        page3 = FinalPage(self, "Final")
 
         self.page1Id = page1.GetId()
         self.page2Id = page2.GetId()
+        self.page3Id = page3.GetId()
 
         page1.SetNext(page2)
+
         page2.SetPrev(page1)
+        page2.SetNext(page3)
+
+        page3.SetPrev(page2)
 
         self.Bind(wiz.EVT_WIZARD_PAGE_CHANGED, self.onWizPageChanged)
+        self.Bind(wiz.EVT_WIZARD_PAGE_CHANGING, self.onWizPageChanging)
+        self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
 
         if self.RunWizard(page1):
             print 'Ok'
         else:
             print 'Cancelled'
+
+    def onSendCaptchaText(self, evt):
+        print 'WIZARD: onSendCaptchaText'
+
+    def onWizPageChanging(self, evt):
+        print 'onWizPageChanging'
+        page = evt.GetPage()
+        if page.GetId() != self.page2Id:
+            evt.Skip()
+        else:
+            evt.Veto()
+
+            print 'sending event...'
+
+            evt = NanoEvent(nanoEVT_SEND_CAPTCHA_TEXT, self.GetId())
+            evt.setVal(page.getCaptchaText())
+            #wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+            self.GetEventHandler().AddPendingEvent(evt)
 
     def onWizPageChanged(self, evt):
         if evt.GetDirection():
@@ -127,8 +176,8 @@ class RegisterWizard(wiz.Wizard):
             dir = "backward"
 
         page = evt.GetPage()
-        if hasattr(page, "startProcessing"):
-            page.startProcessing()
+        #if hasattr(page, "startProcessing"):
+        #    page.startProcessing()
         print "OnWizPageChanged: %s, %s\n" % (dir, page.__class__)
 
 

@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.2 2006/02/28 14:45:11 lightdruid Exp $
+# $Id: Captcha.py,v 1.3 2006/02/28 16:37:39 lightdruid Exp $
 #
 
 import sys
@@ -48,6 +48,7 @@ class CaptchaPanel(wx.Panel):
         if len(txt) == 0:
             return
         print 'Posting captcha text (%s)...' % txt
+
 
     def onText(self, evt):
         evt.Skip()

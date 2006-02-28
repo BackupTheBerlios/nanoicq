@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.75 2006/02/28 14:45:11 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.76 2006/02/28 16:37:39 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.75 2006/02/28 14:45:11 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.76 2006/02/28 16:37:39 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -40,6 +40,7 @@ from iconset import *
 from AboutDialog import AboutDialog
 from FindUser import FindUserFrame
 from Captcha import CaptchaFrame
+from Register import RegisterWizard
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -191,6 +192,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
 
+        self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
+
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
         #self.topPanel.userList.sampleFill()
@@ -199,13 +202,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         # ---
 
+    def onSendCaptchaText(self, evt):
+        #evt.Skip()
+        print 'MAIN: onSendCaptchaText'
+
     def onGotCaptcha(self, evt):
         evt.Skip()
 
     def onNewUser(self, evt):
         evt.Skip()
-        c = CaptchaFrame(None, -1)
-        c.Show()
+        rw = RegisterWizard(self, -1)
+        rw.Show()
 
     def onSearchByUin(self, evt):
         print 'onSearchByUin'
