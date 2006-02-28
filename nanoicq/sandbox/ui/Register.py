@@ -1,6 +1,6 @@
 
 #
-# $Id: Register.py,v 1.2 2006/02/28 16:37:39 lightdruid Exp $
+# $Id: Register.py,v 1.3 2006/02/28 21:46:04 lightdruid Exp $
 #
 
 import sys
@@ -153,6 +153,7 @@ class RegisterWizard(wiz.Wizard):
 
     def onSendCaptchaText(self, evt):
         print 'WIZARD: onSendCaptchaText'
+        self.currentPage.startProcessing()
 
     def onWizPageChanging(self, evt):
         print 'onWizPageChanging'
@@ -166,7 +167,11 @@ class RegisterWizard(wiz.Wizard):
 
             evt = NanoEvent(nanoEVT_SEND_CAPTCHA_TEXT, self.GetId())
             evt.setVal(page.getCaptchaText())
-            #wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
+            # Strange, it does not propagates to all windows,
+            # so I decided to explicitly pass it to wizard
+            # and main top window
+            wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
             self.GetEventHandler().AddPendingEvent(evt)
 
     def onWizPageChanged(self, evt):
@@ -175,10 +180,10 @@ class RegisterWizard(wiz.Wizard):
         else:
             dir = "backward"
 
-        page = evt.GetPage()
+        self.currentPage = evt.GetPage()
         #if hasattr(page, "startProcessing"):
         #    page.startProcessing()
-        print "OnWizPageChanged: %s, %s\n" % (dir, page.__class__)
+        print "OnWizPageChanged: %s, %s\n" % (dir, self.currentPage.__class__)
 
 
 def _test():

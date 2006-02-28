@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.61 2006/02/28 13:33:01 lightdruid Exp $
+# $Id: icq.py,v 1.62 2006/02/28 21:46:04 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -581,6 +581,7 @@ class Protocol:
         '''
 
         tlvs = readTLVs(data)
+        dump2file('tlvs.req', tlvs[2])
 
         if not tlvs.has_key(0x01) or not tlvs.has_key(0x02):
             raise Exception("Unknown registration seuqnce response (expected CAPTCHA picture)")
@@ -1822,6 +1823,30 @@ class Protocol:
         tlvs = tlv(0x01, '\x00\x08' + struct.pack("<L", int(username)) + '\x3c\x00\x02\x00')
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
+    def sendHelloServer(self):
+        self.connect()
+        log().log('Sending HELLO to server...')
+
+        buf = self.read()
+        log().packetin(buf)
+
+        self.sendCliHello()
+        self.registrationImageRequest()
+
+        buf = self.read()
+        log().packetin(buf)
+
+        ch, b, c = self.readFLAP(buf)
+        snac = self.readSNAC(c)
+
+        print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
+        print 'for this snac: ', snac
+
+        tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
+        func = getattr(self, tmp)
+
+        func(snac[5])
+
     def login(self, mainLoop = False):
         log().log('Logging in...')
         self.react('Login')
@@ -2014,9 +2039,9 @@ def _test():
 def _test_new_uin():
 
     p = Protocol()
-    p.connect('login.icq.com', 5190)
+    #p.connect('login.icq.com', 5190)
     #p.connect('205.188.5.92', 5190)
-    #p.connect('ibucp-vip-d.blue.aol.com', 5190)
+    p.connect('ibucp-vip-d.blue.aol.com', 5190)
 
     buf = p.read()
     log().packetin(buf)
@@ -2027,10 +2052,9 @@ def _test_new_uin():
     buf = p.read()
     log().packetin(buf)
 
-    dump2file('pic.req', buf)
-
     ch, b, c = p.readFLAP(buf)
     snac = p.readSNAC(c)
+
     print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
     print 'for this snac: ', snac
 
@@ -2041,9 +2065,9 @@ def _test_new_uin():
 
 if __name__ == '__main__':
     #_test()
-    #_test_new_uin()
+    _test_new_uin()
 
-    if 1:
+    if 0:
         p = Protocol()
 
         buf = restoreFromFile('pic.req')

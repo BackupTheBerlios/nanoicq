@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.76 2006/02/28 16:37:39 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.77 2006/02/28 21:46:04 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.76 2006/02/28 16:37:39 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.77 2006/02/28 21:46:04 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -203,16 +203,19 @@ class TopFrame(wx.Frame, PersistenceMixin):
         # ---
 
     def onSendCaptchaText(self, evt):
-        #evt.Skip()
+        evt.Skip()
         print 'MAIN: onSendCaptchaText'
 
     def onGotCaptcha(self, evt):
         evt.Skip()
 
+        self.regWizard = RegisterWizard(self, -1)
+        self.regWizard.Show()
+
     def onNewUser(self, evt):
         evt.Skip()
-        rw = RegisterWizard(self, -1)
-        rw.Show()
+
+        self.connector['icq'].sendHelloServer()
 
     def onSearchByUin(self, evt):
         print 'onSearchByUin'
