@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.65 2006/03/01 14:49:19 lightdruid Exp $
+# $Id: icq.py,v 1.66 2006/03/01 16:40:25 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1548,6 +1548,15 @@ class Protocol:
         return ', '.join(t)
  
     def proc_2_19_15(self, data):
+        '''
+        SNAC(13,0F)     SRV_SSI_UPxTOxDATE  
+
+        Server send this snac as reply for SNAC(13,05) when server-stored 
+        information has the same modification date and items number.
+        '''
+        timestamp = struct.unpack('!L', data[:4])
+        items = struct.unpack('!H', data[4:6])
+        print timestamp, items
         raise Exception("proc_2_19_15 not implemented")
 
     def proc_2_4_1(self, data):

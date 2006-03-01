@@ -1,6 +1,6 @@
 
 #
-# $Id: Register.py,v 1.8 2006/03/01 16:29:09 lightdruid Exp $
+# $Id: Register.py,v 1.9 2006/03/01 16:40:26 lightdruid Exp $
 #
 
 import sys
@@ -16,7 +16,7 @@ from Captcha import CaptchaPanel
 
 class RegisterFrame(wx.Frame):
     def __init__(self, parentFrame, ID, connector, iconSet,
-            title = 'New UIN registration', config):
+        config, title = 'New UIN registration'):
 
         wx.Frame.__init__(self, None, ID, title = title, size = (300, 490))
 
