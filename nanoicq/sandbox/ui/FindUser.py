@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.10 2006/02/27 10:08:40 lightdruid Exp $
+# $Id: FindUser.py,v 1.11 2006/03/01 14:49:19 lightdruid Exp $
 #
 
 import sys
@@ -335,7 +335,7 @@ class FindUserPanel(wx.Panel):
 
 
 class FindUserFrame(wx.Frame, PersistenceMixin):
-    def __init__(self, parentFrame, ID, title = 'Find/Add Contacts...',
+    def __init__(self, parentFrame, ID, iconSet, title = 'Find/Add Contacts...',
             size = (650, 465), 
             pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX  | wx.MINIMIZE_BOX):
@@ -343,11 +343,7 @@ class FindUserFrame(wx.Frame, PersistenceMixin):
         wx.Frame.__init__(self, None, ID, size = size, style = style,
             title = title)
 
-        self.iconSet = IconSet()
-        self.iconSet.addPath('icons/aox')
-        self.iconSet.loadIcons()
-        self.iconSet.setActiveSet('aox')            
-
+        self.iconSet = iconSet
         self.mainIcon = wx.EmptyIcon()
         self.mainIcon.CopyFromBitmap(self.iconSet['main'])
         self.SetIcon(self.mainIcon)

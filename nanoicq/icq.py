@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.64 2006/03/01 12:16:14 lightdruid Exp $
+# $Id: icq.py,v 1.65 2006/03/01 14:49:19 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -576,6 +576,87 @@ class Protocol:
 
         self.sendSNAC(0x17, 0x0C, 0, data)
 
+    def registrationImageResponse(self, imageText, password):
+
+        print imageText, password
+
+        data = '\x00\x01'
+
+        data += struct.pack("!H", 51 + len(password))
+        data += '\x00\x00\x00\x00'
+        data += '\x28\x00\x03\x00'
+
+        data += '\x00\x00\x00\x00'
+        data += '\x00\x00\x00\x00'
+        data += '\x94\x68\x00\x00'
+        data += '\x94\x68\x00\x00'
+
+        data += '\x00\x00\x00\x00'
+        data += '\x00\x00\x00\x00'
+        data += '\x00\x00\x00\x00'
+        data += '\x00\x00\x00\x00'
+
+        data += str(struct.pack("<H", len(password) + 1))
+        data += str(password) 
+        data += '\x00'
+
+        data += '\x94\x68\x00\x00'
+
+        #data += '\xf2\x07\x00\x00'
+        data += '\x00\x00\x06\x02'
+
+        data += '\x00\x09'
+        data += str(struct.pack("!H", len(imageText)))
+        data += str(imageText)
+
+        self.sendSNAC(0x17, 0x04, 4, data)
+
+        buf = self.read()
+        print coldump(buf)
+
+        ch, b, c = self.readFLAP(buf)
+        snac = self.readSNAC(c)
+
+        print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
+        print 'for this snac: ', snac
+
+        tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
+        func = getattr(self, tmp)
+
+        func(snac[5])
+        
+    def proc_2_23_5(self, data):
+        '''
+        SNAC(17,05), Server confirms CAPTCHA picture text is valid
+        '''
+        log().log("New UIN request approved by server")
+
+        tlvs = readTLVs(data)
+        if not tlvs.has_key(0x01):
+            log().log("Bad response from server (missing TLV(0x01)):")
+            log().log(coldump(data))
+            return
+
+        d = tlvs[0x01]
+        print coldump(d)
+
+        d = d[10:]
+        addr = socket.inet_ntoa(d[0:4])
+        port = int(struct.unpack('!L', d[4:8])[0])
+        log().log("New UIN request was sent from %s:%d" % (addr, port))
+
+        d = d[8+4:]
+        cookie1 = d[:4]
+
+        d = d[4*5:]
+        uin = str(int(struct.unpack("<L", d[:4])[0]))
+        log().log("New UIN: " + uin)
+
+        d = d[4:]
+        cookie2 = d[:4]
+
+        self.react("New UIN", uin = uin)
+
     def proc_2_23_13(self, data):
         '''
         SNAC(17,0D), Server send CAPTCHA picture after registration request
@@ -591,7 +672,6 @@ class Protocol:
             raise Exception("Unknown format of registration CAPTCHA picture (%s)" % tlvs[0x01])
 
         img = wx.ImageFromStream(cStringIO.StringIO(tlvs[0x02]))
-        #dump2file('tlvs.req', tlvs[0x02])
         self.react("Got CAPTCHA", image = img)
 
     def searchByName(self, ownerUin, nick, first, last):
@@ -1834,12 +1914,18 @@ class Protocol:
         log().packetin(buf)
 
         self.sendCliHello()
+        time.sleep(0.1)
 
         self.registrationImageRequest()
+        time.sleep(0.1)
+
         buf = self.read()
         log().packetin(buf)
         print coldump(buf)
 
+        self._dispatchOnce(buf)
+
+    def _dispatchOnce(self, buf):
         ch, b, c = self.readFLAP(buf)
         snac = self.readSNAC(c)
 

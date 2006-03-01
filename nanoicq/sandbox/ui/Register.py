@@ -1,6 +1,6 @@
 
 #
-# $Id: Register.py,v 1.5 2006/03/01 12:16:14 lightdruid Exp $
+# $Id: Register.py,v 1.6 2006/03/01 14:49:19 lightdruid Exp $
 #
 
 import sys
@@ -15,36 +15,27 @@ from Captcha import CaptchaPanel
 
 
 class RegisterFrame(wx.Frame):
-    def __init__(self, parentFrame, ID, connector, title = 'New UIN registration'):
-
+    def __init__(self, parentFrame, ID, connector, iconSet, title = 'New UIN registration'):
         wx.Frame.__init__(self, None, ID, title = title, size = (300, 450))
 
         self.connector = connector
 
-        self.iconSet = IconSet()
-        self.iconSet.addPath('icons/aox')
-        self.iconSet.loadIcons()
-        self.iconSet.setActiveSet('aox')            
-
+        self.iconSet = iconSet
         self.mainIcon = wx.EmptyIcon()
         self.mainIcon.CopyFromBitmap(self.iconSet['main'])
         self.SetIcon(self.mainIcon)
 
-        import cStringIO
-        tlvs = restoreFromFile('tlvs.req')
-        img = wx.ImageFromStream(cStringIO.StringIO(tlvs))
+        self.cp = CaptchaPanel(self, connector, self.iconSet)
 
-        self.cp = CaptchaPanel(self, connector, self.iconSet, img)
-
-        self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
+        self.Bind(EVT_GOT_NEW_UIN, self.onGotNewUin)
         self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
+
+    def onGotNewUin(self, evt):
+        print 'onGotNewUin'
 
     def onGotCaptcha(self, evt):
         self.cp.stage2StopProcessing(evt.getVal())
 
-    def onSendCaptchaText(self, evt):
-        print 'onSendCaptchaText'
-        #self.currentPage.startProcessing()
 
 def _test():
     class NanoApp(wx.App):

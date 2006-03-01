@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.79 2006/03/01 12:16:14 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.80 2006/03/01 14:49:19 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.79 2006/03/01 12:16:14 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.80 2006/03/01 14:49:19 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -220,7 +220,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def onNewUser(self, evt):
         evt.Skip()
 
-        self.registerFrame = RegisterFrame(self, -1, self.connector["icq"])
+        self.registerFrame = RegisterFrame(self, -1, self.connector["icq"], self.iconSet)
         self.registerFrame.Show()
 
     def onSearchByUin(self, evt):
@@ -321,6 +321,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         evt = NanoEvent(nanoEVT_GOT_CAPTCHA, self.GetId())
         evt.setVal(img)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+        if hasattr(self, 'registerFrame'):
+            self.registerFrame.GetEventHandler().AddPendingEvent(evt)
+
+    def event_New_UIN(self, kw):
+        print 'Called event_New_UIN'
+
+        uin = kw['uin']
+
+        evt = NanoEvent(nanoEVT_GOT_NEW_UIN, self.GetId())
+        evt.setVal(uin)
         wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
         if hasattr(self, 'registerFrame'):
             self.registerFrame.GetEventHandler().AddPendingEvent(evt)
@@ -471,7 +482,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         ad.Show()
 
     def onFindUser(self, evt):
-        self.fu = FindUserFrame(None, -1)
+        self.fu = FindUserFrame(None, -1, self.iconSet)
         self.fu.Show(True)
 
     def OnIcqLogin(self, evt):

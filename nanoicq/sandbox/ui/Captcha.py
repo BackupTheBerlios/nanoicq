@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.5 2006/03/01 12:16:14 lightdruid Exp $
+# $Id: Captcha.py,v 1.6 2006/03/01 14:49:19 lightdruid Exp $
 #
 
 import sys
@@ -55,9 +55,35 @@ class ConnectThread:
 
         self.running = False
 
+class LengthValidator(wx.PyValidator):
+    def __init__(self, maxLen ):
+        wx.PyValidator.__init__(self)
+        self.maxLen = maxLen
+        self.Bind(wx.EVT_CHAR, self.OnChar)
+
+    def Clone(self):
+        return LengthValidator(self.maxLen)
+
+    def Validate(self, win):
+        tc = self.GetWindow()
+        val = tc.GetValue()
+
+        print 'VAL', val
+        
+        return True
+
+    def OnChar(self, event):
+        if len(self.GetValue()) <= self.maxLen:
+            event.Skip()
+            return
+
+        if not wx.Validator_IsSilent():
+            wx.Bell()
+
 
 class CaptchaPanel(wx.Panel):
     ID_TEXT = wx.NewId()
+    ID_PASS = wx.NewId()
     ID_CONTINUE1 = wx.NewId()
     ID_CONTINUE2 = wx.NewId()
     ID_FINISH = wx.NewId()
@@ -66,32 +92,34 @@ class CaptchaPanel(wx.Panel):
     count = 0
     MC = 100
 
-    def __init__(self, parent, connector, iconSet, img):
+    def __init__(self, parent, connector, iconSet, img = wx.NullBitmap):
         wx.Panel.__init__(self, parent, -1)
         sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
 
         self.connector = connector
 
         self.protocol = wx.ComboBox(self, -1, self.protocolList[0], size = (110, -1), choices = self.protocolList, style = wx.CB_READONLY)
-        self.g1 = wx.Gauge(self, -1, size = (-1, 5), style = wx.GA_SMOOTH)
         self.button1 = wx.Button(self, self.ID_CONTINUE1, "Continue")
         sizer.Add(self.protocol, 0, wx.ALL | wx.ALIGN_CENTER, 5)
         sizer.Add(self.button1, 0, wx.ALL | wx.ALIGN_CENTER, 5)
-        sizer.Add(self.g1, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
-        self.bmp = wx.StaticBitmap(self, -1, img.ConvertToBitmap())
+        self.bmp = wx.StaticBitmap(self, -1, img)
         sizer.Add(self.bmp, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
         txt = 'Please retype letters from the picture above:'
         self.text = wx.TextCtrl(self, self.ID_TEXT, "")
-        self.label = wx.StaticText(self, -1, txt)
-        sizer.Add(self.label, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+        self.label1 = wx.StaticText(self, -1, txt)
+        sizer.Add(self.label1, 0, wx.ALL | wx.ALIGN_CENTER, 5)
         sizer.Add(self.text, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
-        self.g2 = wx.Gauge(self, -1, size = (-1, 5), style = wx.GA_SMOOTH)
+        self.password = wx.TextCtrl(self, self.ID_PASS, "",
+            validator = LengthValidator(7))
+        self.label2 = wx.StaticText(self, -1, 'Choose password (up to 7 characters):')
+        sizer.Add(self.label2, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+        sizer.Add(self.password, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+
         self.button2 = wx.Button(self, self.ID_CONTINUE2, "Continue")
         sizer.Add(self.button2, 0, wx.ALL | wx.ALIGN_CENTER, 5)
-        sizer.Add(self.g2, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
         self.status = wx.StaticText(self, -1, '')
         sizer.Add(self.status, 0, wx.ALL | wx.ALIGN_CENTER, 5)
@@ -101,37 +129,39 @@ class CaptchaPanel(wx.Panel):
 
         self.bmp.Hide()
         self.text.Hide()
-        self.label.Hide()
-        self.g1.Hide()
+        self.label1.Hide()
         self.button2.Hide()
 
+        self.label2.Hide()
+        self.password.Hide()
+
         self.status.Hide()
-        self.g2.Hide()
         self.button3.Hide()
 
         # ---
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
 
-        self.Bind(wx.EVT_TEXT, self.onText)
-        self.Bind(wx.EVT_TEXT_ENTER, self.postPictureText)
-
+        self.Bind(wx.EVT_TEXT, self.onPasswordText, id = self.ID_PASS)
+        self.Bind(wx.EVT_TEXT_ENTER, self.postPictureText, id = self.ID_TEXT)
         self.Bind(wx.EVT_BUTTON, self.onButton)
-#        self.Bind(EVT_UPDATE_EVENT, self.onUpdateEvent)
-#
-#    def onUpdateEvent(self, evt):
-#        evt.Skip()
-#        self.notify(self.g1.GetId())
 
     def onButton(self, evt):
         evt.Skip()
-        self.currentEventId = evt.GetId()
 
         if evt.GetId() == self.ID_CONTINUE1:
-            #self.showStage2()
             self.stage2StartProcessing()
         elif evt.GetId() == self.ID_CONTINUE2:
-            self.showStage3()
+            self.stage3StartProcessing()
+
+    def stage3StartProcessing(self):
+        self.button2.Enable(False)
+        self.Layout()
+
+        busy = wx.BusyInfo("One moment ...")
+        wx.Yield()
+
+        self.connector.registrationImageResponse(self.text.GetValue(), self.password.GetValue())
 
     def stage2StartProcessing(self):
         self.button1.Enable(False)
@@ -160,8 +190,11 @@ class CaptchaPanel(wx.Panel):
         self.button1.SetLabel(tf)
         self.bmp.Show(flag)
         self.text.Show(flag)
-        self.label.Show(flag)
+        self.label1.Show(flag)
         self.button2.Show(flag)
+        self.button2.Enable(False)
+        self.label2.Show(flag)
+        self.password.Show(flag)
         self.Layout()
 
     def showStage3(self, flag = True):
@@ -181,10 +214,9 @@ class CaptchaPanel(wx.Panel):
             return
         print 'Posting captcha text (%s)...' % txt
 
-
-    def onText(self, evt):
+    def onPasswordText(self, evt):
         evt.Skip()
-#        self.button.Enable(len(self.text.GetValue()) > 0)
+        self.button2.Enable(len(self.password.GetValue()) > 0)
 
 class CaptchaFrame(wx.Frame):
     def __init__(self, parentFrame, ID, title = 'New UIN registration',
