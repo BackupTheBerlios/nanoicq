@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.78 2006/03/01 00:33:13 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.79 2006/03/01 12:16:14 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.78 2006/03/01 00:33:13 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.79 2006/03/01 12:16:14 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -40,7 +40,7 @@ from iconset import *
 from AboutDialog import AboutDialog
 from FindUser import FindUserFrame
 from Captcha import CaptchaFrame
-from Register import RegisterWizard
+from Register import RegisterFrame
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -191,7 +191,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
 
-        self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
+        #self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
         self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
         self.Bind(EVT_START_REGISTER, self.onStartRegister)
 
@@ -207,8 +207,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt.Skip()
         print 'MAIN: onSendCaptchaText'
 
-    def onGotCaptcha(self, evt):
-        evt.Skip()
+    #def onGotCaptcha(self, evt):
+    #    evt.Skip()
 
     def onStartRegister(self, evt):
         print 'onStartRegister'
@@ -220,8 +220,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def onNewUser(self, evt):
         evt.Skip()
 
-        self.regWizard = RegisterWizard(self, -1, self.connector["icq"])
-        self.regWizard.Show()
+        self.registerFrame = RegisterFrame(self, -1, self.connector["icq"])
+        self.registerFrame.Show()
 
     def onSearchByUin(self, evt):
         print 'onSearchByUin'
@@ -307,10 +307,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         return None
 
     def dispatch(self, *kw, **kws):
-        print 'GUI dispatcher: ', kw, kws
-
-        print kw[0][0]
-
         # Convert all spaces to underscores to get method name
         fn = 'event_' + kw[0][0].replace(' ', '_')
         func = getattr(self, fn, None)
@@ -325,7 +321,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         evt = NanoEvent(nanoEVT_GOT_CAPTCHA, self.GetId())
         evt.setVal(img)
-        self.GetEventHandler().AddPendingEvent(evt)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+        if hasattr(self, 'registerFrame'):
+            self.registerFrame.GetEventHandler().AddPendingEvent(evt)
 
     def event_Incoming_message(self, kw):
         print 'Called event_Incoming_message with '

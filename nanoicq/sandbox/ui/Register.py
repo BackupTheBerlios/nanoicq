@@ -1,6 +1,6 @@
 
 #
-# $Id: Register.py,v 1.4 2006/03/01 00:33:13 lightdruid Exp $
+# $Id: Register.py,v 1.5 2006/03/01 12:16:14 lightdruid Exp $
 #
 
 import sys
@@ -12,17 +12,6 @@ from events import *
 from iconset import IconSet
 from utils import *
 from Captcha import CaptchaPanel
-
-
-class ProcessingTimer(wx.Timer):
-    _subs = []
-
-    def subscribe(self, subscriber):
-        self._subs.append(subscriber)
-
-    def Notify(self):
-        for sub in self._subs:
-            sub.notify()
 
 
 class RegisterFrame(wx.Frame):
@@ -45,20 +34,16 @@ class RegisterFrame(wx.Frame):
         tlvs = restoreFromFile('tlvs.req')
         img = wx.ImageFromStream(cStringIO.StringIO(tlvs))
 
-        #sizer = wx.BoxSizer(wx.VERTICAL)
-
-        #p = wx.Panel(self, -1)
-
-        cp = CaptchaPanel(self, self.iconSet, img)
-        #sizer.Add(cp, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
-
-        #self.SetSizer(sizer)
-        #self.SetAutoLayout(True)
+        self.cp = CaptchaPanel(self, connector, self.iconSet, img)
 
         self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
+        self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
+
+    def onGotCaptcha(self, evt):
+        self.cp.stage2StopProcessing(evt.getVal())
 
     def onSendCaptchaText(self, evt):
-        print 'WIZARD: onSendCaptchaText'
+        print 'onSendCaptchaText'
         #self.currentPage.startProcessing()
 
 def _test():

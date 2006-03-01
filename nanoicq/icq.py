@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.63 2006/03/01 00:33:12 lightdruid Exp $
+# $Id: icq.py,v 1.64 2006/03/01 12:16:14 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1827,6 +1827,7 @@ class Protocol:
 
     def sendHelloServer(self):
         self.connect('ibucp-vip-d.blue.aol.com', 5190)
+        #self.connect()
         log().log('Sending HELLO to server...')
 
         buf = self.read()
@@ -2044,16 +2045,8 @@ def _test_new_uin():
     p = Protocol()
     #p.connect('login.icq.com', 5190)
     #p.connect('205.188.5.92', 5190)
-    p.connect('ibucp-vip-d.blue.aol.com', 5190)
 
-    buf = p.read()
-    log().packetin(buf)
-
-    p.sendCliHello()
-
-    p.registrationImageRequest()
-    buf = p.read()
-    log().packetin(buf)
+    p.sendHelloServer()
 
     ch, b, c = p.readFLAP(buf)
     snac = p.readSNAC(c)
