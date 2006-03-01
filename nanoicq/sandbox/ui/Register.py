@@ -1,6 +1,6 @@
 
 #
-# $Id: Register.py,v 1.6 2006/03/01 14:49:19 lightdruid Exp $
+# $Id: Register.py,v 1.7 2006/03/01 15:17:10 lightdruid Exp $
 #
 
 import sys
@@ -31,7 +31,7 @@ class RegisterFrame(wx.Frame):
         self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
 
     def onGotNewUin(self, evt):
-        print 'onGotNewUin'
+        self.cp.stage3StopProcessing(evt.getVal())
 
     def onGotCaptcha(self, evt):
         self.cp.stage2StopProcessing(evt.getVal())

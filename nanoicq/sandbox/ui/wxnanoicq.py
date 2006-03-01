@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.80 2006/03/01 14:49:19 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.81 2006/03/01 15:17:10 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.80 2006/03/01 14:49:19 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.81 2006/03/01 15:17:10 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -221,6 +221,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt.Skip()
 
         self.registerFrame = RegisterFrame(self, -1, self.connector["icq"], self.iconSet)
+        self.registerFrame.CentreOnParent(wx.BOTH)
         self.registerFrame.Show()
 
     def onSearchByUin(self, evt):

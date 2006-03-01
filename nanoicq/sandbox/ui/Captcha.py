@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.6 2006/03/01 14:49:19 lightdruid Exp $
+# $Id: Captcha.py,v 1.7 2006/03/01 15:17:10 lightdruid Exp $
 #
 
 import sys
@@ -55,6 +55,7 @@ class ConnectThread:
 
         self.running = False
 
+
 class LengthValidator(wx.PyValidator):
     def __init__(self, maxLen ):
         wx.PyValidator.__init__(self)
@@ -65,15 +66,23 @@ class LengthValidator(wx.PyValidator):
         return LengthValidator(self.maxLen)
 
     def Validate(self, win):
-        tc = self.GetWindow()
-        val = tc.GetValue()
+        textCtrl = self.GetWindow()
+        text = textCtrl.GetValue()
 
-        print 'VAL', val
-        
-        return True
+        if len(text) > self.maxLen:
+            wx.MessageBox("Password is too long (7 characters max)", "Password")
+            return False
+        else:
+            return True
 
     def OnChar(self, event):
-        if len(self.GetValue()) <= self.maxLen:
+        key = event.KeyCode()
+
+        if key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255:
+            event.Skip()
+            return
+
+        if len(self.GetWindow().GetValue()) < self.maxLen:
             event.Skip()
             return
 
@@ -127,6 +136,9 @@ class CaptchaPanel(wx.Panel):
         self.button3 = wx.Button(self, self.ID_FINISH, "Finish")
         sizer.Add(self.button3, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
+        #self.status = wx.StaticText(self, -1, '')
+        #sizer.Add(self.status, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+
         self.bmp.Hide()
         self.text.Hide()
         self.label1.Hide()
@@ -162,6 +174,12 @@ class CaptchaPanel(wx.Panel):
         wx.Yield()
 
         self.connector.registrationImageResponse(self.text.GetValue(), self.password.GetValue())
+
+    def stage3StopProcessing(self, newUin):
+        self.text.Enable(False)
+        self.password.Enable(False)
+        self.status.SetLabel("Your new UIN: " + str(newUin))
+        self.showStage3()
 
     def stage2StartProcessing(self):
         self.button1.Enable(False)
