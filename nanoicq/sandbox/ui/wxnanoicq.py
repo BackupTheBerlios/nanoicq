@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.77 2006/02/28 21:46:04 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.78 2006/03/01 00:33:13 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.77 2006/02/28 21:46:04 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.78 2006/03/01 00:33:13 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -187,12 +187,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_SEARCH_BY_EMAIL, self.onSearchByEmail)
         self.Bind(EVT_SEARCH_BY_NAME, self.onSearchByName)
 
-        self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
 
+        self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
         self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
+        self.Bind(EVT_START_REGISTER, self.onStartRegister)
 
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
@@ -209,13 +210,18 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def onGotCaptcha(self, evt):
         evt.Skip()
 
-        self.regWizard = RegisterWizard(self, -1)
-        self.regWizard.Show()
+    def onStartRegister(self, evt):
+        print 'onStartRegister'
+        proto = evt.getVal().lower()
+        evt.Skip()
+
+        self.connector[proto].sendHelloServer()
 
     def onNewUser(self, evt):
         evt.Skip()
 
-        self.connector['icq'].sendHelloServer()
+        self.regWizard = RegisterWizard(self, -1, self.connector["icq"])
+        self.regWizard.Show()
 
     def onSearchByUin(self, evt):
         print 'onSearchByUin'

@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.62 2006/02/28 21:46:04 lightdruid Exp $
+# $Id: icq.py,v 1.63 2006/03/01 00:33:12 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -338,6 +338,8 @@ class Protocol:
         except AttributeError, msg:
             # We don't have config, use default values
             pass
+
+        log().log("Connecting to %s:%d" % (host, port))
 
         if hasattr(self, '_config') and self._config.has_option('icq', 'proxy.server'):
             junk = self._config.get('icq', 'proxy.server').split(':')
@@ -1824,17 +1826,18 @@ class Protocol:
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
     def sendHelloServer(self):
-        self.connect()
+        self.connect('ibucp-vip-d.blue.aol.com', 5190)
         log().log('Sending HELLO to server...')
 
         buf = self.read()
         log().packetin(buf)
 
         self.sendCliHello()
-        self.registrationImageRequest()
 
+        self.registrationImageRequest()
         buf = self.read()
         log().packetin(buf)
+        print coldump(buf)
 
         ch, b, c = self.readFLAP(buf)
         snac = self.readSNAC(c)

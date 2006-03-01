@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.3 2006/02/28 16:37:39 lightdruid Exp $
+# $Id: Captcha.py,v 1.4 2006/03/01 00:33:13 lightdruid Exp $
 #
 
 import sys
@@ -15,23 +15,46 @@ from utils import *
 
 class CaptchaPanel(wx.Panel):
     ID_TEXT = wx.NewId()
+    ID_CONTINUE1 = wx.NewId()
+    ID_CONTINUE2 = wx.NewId()
+    ID_FINISH = wx.NewId()
+
+    protocolList = ["ICQ"]
 
     def __init__(self, parent, iconSet, img):
         wx.Panel.__init__(self, parent, -1)
         sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
+
+        self.protocol = wx.ComboBox(self, -1, self.protocolList[0], size = (110, -1), choices = self.protocolList, style = wx.CB_READONLY)
+        self.button1 = wx.Button(self, self.ID_CONTINUE1, "Continue")
+        sizer.Add(self.protocol, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+        sizer.Add(self.button1, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
         self.bmp = wx.StaticBitmap(self, -1, img.ConvertToBitmap())
         sizer.Add(self.bmp, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
         txt = 'Please retype letters from the picture above:'
         self.text = wx.TextCtrl(self, self.ID_TEXT, "")
-        sizer.Add(wx.StaticText(self, -1, txt), 0, wx.ALL | wx.ALIGN_CENTER, 5)
+        self.label = wx.StaticText(self, -1, txt)
+        sizer.Add(self.label, 0, wx.ALL | wx.ALIGN_CENTER, 5)
         sizer.Add(self.text, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
-#        self.button = wx.Button(self, wx.ID_OK, "Ok")
-#        sizer.Add(self.button, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+        self.button2 = wx.Button(self, self.ID_CONTINUE2, "Continue")
+        sizer.Add(self.button2, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
-#        self.button.Enable(False)
+        self.status = wx.StaticText(self, -1, '')
+        sizer.Add(self.status, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+
+        self.button3 = wx.Button(self, self.ID_FINISH, "Finish")
+        sizer.Add(self.button3, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+
+        self.bmp.Hide()
+        self.text.Hide()
+        self.label.Hide()
+        self.button2.Hide()
+
+        self.status.Hide()
+        self.button3.Hide()
 
         # ---
         self.SetSizer(sizer)
@@ -40,7 +63,37 @@ class CaptchaPanel(wx.Panel):
         self.Bind(wx.EVT_TEXT, self.onText)
         self.Bind(wx.EVT_TEXT_ENTER, self.postPictureText)
 
-        #self.Bind(wx.EVT_BUTTON, self.postPictureText, id = self.button.GetId())
+        self.Bind(wx.EVT_BUTTON, self.onButton)
+        #self.Bind(wx.EVT_BUTTON, self.onButton, id = self.button.GetId())
+
+    def onButton(self, evt):
+        evt.Skip()
+        if evt.GetId() == self.ID_CONTINUE1:
+            self.showStage2()
+        elif evt.GetId() == self.ID_CONTINUE2:
+            self.showStage3()
+
+    def showStage2(self, flag = True):
+        if flag:
+            tf = 'Done'
+        else:
+            tf = 'Continue'
+        self.button1.SetLabel(tf)
+        self.bmp.Show(flag)
+        self.text.Show(flag)
+        self.label.Show(flag)
+        self.button2.Show(flag)
+        self.Layout()
+
+    def showStage3(self, flag = True):
+        if flag:
+            tf = 'Done'
+        else:
+            tf = 'Continue'
+        self.button2.SetLabel(tf)
+        self.status.Show(flag)
+        self.button3.Show(flag)
+        self.Layout()
 
     def postPictureText(self, evt):
         evt.Skip()

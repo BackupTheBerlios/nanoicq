@@ -1,9 +1,12 @@
 
 #
-# $Id: events.py,v 1.10 2006/02/28 16:37:39 lightdruid Exp $
+# $Id: events.py,v 1.11 2006/03/01 00:33:12 lightdruid Exp $
 #
 
 import wx
+
+nanoEVT_START_REGISTER = wx.NewEventType()
+EVT_START_REGISTER = wx.PyEventBinder(nanoEVT_START_REGISTER, 1)
 
 nanoEVT_GOT_CAPTCHA = wx.NewEventType()
 EVT_GOT_CAPTCHA = wx.PyEventBinder(nanoEVT_GOT_CAPTCHA, 1)
