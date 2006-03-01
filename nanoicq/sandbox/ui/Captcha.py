@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.7 2006/03/01 15:17:10 lightdruid Exp $
+# $Id: Captcha.py,v 1.8 2006/03/01 16:29:09 lightdruid Exp $
 #
 
 import sys
@@ -133,6 +133,14 @@ class CaptchaPanel(wx.Panel):
         self.status = wx.StaticText(self, -1, '')
         sizer.Add(self.status, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
+        self.newUin = wx.TextCtrl(self, self.ID_TEXT, "", style = wx.BORDER_NONE)
+        self.newUin.SetEditable(False)
+        self.newPassword = wx.TextCtrl(self, self.ID_TEXT, "", style = wx.BORDER_NONE)
+        self.newPassword.SetEditable(False)
+
+        sizer.Add(self.newUin, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+        sizer.Add(self.newPassword, 0, wx.ALL | wx.ALIGN_CENTER, 5)
+
         self.button3 = wx.Button(self, self.ID_FINISH, "Finish")
         sizer.Add(self.button3, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
@@ -149,6 +157,9 @@ class CaptchaPanel(wx.Panel):
 
         self.status.Hide()
         self.button3.Hide()
+
+        self.newUin.Hide()
+        self.newPassword.Hide()
 
         # ---
         self.SetSizer(sizer)
@@ -173,12 +184,20 @@ class CaptchaPanel(wx.Panel):
         busy = wx.BusyInfo("One moment ...")
         wx.Yield()
 
-        self.connector.registrationImageResponse(self.text.GetValue(), self.password.GetValue())
+        self.connector.registrationImageResponse(self.text.GetValue(),
+            self.password.GetValue())
 
     def stage3StopProcessing(self, newUin):
         self.text.Enable(False)
         self.password.Enable(False)
-        self.status.SetLabel("Your new UIN: " + str(newUin))
+        self.status.SetLabel("Registration complete, your UIN and password:")
+
+        self.newUin.SetValue(newUin)
+        self.newPassword.SetValue(self.password.GetValue())
+
+        self.newUin.Show()
+        self.newPassword.Show()
+
         self.showStage3()
 
     def stage2StartProcessing(self):

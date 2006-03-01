@@ -1,6 +1,6 @@
 
 #
-# $Id: config.py,v 1.5 2006/02/27 10:29:29 lightdruid Exp $
+# $Id: config.py,v 1.6 2006/03/01 16:29:09 lightdruid Exp $
 #
 
 import os
@@ -40,13 +40,23 @@ class Config(SafeConfigParser):
         f2.write(f1.read())
         f1.close(); f2.close()
 
+    def read(self, filenames):
+        self.configFileName = filenames
+        SafeConfigParser.read(self, filenames)
+
+    def write(self):
+        fp = open(self.configFileName, 'wb')
+        SafeConfigParser.write(self, fp)
+        fp.close()
 
 def _test():
     c = Config()
-    c.read('sample.config')
+    c.read('sample.config-1')
     print c.get('icq', 'uin')
     print c.validate()
     c.checkFile("nanoicqrc")
+    c.set('icq', 'uin', '123')
+    c.write()
 
 if __name__ == '__main__':
     _test()
