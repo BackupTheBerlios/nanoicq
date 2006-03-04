@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.8 2006/03/01 16:29:09 lightdruid Exp $
+# $Id: Captcha.py,v 1.9 2006/03/04 22:14:04 lightdruid Exp $
 #
 
 import sys
@@ -13,22 +13,9 @@ sys.path.insert(0, '../..')
 from events import *
 from iconset import IconSet
 from utils import *
+from icq import log
 
 (_UpdateEvent, EVT_UPDATE_EVENT) = wx.lib.newevent.NewEvent()
-
-class ProcessingTimer(wx.Timer):
-    _subs = []
-
-    def __init__(self, ids):
-        wx.Timer.__init__(self)
-        self._ids = ids
-
-    def subscribe(self, subscriber):
-        self._subs.append(subscriber)
-
-    def Notify(self):
-        for sub in self._subs:
-            sub.notify(self._ids)
 
 class ConnectThread:
     def __init__(self, win):
@@ -57,19 +44,23 @@ class ConnectThread:
 
 
 class LengthValidator(wx.PyValidator):
-    def __init__(self, maxLen ):
+    ''' Check length of the control's value, it must be validated
+        by 'constraint' function, something like this one:
+            lambda x : x < 7 - value can't be longer than 7 characters
+    '''
+    def __init__(self, constraint):
         wx.PyValidator.__init__(self)
-        self.maxLen = maxLen
+        self._constraint = constraint
         self.Bind(wx.EVT_CHAR, self.OnChar)
 
     def Clone(self):
-        return LengthValidator(self.maxLen)
+        return LengthValidator(self._constraint)
 
     def Validate(self, win):
         textCtrl = self.GetWindow()
         text = textCtrl.GetValue()
 
-        if len(text) > self.maxLen:
+        if not self._constraint(len(text)):
             wx.MessageBox("Password is too long (7 characters max)", "Password")
             return False
         else:
@@ -82,7 +73,7 @@ class LengthValidator(wx.PyValidator):
             event.Skip()
             return
 
-        if len(self.GetWindow().GetValue()) < self.maxLen:
+        if self._constraint(len(self.GetWindow().GetValue())):
             event.Skip()
             return
 
@@ -122,7 +113,7 @@ class CaptchaPanel(wx.Panel):
         sizer.Add(self.text, 0, wx.ALL | wx.ALIGN_CENTER, 5)
 
         self.password = wx.TextCtrl(self, self.ID_PASS, "",
-            validator = LengthValidator(7))
+            validator = LengthValidator(lambda x : x < 7))
         self.label2 = wx.StaticText(self, -1, 'Choose password (up to 7 characters):')
         sizer.Add(self.label2, 0, wx.ALL | wx.ALIGN_CENTER, 5)
         sizer.Add(self.password, 0, wx.ALL | wx.ALIGN_CENTER, 5)
@@ -164,6 +155,8 @@ class CaptchaPanel(wx.Panel):
         # ---
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
+
+        self.button1.SetFocus()
 
         self.Bind(wx.EVT_TEXT, self.onPasswordText, id = self.ID_PASS)
         self.Bind(wx.EVT_TEXT_ENTER, self.postPictureText, id = self.ID_TEXT)
@@ -207,7 +200,20 @@ class CaptchaPanel(wx.Panel):
         busy = wx.BusyInfo("One moment ...")
         wx.Yield()
 
-        self.startRegistration()
+        attempts = 0
+        maxAttempts = 5
+        while True:
+            try:
+                attempts += 1
+                self.startRegistration()
+                break
+            except Exception, exc:
+                if attempts >= maxAttempts:
+                    msg = "Unable to login to server: " + str(exc)
+                    log().log(msg)
+                    del busy
+                    raise Exception(msg)
+                log().log("Unsuccessful attempt, trying one more time: " + str(exc))
 
     def startRegistration(self):
         self.connector.sendHelloServer()

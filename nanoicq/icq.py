@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.66 2006/03/01 16:40:25 lightdruid Exp $
+# $Id: icq.py,v 1.67 2006/03/04 22:14:04 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -15,6 +15,8 @@ import struct
 import socket
 import types
 import cStringIO
+
+socket.setdefaulttimeout(1.0)
 
 from utils import *
 from snacs import *
@@ -395,9 +397,14 @@ class Protocol:
 
     def readFLAP(self, buf):
         header = "!cBHH"
-        if len(buf) < 6: return
+        if len(buf) < 6:
+            print 'len(buf) < 6', len(buf) < 6
+            return
         flap = struct.unpack(header, buf[:6])
-        if len(buf) < 6 + flap[3]: return
+        if len(buf) < 6 + flap[3]:
+            print 'len(buf) < 6 + flap[3]', len(buf) < 6 + flap[3]
+            print 'len(buf), flap[3]', len(buf), int(flap[3])
+            return
         data, buf = buf[6:6 + flap[3]], buf[6 + flap[3]:]
         return [flap[1], buf, data]
 
@@ -638,11 +645,12 @@ class Protocol:
             return
 
         d = tlvs[0x01]
+        dump2file('new-uin.data', d)
         print coldump(d)
 
         d = d[10:]
-        addr = socket.inet_ntoa(d[0:4])
-        port = int(struct.unpack('!L', d[4:8])[0])
+        port = int(struct.unpack('!L', d[0:4])[0])
+        addr = socket.inet_ntoa(d[4:8])
         log().log("New UIN request was sent from %s:%d" % (addr, port))
 
         d = d[8+4:]
