@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.82 2006/03/01 16:29:09 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.83 2006/03/04 22:44:09 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.82 2006/03/01 16:29:09 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.83 2006/03/04 22:44:09 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -73,6 +73,7 @@ _topMenu = (
         )
     ),
 )
+
 
 class ICQThreaded(icq.Protocol):
     def __init__(self, gui, sock = None):
@@ -195,20 +196,34 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
         self.Bind(EVT_START_REGISTER, self.onStartRegister)
 
+        self._keepAliveTimer = wx.Timer(self)
+        if self.config.has_option('icq', 'keep.alive.interval'):
+            try:
+                timerVal = self.config.getint('icq', 'keep.alive.interval')
+                self._keepAliveTimer.Start(timerVal * 1000)
+                log().log('Started keep alive timer (%d seconds)' % timerVal)
+            except Exception, exc:
+                log().log('Unable to start keep alive timer: ' + str(exc))
+        self.Bind(wx.EVT_TIMER, self.onKeepAliveTimer)
+
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
-        #self.topPanel.userList.sampleFill()
         import Plugin
         self._plugins = Plugin.load_plugins('../../plugins', '../plugins')
 
+        #self.topPanel.userList.sampleFill()
         # ---
+
+    def onKeepAliveTimer(self, evt):
+        evt.Skip()
+        try:
+            self.connector['icq'].sendKeepAlive()
+        except Exception, exc:
+            print str(exc)
 
     def onSendCaptchaText(self, evt):
         evt.Skip()
         print 'MAIN: onSendCaptchaText'
-
-    #def onGotCaptcha(self, evt):
-    #    evt.Skip()
 
     def onStartRegister(self, evt):
         print 'onStartRegister'

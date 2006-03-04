@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.67 2006/03/04 22:14:04 lightdruid Exp $
+# $Id: icq.py,v 1.68 2006/03/04 22:44:09 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -16,7 +16,7 @@ import socket
 import types
 import cStringIO
 
-socket.setdefaulttimeout(1.0)
+#socket.setdefaulttimeout(1.0)
 
 from utils import *
 from snacs import *
@@ -2075,6 +2075,11 @@ class Protocol:
             outMsg = outMsg + tlv(6, '')
 
         self.sendSNAC(0x04, 0x06, 0, outMsg)
+
+    def sendKeepAlive(self):
+        ''' 0x05 - Keep alive
+        '''
+        self.sendFLAP(0x05, '')
 
 
 def _test():
