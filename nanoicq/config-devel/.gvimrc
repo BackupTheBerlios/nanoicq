@@ -19,6 +19,7 @@ endif
 
 set laststatus=2
 
+" Windows
 "colorscheme desert
 "colorscheme inkpot
 "colorscheme MidNight2
@@ -27,6 +28,12 @@ set laststatus=2
 "colorscheme OceanDeep
 colorscheme Camo
 
+" Unix
+"colorscheme desert
+"colorscheme edo_sea
+"colorscheme blackdust
+"colorscheme neon
+ 
 map <C-F10> :source ~/.gvimrc<CR>
 
 if has("gui_gtk2")
