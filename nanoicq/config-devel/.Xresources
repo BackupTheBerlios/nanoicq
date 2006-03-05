@@ -1,0 +1,99 @@
+! Color stuff
+*customization: -color
+
+! Alicq
+!Alicq*Text.outgoingColor: black
+Alicq*Text.sentColor: black
+Alicq*TreeNode.font: -*-tahoma-medium-r-normal--11-* 
+Alicq*Text.font:  -*-tahoma-medium-r-normal--11-*
+Alicq*Entry.font: -*-tahoma-medium-r-normal--11-*
+Alicq*Text.headerFont:  -*-tahoma-medium-r-normal--11-*
+Alicq.AlicqUserWindow*Text.font:    -*-tahoma-medium-r-normal--11-*
+Alicq*font: -*-tahoma-medium-r-normal--11-*
+Alicq*Text.clientColor: black
+Alicq*Text.serverColor: black
+Alicq*Text.incomingColor: darkBlue
+
+! Xterm stuff
+
+xterm*background: Black
+xterm*foreground: Wheat
+!xterm*font: -*-courier-medium-r-*-*-*-100-*-*-*-*-koi8-*
+xterm*saveLines: 3000
+xterm.VT100.geometry: 80x35
+xterm*cursorColor: Red
+xterm*colorBD: Cyan
+
+!xterm*VT100*font1:         -adobe-courier-bold-r-normal--8-*
+xterm*fontMenu*font2*Label: Small Courier
+xterm*VT100*font2:           -*-courier-medium-r-normal--12-*
+xterm*fontMenu*font3*Label: Medium Courier
+xterm*VT100*font3:           -*-courier-medium-r-normal--14-*
+xterm*fontMenu*font4*Label: Large Courier
+xterm*VT100*font4:           -*-courier-medium-r-normal--18-*
+ 
+
+! This one is from Vitus Varger
+! Change font size in xterm using shift + mouse wheel
+! With fixes from Anton Kovalenko
+XTerm.vt100.translations: #override\n\
+    Shift<Btn4Down>:smaller-vt-font()\n\
+    Shift<Btn5Down>:larger-vt-font()\n\
+    Meta <KeyPress> minus: smaller-vt-font() \n\
+    Meta <KeyPress> KP_Subtract: smaller-vt-font() \n\
+    Meta <KeyPress> plus: larger-vt-font() \n\
+    Meta <KeyPress> KP_Add: larger-vt-font() \n\
+    Shift <KeyPress> Insert: insert-selection(CUT_BUFFER0, PRIMARY) \n\
+    Ctrl <KeyPress> Insert: select-cursor-start() \
+				            select-cursor-end(PRIMARY, CUT_BUFFER0) \n\
+    Shift <KeyPress> KP_Insert: insert-selection(CUT_BUFFER0, PRIMARY) \n\
+    Ctrl <KeyPress> KP_Insert: select-cursor-start() \
+				            select-cursor-end(PRIMARY, CUT_BUFFER0)
+  
+!    Shift <KeyPress> Select: select-cursor-start() select-cursor-end(PRIMARY, CLIPBOARD, CUTBUFFER0) \n\
+!    Shift <KeyPress> Insert: insert-selection(PRIMARY, CLIPBOARD, CUTBUFFER0)
+
+/* The following replace the xterm font menus with options to switch to
+* a koi8-r font encoding or an iso8859-5 font encoding rather than the
+* font size selections
+*/
+!xterm*font1*Label: koi8-r
+!xterm*VT100*font1: -etl-fixed-medium-r-normal--14-140-72-72-c-70-koi8-r
+!xterm*font2*Label: iso8859-5
+!xterm*VT100*font2: -etl-fixed-medium-r-normal--14-140-72-72-c-70-iso8859-5
+/* This option allows one to run 'xterm -name xterm-koi8' to run an
+* xterm with the default font a koi8 encoded font.
+*/
+!xterm-koi8*font: -*-*-*-r-normal--*-*-*-*-*-*-koi8-r
+xterm-koi8*font: -*-courier-medium-r-*-*-*-*-*-*-*-*-koi8-*
+/* This option allows one to run 'xterm -name xterm-iso8859-5' to run an
+* xterm with the default font an iso8859-5 encoded font.
+*/
+xterm-iso8859-5*font: -etl-fixed-medium-r-normal--14-140-72-72-c-70-iso8859-5
+
+! Gvim stuff
+
+Vim*menuBar*font:	     -*-courier-medium-r-*-*-10-*-*-*-*-*-*-* 
+Vim*menuBar*fontList:	     -*-courier-medium-r-*-*-10-*-*-*-*-*-*-* 
+Vim*geometry: 85x85
+
+! Emacs
+Emacs*pointerColor: DarkRed
+Emacs*cursorColor: Orange
+emacs*bitmapIcon: on
+
+Emacs*background: DarkSlateGray
+Emacs*foreground: Wheat
+
+emacs.ToolBar: 0
+!!emacs.font: -*-courier\ new-medium-r-*-*-12-*-*-*-*-*-*-*
+!!emacs*XlwMenu.font: -*-tahoma-medium-r-*-*-11-*-*-*-*-*-*-*
+!!emacs*Dialog*font: -*-tahoma-medium-r-*-*-11-*-*-*-*-*-*-*
+Emacs.font: -*-fixed-medium-r-*--14-*-*-*-*-*-*
+!!Emacs.font: -misc-fixed-medium-r-*--13-*-*-*-c-60-iso8859-1
+!!!Emacs.font: -*-fixed-r-*-*-11-*-*-*-*-*-*-*  
+
+!!Emacs.font: -*-*-*-*-*-10-*-*-*-*-*-*-*
+!!xemacs*XlwMenu.font: -*-tahoma-medium-r-*-*-11-*-*-*-*-*-*-*
+!!xemacs*Dialog*font: -*-tahoma-medium-r-*-*-11-*-*-*-*-*-*-*
+!! EOF
