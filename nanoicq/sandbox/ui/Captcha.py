@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.10 2006/03/06 15:17:53 lightdruid Exp $
+# $Id: Captcha.py,v 1.11 2006/03/06 19:29:54 lightdruid Exp $
 #
 
 import sys
@@ -240,6 +240,7 @@ class CaptchaPanel(wx.Panel):
         self.button2.Enable(False)
         self.label2.Show(flag)
         self.password.Show(flag)
+        self.text.SetFocus()
         self.Layout()
 
     def showStage3(self, flag = True):
@@ -257,7 +258,7 @@ class CaptchaPanel(wx.Panel):
         txt = self.text.GetValue()
         if len(txt) == 0:
             return
-        print 'Posting captcha text (%s)...' % txt
+        log().log('Posting captcha text (%s)...' % str(txt))
 
     def onPasswordText(self, evt):
         evt.Skip()
