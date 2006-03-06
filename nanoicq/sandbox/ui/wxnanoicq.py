@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.84 2006/03/06 15:17:53 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.85 2006/03/06 15:38:21 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.84 2006/03/06 15:17:53 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.85 2006/03/06 15:38:21 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -87,7 +87,6 @@ class ICQThreaded(icq.Protocol):
         self._threadHandle = thread.start_new_thread(self.Run, ())
 
     def Stop(self):
-        print 'Called Stop'
         self.keepGoing = False
 
     def IsRunning(self):
@@ -119,9 +118,10 @@ class ICQThreaded(icq.Protocol):
                     list[-1],
                 )
                 if self.keepGoing == False:
-                    print 'Disconnected by request'
+                    log().log('Disconnected by request')
                 else:
                     print 'ERROR: ', err
+                    log().log(err)
                     guidebug.message(err)
                     print 'KEEP RUNNING'
 
@@ -406,6 +406,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 d.addToHistory(m)
             d.Show(True)
             d.SetFocus()
+            d.Raise()
         else:
             self.showMessage(b.name, m)
 
@@ -538,6 +539,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         if not hide:
             d.Show()
             d.SetFocus()
+            d.Raise()
 
         self._dialogs.append(d)
         print self._dialogs
