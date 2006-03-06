@@ -1,6 +1,6 @@
 
 #
-# $Id: utils.py,v 1.17 2006/03/06 21:42:06 lightdruid Exp $
+# $Id: utils.py,v 1.18 2006/03/06 23:21:28 lightdruid Exp $
 #
 
 import string
@@ -32,9 +32,17 @@ else:
 
 def parseAsciiz(data):
     ln = struct.unpack('<H', data[0:2])[0]
-    print 'len=', ln
     d = data[2:2+ln]
-    return (d, data[2+ln+1:])
+    d = d.replace('\x00', '')
+    return (d, data[2+ln:])
+
+def parseWordLE(data):
+    v = struct.unpack('<H', data[0:2])[0]
+    return (v, data[2:])
+
+def parseByteLE(data):
+    v = struct.unpack('<B', data[0])[0]
+    return (v, data[1:])
 
 def parseProxyAddress(addr):
     re_proxy = re.compile("(http|https)://(\w+):(\w+)@([^:].*):(\d+)/?")
