@@ -1,17 +1,18 @@
 
 #
-# $Id: utils.py,v 1.16 2006/02/05 14:26:32 lightdruid Exp $
+# $Id: utils.py,v 1.17 2006/03/06 21:42:06 lightdruid Exp $
 #
 
 import string
 import cPickle
 import sys, codecs, time, random
 import warnings
-import wx
+from wx import VERSION
 import re
+import struct
 
 
-_ver = wx.VERSION
+_ver = VERSION
 if _ver[0] < 2:
     raise Exception("wxPython is too old, must be 2.6+")
 if _ver[0] == 2 and _ver[1] < 6:
@@ -28,6 +29,12 @@ else:
         _enc, _dec, _srdr, _swtr = codecs.lookup('utf-8')
     else:
         raise Exception('Codecs are not tuned yet for this platform')
+
+def parseAsciiz(data):
+    ln = struct.unpack('<H', data[0:2])[0]
+    print 'len=', ln
+    d = data[2:2+ln]
+    return (d, data[2+ln+1:])
 
 def parseProxyAddress(addr):
     re_proxy = re.compile("(http|https)://(\w+):(\w+)@([^:].*):(\d+)/?")

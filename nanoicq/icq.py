@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.70 2006/03/06 15:17:53 lightdruid Exp $
+# $Id: icq.py,v 1.71 2006/03/06 21:42:06 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1103,10 +1103,12 @@ class Protocol:
     def getBuddies(self, gid = None, status = None):
         return self._groups.getBuddies(gid = gid, status = status)
 
-    def getBuddy_____(self, userName):
-        b = Buddy()
-        b.name = 'some'
-        return b
+    def addBuddyAfterSearch(self, b):
+        print 'addBuddyAfterSearch'
+        ''' Add buddy after 'search' dialog
+        '''
+        self._groups.addBuddy(0, b)
+        self.react("New buddy", buddy = b)
 
     def getBuddy(self, userName):
         return self._groups.getBuddy(userName)
@@ -1699,6 +1701,26 @@ class Protocol:
         log().log("Sending buddylist service parameters ")
         self.sendSNAC(0x03, 0x02, 0, '')
 
+    def getUserInfo(self, ownerUin, uin):
+        '''
+        Client full userinfo request. Last reply snac flag bit1=0, 
+        other reply packets have flags bit1=1 to inform client that 
+        more data follows. Server should respond with following SNACs:
+
+        SNAC(15,03)/07DA/00C8, SNAC(15,03)/07DA/00DC,
+        SNAC(15,03)/07DA/00EB, SNAC(15,03)/07DA/010E,
+        SNAC(15,03)/07DA/00D2, SNAC(15,03)/07DA/00E6,
+        SNAC(15,03)/07DA/00F0, SNAC(15,03)/07DA/00FA 
+        '''
+        data = struct.pack('<L', int(ownerUin))
+        data += "\xd0\x07\x02\x00\xb2\x04"
+        data += struct.pack('<L', int(uin))
+
+        data = struct.pack('<H', len(data)) + data
+
+        log().log("Sending full user info request for '%s'" % str(uin))
+        self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
+
     def proc_2_21_3(self, data):
         '''
         user information packet.
@@ -1715,6 +1737,8 @@ class Protocol:
 
         tmp = "userFound_%s_%s" % (dataTypeX, dataSubTypeX)
         print tmp
+
+        dump2file(tmp, d[12:])
 
         try:
             func = getattr(self, tmp)

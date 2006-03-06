@@ -1,9 +1,10 @@
 
 #
-# $Id: group.py,v 1.9 2006/02/10 15:59:20 lightdruid Exp $
+# $Id: group.py,v 1.10 2006/03/06 21:42:06 lightdruid Exp $
 #
 
 from buddy import Buddy
+from utils import *
 
 class Group:
     def __init__(self):
@@ -47,6 +48,14 @@ class Group:
         return "Group: groups count: %d, groups = %s, buddies: %s" % \
             (len(self._g), '|'.join(self._g.values()), '|'.join(self._b.keys()))
 
+    def save(self, fileName):
+        dump2file(fileName, self)
+
+    @staticmethod
+    def load(fileName):
+        return restoreFromFile(fileName)
+
+
 if __name__ == '__main__':
     g = Group()
     g.add(1, '#1')
@@ -73,5 +82,9 @@ if __name__ == '__main__':
     print '='*50
     g.getBuddy('b2').name = 'aaa'
     print g.getBuddies()
+
+    g.save('groups.dump')
+    g2 = Group.load('groups.dump')
+    assert len(g.getBuddies()) == len(g2.getBuddies())
 
 # ---

@@ -1,6 +1,6 @@
 
 #
-# $Id: events.py,v 1.12 2006/03/01 14:49:19 lightdruid Exp $
+# $Id: events.py,v 1.13 2006/03/06 21:42:06 lightdruid Exp $
 #
 
 import wx
@@ -46,6 +46,14 @@ EVT_SEARCH_BY_NAME = wx.PyEventBinder(nanoEVT_SEARCH_BY_NAME, 1)
 
 nanoEVT_RESULT_BY_UIN = wx.NewEventType()
 EVT_RESULT_BY_UIN = wx.PyEventBinder(nanoEVT_RESULT_BY_UIN, 1)
+
+# Add user to list after search (FindUser.py)
+nanoEVT_ADD_USER_TO_LIST = wx.NewEventType()
+EVT_ADD_USER_TO_LIST = wx.PyEventBinder(nanoEVT_ADD_USER_TO_LIST, 1)
+
+# Unable to add user to list after search (user with this UIN already in list, etc.)
+nanoEVT_UNABLE_ADD_USER_TO_LIST = wx.NewEventType()
+EVT_UNABLE_ADD_USER_TO_LIST = wx.PyEventBinder(nanoEVT_UNABLE_ADD_USER_TO_LIST, 1)
 
 class NanoEvent(wx.PyCommandEvent):
     def __init__(self, evtType, id):

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.85 2006/03/06 15:38:21 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.86 2006/03/06 21:42:06 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.85 2006/03/06 15:38:21 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.86 2006/03/06 21:42:06 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -203,6 +203,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         #self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
         self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
         self.Bind(EVT_START_REGISTER, self.onStartRegister)
+        self.Bind(EVT_ADD_USER_TO_LIST, self.onAddUserToList)
+#        self.Bind(EVT_UNABLE_ADD_USER_TO_LIST, self.onUnableAddUserToList)
 
         self._keepAliveTimer = wx.Timer(self)
         if self.config.has_option('icq', 'keep.alive.interval'):
@@ -221,6 +223,36 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def onAddUserToList(self, evt):
+        '''
+        Add user to user list (after search)
+        '''
+        print 'onAddUserToList'
+        evt.Skip()
+        b = evt.getVal()
+
+        try:
+            nb = self.connector['icq'].getBuddyByUin(b.uin)
+            if nb is not None:
+                name = ''
+                if b.name is not None and len(b.name) > 0:
+                    name = "'%s'" % b.name
+                msg = 'User %s with UIN %s already in list' % (name, str(b.uin))
+                wx.MessageBox(msg, 'Add user', wx.OK)
+        except Exception, exc:
+            print exc
+            log().log('Adding new user UIN %s to list' % str(b.uin))
+            self.connector['icq'].addBuddyAfterSearch(b)
+            self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)
+
+            # Now we ought to ask about user status
+
+#    def onUnableAddUserToList(self, evt):
+#        '''
+#        Unable to add user to list (UIN already exists, etc.)
+#        '''
+#        evt.Skip()
 
     def onKeepAliveTimer(self, evt):
         evt.Skip()

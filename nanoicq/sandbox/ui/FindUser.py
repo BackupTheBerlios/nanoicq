@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.12 2006/03/06 16:27:51 lightdruid Exp $
+# $Id: FindUser.py,v 1.13 2006/03/06 21:42:06 lightdruid Exp $
 #
 
 import sys
@@ -95,6 +95,8 @@ class DigitValidator(wx.PyValidator):
 
 class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     ID_SEND_MESSAGE = wx.NewId()
+    ID_USER_DETAILS = wx.NewId()
+    ID_SEND_MESSAGE = wx.NewId()
 
     def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
             size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_SIMPLE):
@@ -140,25 +142,74 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         # it triggers only on second click
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onItemDeselected, self)
+        self.Bind(EVT_UNABLE_ADD_USER_TO_LIST, self.onUnableAddUserToList)
+
+    def onUnableAddUserToList(self, evt):
+        '''
+        Unable to add user to list (UIN already exists, etc.)
+        '''
+        evt.Skip()
+        print 'onUnableAddUserToList', evt.getVal()
+
+    def onItemSelected(self, evt):
+        self.currentItem = evt.m_itemIndex
+
+    def onItemDeselected(self, evt):
+        self.currentItem = -1
+
     def onRightClick(self, evt):
         self.createPopUpMenu()
         #evt.Skip()
 
     def createPopUpMenu(self):
         _topMenu = (
-            (self.ID_SEND_MESSAGE, "Add to contact list", "self.onAddToContactList"),
+            (self.ID_SEND_MESSAGE, "Add to list", "self.onAddToContactList"),
+            (),
+            (self.ID_USER_DETAILS, "User details", "self.onUserDetails"),
+            (self.ID_SEND_MESSAGE, "Send message", "self.onSendMessage"),
         )
+
+        #if self.currentItem == -1: return
 
         self.popUpMenu = wx.Menu()
 
-        for ids, txt, func in _topMenu:
-            item = wx.MenuItem(self.popUpMenu, ids, txt, txt)
-            self.Bind(wx.EVT_MENU, eval(func), id = ids)
-            self.popUpMenu.AppendItem(item)
+        for d in _topMenu:
+            if len(d) == 0:
+                self.popUpMenu.AppendSeparator()
+            else:
+                ids, txt, func = d
+                item = wx.MenuItem(self.popUpMenu, ids, txt, txt)
+                self.Bind(wx.EVT_MENU, eval(func), id = ids)
+                self.popUpMenu.AppendItem(item)
 
         self.PopupMenu(self.popUpMenu)
 
+    def getColumnText(self, index, col):
+        item = self.GetItem(index, col)
+        return item.GetText()
+
     def onAddToContactList(self, evt):
+        print 'onAddToContactList'
+        evt.StopPropagation()
+
+        b = Buddy()
+        b.name = self.getColumnText(self.currentItem, 1)
+        b.first = self.getColumnText(self.currentItem, 2)
+        b.last = self.getColumnText(self.currentItem, 3)
+        b.email = self.getColumnText(self.currentItem, 4)
+        b.uin = self.getColumnText(self.currentItem, 5)
+
+        newEvent = NanoEvent(nanoEVT_ADD_USER_TO_LIST, self.GetId())
+        newEvent.setVal(b)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(newEvent)
+
+    def onUserDetails(self, evt):
+        evt.Skip()
+        print evt
+
+    def onSendMessage(self, evt):
         evt.Skip()
         print evt
 
@@ -415,7 +466,12 @@ class FindUserFrame(wx.Frame, PersistenceMixin):
 def _test():
     class NanoApp(wx.App):
         def OnInit(self):
-            frame = FindUserFrame(None, -1)
+            self.iconSet = IconSet()
+            self.iconSet.addPath('icons/aox')
+            self.iconSet.loadIcons()
+            self.iconSet.setActiveSet('aox')            
+
+            frame = FindUserFrame(None, -1, self.iconSet)
             self.SetTopWindow(frame)
             frame.Show(True)
             return True
