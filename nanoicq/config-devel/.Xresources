@@ -26,11 +26,14 @@ xterm*colorBD: Cyan
 
 !xterm*VT100*font1:         -adobe-courier-bold-r-normal--8-*
 xterm*fontMenu*font2*Label: Small Courier
-xterm*VT100*font2:           -*-courier-medium-r-normal--12-*
-xterm*fontMenu*font3*Label: Medium Courier
-xterm*VT100*font3:           -*-courier-medium-r-normal--14-*
+!xterm*VT100*font2:           -*-courier-medium-r-normal--12-*
+xterm*VT100*font2:           7x14
+xxterm*fontMenu*font3*Label: Medium Courier
+!xterm*VT100*font3:           -*-courier-medium-r-normal--14-*
+xterm*VT100*font3:           8x16
 xterm*fontMenu*font4*Label: Large Courier
-xterm*VT100*font4:           -*-courier-medium-r-normal--18-*
+!xterm*VT100*font4:           -*-courier-medium-r-normal--18-*
+xterm*VT100*font4:           9x18
  
 
 ! This one is from Vitus Varger
