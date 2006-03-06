@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.69 2006/03/06 11:17:57 lightdruid Exp $
+# $Id: icq.py,v 1.70 2006/03/06 15:17:53 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -363,8 +363,6 @@ class Protocol:
     def disconnect(self):
         self._sock.disconnect()
         self._sock = None
-        self._host = None
-        self._port = None
         self._connected = False
 
         self.react("Disconnected")
@@ -471,90 +469,12 @@ class Protocol:
             self.serverFamilies.append(struct.unpack("!H", data[:2])[0])
             data = data[2:]
 
-    def registrationRequest_plain(self, password):
-        r = ''
-        r += '\x00\x01\x00\x39'
-        r += '\x00\x00\x00\x00'
-        r += '\x28\x00\x03\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x62\x4e\x00\x00'
-        r += '\x62\x4e\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-
-        r += struct.pack("<H", len(password))
-        r += password + "\x00"
-        
-        r += '\x62\x4e\x00\x00'
-        r += '\x00\x00\xd6\x01'
-
-        self.sendFLAP(0x01, r)
-
-    def registrationRequest_my(self, password):
-        '''
-        SNAC(17,04)     CLI_REGISTRATION_REQUEST 
-        Use this snac when you need new ICQ account (uin/password). 
-        Server should reply with SNAC(17,05) containing new uin. 
-        This snac mean that registration finished succesfully. 
-        Server also can reply with SNAC(17,01) if it can't create new 
-        user account.
-        '''
-
-        # 00 00 00 00     dword       just zeros  
-        # 28 00      word        subcmd (request new uin)    
-        # 03 00      word        sequence    
-        # 00 00 00 00        dword       just zeros  
-        # 00 00 00 00        dword       just zeros  
-        # xx xx xx xx        dword       registration cookie 
-        # xx xx xx xx        dword       registration cookie (the same)
-
-        req =  "\x00\x00\x00\x00"
-        req += "\x28\x00"
-        req += "\x03\x00"
-        req += "\x00\x00\x00\x00"
-        req += "\x00\x00\x00\x00"
-        cookie = genCookie()[0:4]
-        req += cookie
-        req += cookie
-        req += "\x00\x00\x00\x00"
-        req += "\x00\x00\x00\x00"
-        req += "\x00\x00\x00\x00"
-        req += "\x00\x00\x00\x00"
-        req += struct.pack("<H", len(password))
-        req += password + "\x00"
-        req += cookie
-        req += "\x00\x00"
-        req += "\xD6\x01"
-
-        log().log("Sending new UIN registration request...")
-        self.sendSNAC(0x17, 0x04, 0, tlv(0x01, req))
-
-    def registrationRequest_ff(self, password):
-        r = ''
-        r += '\x00\x01'
-        r += struct.pack("<H", len(password) + 51)
-        r += '\x00\x00\x00\x00'
-        r += '\x28\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-        r += '\x00\x00\x00\x00'
-
-        r += struct.pack("<H", len(password)) + password
-        r += '\x00\x00\x00\x00'
-        r += '\xf2\x07\x00\x00'
-
-        self.sendSNAC_C(1, 0x17, 0x04, 0, r)
-
     def registrationRequest(self, password):
+        ''' Initiate new UIN registration
+        '''
+
+        # Then assembly resuest and send it, it must include
+        # only our password
         r = ''
         r += '\x00\x00\x00\x00'
         r += '\x28\x00\x03\x00'
@@ -586,8 +506,6 @@ class Protocol:
         self.sendSNAC(0x17, 0x0C, 0, data)
 
     def registrationImageResponse(self, imageText, password):
-
-        print imageText, password
 
         data = '\x00\x01'
 
@@ -1925,9 +1843,17 @@ class Protocol:
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
     def sendHelloServer(self):
+        # First we need to disconnect, if we're connected
+
+        try:
+            log().log("Trying to disconnect before registration...")
+            self.disconnect()
+        except Exception, exc:
+            log().log("Got exception while disconnection: " + str(exc))
+
         self.connect('ibucp-vip-d.blue.aol.com', 5190)
-        #self.connect()
-        log().log('Sending HELLO to server...')
+        #self.connect(self._host, self._port)
+        log().log('Sending HELLO to server (%s:%d)...' % (self._host, self._port))
 
         buf = self.read()
         log().packetin(buf)
@@ -1940,7 +1866,6 @@ class Protocol:
 
         buf = self.read()
         log().packetin(buf)
-        print coldump(buf)
 
         self._dispatchOnce(buf)
 
@@ -1984,10 +1909,15 @@ class Protocol:
 
         self._sock.disconnect()
 
-        self._host, self._port = server.split(':')
-        self._port = int(self._port)
+        # Was:
+        #self._host, self._port = server.split(':')
+        #self._port = int(self._port)
 
-        self.connect()
+        # Now
+        host, port = server.split(':')
+        port = int(port)
+
+        self.connect(host, port)
 
         buf = self.read()
         log().packetin(buf)

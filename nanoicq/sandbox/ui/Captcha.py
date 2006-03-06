@@ -1,10 +1,11 @@
 
 #
-# $Id: Captcha.py,v 1.9 2006/03/04 22:14:04 lightdruid Exp $
+# $Id: Captcha.py,v 1.10 2006/03/06 15:17:53 lightdruid Exp $
 #
 
 import sys
 import thread
+import time
 
 import wx
 import wx.lib.newevent
@@ -214,6 +215,7 @@ class CaptchaPanel(wx.Panel):
                     del busy
                     raise Exception(msg)
                 log().log("Unsuccessful attempt, trying one more time: " + str(exc))
+                time.sleep(1)
 
     def startRegistration(self):
         self.connector.sendHelloServer()

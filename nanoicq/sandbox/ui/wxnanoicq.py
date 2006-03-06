@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.83 2006/03/04 22:44:09 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.84 2006/03/06 15:17:53 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.83 2006/03/04 22:44:09 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.84 2006/03/06 15:17:53 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -54,6 +54,7 @@ ID_ICQ_LOGIN = wx.NewId()
 ID_FIND_USER = wx.NewId()
 ID_HIDE_OFFLINE = wx.NewId()
 ID_NEW_USER = wx.NewId()
+ID_DISCONNECT = wx.NewId()
 
 _topMenu = (
     ("File",
@@ -62,6 +63,8 @@ _topMenu = (
             (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onToggleHideOffline", wx.ITEM_CHECK),
             (ID_FIND_USER, "Find/Add Contacts...\tF7", "Find/Add Contacts...", "self.onFindUser", 0),
             (ID_NEW_USER, "Register new UIN...\tCtrl-F12", "Register new UIN...", "self.onNewUser", 0),
+            (),
+            (ID_DISCONNECT, "Disconnect", "Disconnect", "self.onDisconnect", 0),
             (),
             (wx.ID_EXIT, "E&xit\tAlt-X", "Exit NanoICQ", "self.OnExit", 0),
         )
@@ -81,9 +84,10 @@ class ICQThreaded(icq.Protocol):
 
     def Start(self):
         self.keepGoing = self.running = True
-        thread.start_new_thread(self.Run, ())
+        self._threadHandle = thread.start_new_thread(self.Run, ())
 
     def Stop(self):
+        print 'Called Stop'
         self.keepGoing = False
 
     def IsRunning(self):
@@ -114,10 +118,14 @@ class ICQThreaded(icq.Protocol):
                     "".join(list[:-1]),
                     list[-1],
                 )
-                print 'ERROR: ', err
-                guidebug.message(err)
-                print 'KEEP RUNNING'
+                if self.keepGoing == False:
+                    print 'Disconnected by request'
+                else:
+                    print 'ERROR: ', err
+                    guidebug.message(err)
+                    print 'KEEP RUNNING'
 
+        print 'STOPPED'
         self.running = False
 
 
@@ -435,6 +443,16 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     @dtrace
     def event_Logoff(self, kw):
+        self.updateStatusBar('Offline')
+        self.trayIcon.setToolTip('ICQ offline')
+
+    def onDisconnect(self, evt):
+        evt.Skip()
+        self.connector['icq'].disconnect()
+        self.connector['icq'].Stop()
+
+    @dtrace
+    def event_Disconnected(self, kw):
         self.updateStatusBar('Offline')
         self.trayIcon.setToolTip('ICQ offline')
 
