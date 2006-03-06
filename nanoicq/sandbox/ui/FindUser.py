@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.11 2006/03/01 14:49:19 lightdruid Exp $
+# $Id: FindUser.py,v 1.12 2006/03/06 16:27:51 lightdruid Exp $
 #
 
 import sys
@@ -94,6 +94,8 @@ class DigitValidator(wx.PyValidator):
 
 
 class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+    ID_SEND_MESSAGE = wx.NewId()
+
     def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
             size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_SIMPLE):
 
@@ -133,6 +135,32 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         for status in IconSet.FULL_SET:
             self.idx1 = self.il.Add(self.iconSet[status])
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
+        # FIXME: it looks like bug, EVT_RIGHT_UP doesn't work,
+        # it triggers only on second click
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+    def onRightClick(self, evt):
+        self.createPopUpMenu()
+        #evt.Skip()
+
+    def createPopUpMenu(self):
+        _topMenu = (
+            (self.ID_SEND_MESSAGE, "Add to contact list", "self.onAddToContactList"),
+        )
+
+        self.popUpMenu = wx.Menu()
+
+        for ids, txt, func in _topMenu:
+            item = wx.MenuItem(self.popUpMenu, ids, txt, txt)
+            self.Bind(wx.EVT_MENU, eval(func), id = ids)
+            self.popUpMenu.AppendItem(item)
+
+        self.PopupMenu(self.popUpMenu)
+
+    def onAddToContactList(self, evt):
+        evt.Skip()
+        print evt
 
 
 ID_userIDRadio = wx.NewId()
