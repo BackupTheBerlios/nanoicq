@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.31 2006/02/22 15:46:18 lightdruid Exp $
+# $Id: messagedialog.py,v 1.32 2006/03/06 11:17:57 lightdruid Exp $
 #
 
 import sys
@@ -79,7 +79,7 @@ class MessagePanel(wx.Panel):
         self.incoming = wx.Panel(self.splitter, style=0)
         self.incomingSizer = wx.BoxSizer(wx.VERTICAL)
         self._incoming = wx.TextCtrl(self.incoming, -1, "",
-            style=wx.TE_MULTILINE|wx.TE_RICH2|wx.CLIP_CHILDREN)
+            style = wx.TE_MULTILINE | wx.TE_RICH2 | wx.CLIP_CHILDREN | wx.TE_READONLY)
         self.incomingSizer.Add(self._incoming, 1, wx.EXPAND, 1)
         self.incoming.SetSizer(self.incomingSizer)
         self.incoming.SetAutoLayout(True)

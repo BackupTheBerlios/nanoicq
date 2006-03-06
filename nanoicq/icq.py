@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.68 2006/03/04 22:44:09 lightdruid Exp $
+# $Id: icq.py,v 1.69 2006/03/06 11:17:57 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -28,9 +28,11 @@ from history import History
 import HistoryDirection
 
 import caps
-from logger import log, LogException
+from logger import log, init_log, LogException
 from message import messageFactory
 from proxy import *
+
+init_log([sys.stdout])
 
 # for debug only
 SLEEP = 0

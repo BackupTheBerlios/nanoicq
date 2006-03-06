@@ -1,20 +1,31 @@
 
+#
+# $Id: logger.py,v 1.4 2006/03/06 11:17:57 lightdruid Exp $
+#
+
+import sys
+
 from SingletonMixin import *
 from utils import *
-
-class LogException(Exception):
-    pass
-
 
 DEBUG = 0
 INFO = 1
 ERROR = 2
+
+
+class LogException(Exception):
+    pass
+
 
 class _Log:
     _allowed_levels = [DEBUG, INFO, ERROR]
 
     def __init__(self, level = 0):
         self._level = level
+        self._handles = []
+
+    def setHandles(self, handles = [sys.stdout]):
+        self._handles = handles
 
     def log(self, a, b = None):
         if b is None:
@@ -28,9 +39,11 @@ class _Log:
 
         if level >= self._level:
             try:
-                print "LOG (%d):" % level, msg
+                for h in self._handles:
+                    print >> h, "LOG (%d):" % level, msg
             except UnicodeEncodeError, exc:
-                print "LOG (%d):" % level, coldump(msg)
+                for h in self._handles:
+                    print >> h, "LOG (%d):" % level, coldump(msg)
 
     def setLevel(self, level):
         self._level = level
@@ -51,13 +64,16 @@ class _Log:
 
 
 class Log(_Log, Singleton): 
-    def __init__(self):
+    def __init__(self, *kw, **kws):
         Singleton.__init__(self)
         _Log.__init__(self)
 
 
 def log():
     return Log.getInstance()
+
+def init_log(h = []):
+    return Log.getInstance().setHandles(h)
 
 
 if __name__ == '__main__':
@@ -66,6 +82,7 @@ if __name__ == '__main__':
     
     class Test1(unittest.TestCase):
         def test1(self):
+            init_log([sys.stdout, sys.stderr, open('test.log', 'wb')])
             log1 = Log.getInstance()
             log2 = Log.getInstance()
             self.assertEquals(id(log1), id(log2))
@@ -86,4 +103,3 @@ if __name__ == '__main__':
     unittest.main()
 
 # ---
-

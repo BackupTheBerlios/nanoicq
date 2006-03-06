@@ -1,6 +1,6 @@
 
 #
-# $Id: Plugin.py,v 1.3 2006/02/28 13:33:01 lightdruid Exp $
+# $Id: Plugin.py,v 1.4 2006/03/06 11:17:57 lightdruid Exp $
 #
 
 import os
@@ -12,6 +12,7 @@ import wx
 
 from message import *
 from buddy import Buddy
+from icq import log
 
 class Plugin(wx.EvtHandler):
     def __init__(self):
@@ -32,7 +33,7 @@ def __my_path():
 
 def __load_plugins(plugin_dir):
     plugins = {}
-    print os.path.join(plugin_dir, '*')
+
     for d in glob.glob(os.path.join(plugin_dir, '*')):
         dd = os.path.abspath(d)
         head, module = os.path.split(dd)
@@ -40,18 +41,16 @@ def __load_plugins(plugin_dir):
         # FIXME: temporary hack
         if module == 'CVS': continue
 
-        print dd
-
         try:
             b = __import__(module).init_plugin()
         except (ImportError, AttributeError):
-            print "Error loading plugin '%s'" % module
+            log().log("Error loading plugin '%s'" % module)
             traceback.print_exc()
         else:
             if module is None:
-                print "Plugin '%s' is empty, not loaded" % module
+                log().log("Plugin '%s' is empty, not loaded" % module)
             else:
-                print "Loaded '%s' plugin" % module
+                log().log("Loaded '%s' plugin" % module)
                 plugins[module] = (b)
     return plugins
 
@@ -67,7 +66,7 @@ def load_plugins(top = None, mp = None):
 
 def _test():
     p = load_plugins()
-    print p
+    log().log(p)
 
     m = messageFactory("icq", 'user', '12345', 'text', Outgoing)
     b = Buddy()

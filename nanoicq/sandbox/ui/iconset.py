@@ -1,11 +1,15 @@
 
 #
-# $Id: iconset.py,v 1.5 2006/01/31 14:48:03 lightdruid Exp $
+# $Id: iconset.py,v 1.6 2006/03/06 11:17:57 lightdruid Exp $
 #
 
 import wx
 import os
+import sys
 import warnings
+
+sys.path.insert(0, '../..')
+from icq import log
 
 class IconSetException(Exception): pass
 
@@ -34,6 +38,7 @@ class IconSet:
                     alias = os.path.basename(npath)
                 self._path.append((alias, npath))
         else:
+            log().log("Passed wrong icon set path: '%s'" % str(path))
             raise IconSetException("Wrong path")
 
     def _getIconType(self, ext):
@@ -42,6 +47,7 @@ class IconSet:
         '''
         if ext == '.ico': return wx.BITMAP_TYPE_ICO
 
+        log().log("Passed wrong icon type: '%s'" % str(ext))
         raise IconSetException("Unknown file type: '%s'" % ext)
 
     def _isFullSet(self, icons):
@@ -71,7 +77,7 @@ class IconSet:
                         img = wx.Image(fullName)
                         icon = wx.BitmapFromImage(img.Scale(16, 16))
                     except Exception, e:
-                        print "Got exception while loading icon: %s" % str(e)
+                        log().log("Got exception while loading icon: %s" % str(e))
                         continue
 
                     icons[name] = icon
@@ -80,12 +86,12 @@ class IconSet:
             os.path.walk(path, loadIcon, icons)
 
             if not self._isFullSet(icons):
-                print "Loaded '%s' (not full) icon set" % alias
+                log().log("Loaded '%s' (not full) icon set" % alias)
 
                 if adjust_missing:
                     self._adjustMissing(icons)
             else:
-                print "Loaded '%s' (FULL) icon set" % alias
+                log().log("Loaded '%s' (FULL) icon set" % alias)
 
         self._icons[alias] = icons
 
