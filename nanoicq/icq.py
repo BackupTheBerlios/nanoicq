@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.71 2006/03/06 21:42:06 lightdruid Exp $
+# $Id: icq.py,v 1.72 2006/03/07 11:12:32 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -304,6 +304,7 @@ class Protocol:
 
         self._connected = connected
         self._groups = Group()
+        self._currentUser = None
 
     def react(self, *kw, **kws):
         if self._gui is not None:
@@ -552,7 +553,7 @@ class Protocol:
 
         func(snac[5])
         
-    def proc_2_23_5(self, data):
+    def proc_2_23_5(self, data, flag):
         '''
         SNAC(17,05), Server confirms CAPTCHA picture text is valid
         '''
@@ -585,7 +586,7 @@ class Protocol:
 
         self.react("New UIN", uin = uin)
 
-    def proc_2_23_13(self, data):
+    def proc_2_23_13(self, data, flag):
         '''
         SNAC(17,0D), Server send CAPTCHA picture after registration request
         http://www.captcha.net/
@@ -669,7 +670,7 @@ class Protocol:
         log().log("Sending UIN search request for " + uin)
         self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
 
-    def proc_2_1_19(self, data):
+    def proc_2_1_19(self, data, flag):
         '''
         SNAC(01,13)     SRV_MOTD    
 
@@ -692,7 +693,7 @@ class Protocol:
                 out.append(_motdTypes[t])
         return ', '.join(out)
 
-    def proc_2_1_3(self, data):
+    def proc_2_1_3(self, data, flag):
         self.parseFamilies(data)
         self.families = supported
 
@@ -703,10 +704,10 @@ class Protocol:
 
         self.sendSNAC(0x01, 0x17, 0, out)
 
-    def proc_2_1_24(self, data):
+    def proc_2_1_24(self, data, flag):
         self.sendSNAC(0x01, 0x06, 0, '')
 
-    def proc_2_1_7(self, data):
+    def proc_2_1_7(self, data, flag):
         ''' Rate info '''
 
         log().packetin(data)
@@ -756,7 +757,7 @@ class Protocol:
         log().log("Sending location rights limits")
         self.sendSNAC(0x02, 0x02, 0, '') # location rights info
 
-    def proc_2_9_3(self, data):
+    def proc_2_9_3(self, data, flag):
         ''' BOS rights '''
         tlvs = readTLVs(data)
         self.maxPermitList = struct.unpack("!H", tlvs[1])[0]
@@ -767,7 +768,7 @@ class Protocol:
         log().log("Sending SSI rights info")
         self.sendSNAC(0x13, 0x02, 0, '')
 
-    def proc_2_4_5(self, data):
+    def proc_2_4_5(self, data, flag):
         ''' ICBM parameters '''
         log().log("Sending changed default ICBM parameters command")
         self.sendSNAC(0x04, 0x02, 0, '\x00\x00\x00\x00\x00\x0b\x1f@\x03\xe7\x03\xe7\x00\x00\x00\x00')
@@ -776,7 +777,7 @@ class Protocol:
         log().log("Sending PRM service limitations")
         self.sendSNAC(0x09, 0x02, 0, '')
 
-    def proc_2_3_3(self, data):
+    def proc_2_3_3(self, data, flag):
         ''' Buddy list rights '''
         tlvs = readTLVs(data)
         self.maxBuddies = struct.unpack("!H", tlvs[1])[0]
@@ -786,7 +787,7 @@ class Protocol:
         log().log("Sending ICBM service parameters")
         self.sendSNAC(0x04,0x04,0,'') # ICBM parms
 
-    def proc_2_19_3(self, data):
+    def proc_2_19_3(self, data, flag):
         ''' List service granted, request roster from server '''
         self.sendSNAC(0x13, 0x07, 0, '')
 
@@ -904,7 +905,7 @@ class Protocol:
         t = tlv(0x06, struct.pack(">HH", self.statusindicators, icqStatus))
         self.sendSNAC(0x01, 0x1e, 0, t)
         
-    def proc_2_4_20(self, data):
+    def proc_2_4_20(self, data, flag):
         '''
         SNAC(04,14)     TYPING_NOTIFICATION     
 
@@ -938,7 +939,7 @@ class Protocol:
 
         log().log('Got MTN from %s (not implemented yet)' % uin)
 
-    def proc_2_1_33(self, data):
+    def proc_2_1_33(self, data, flag):
         '''
         SNAC(01,21)     SRV_EXT_STATUS  
 
@@ -955,7 +956,7 @@ class Protocol:
         # FIXME:
         log().log('Got extended status (not implemented yet)')
 
-    def proc_2_1_15(self, data):
+    def proc_2_1_15(self, data, flag):
         ''' My status '''
 
         uinLen = int(struct.unpack('!B', data[0])[0])
@@ -995,7 +996,7 @@ class Protocol:
             if userClass & c: out.append(_userClasses[c])
         log().log("User class: " + ' '.join(out))
 
-    def proc_2_3_1(self, data):
+    def proc_2_3_1(self, data, flag):
         '''
         SNAC(03,01)     SRV_BLM_ERROR   
         This is an error notification snac.
@@ -1008,7 +1009,7 @@ class Protocol:
             errSubCode = 0
         log().log("SRV_BLM_ERROR: %d/%d" % (errCode, errSubCode))
 
-    def proc_2_19_6(self, data):
+    def proc_2_19_6(self, data, flag):
         ''' This is the server reply to client roster 
         requests: SNAC(13,04) - Request contact list (first time),
         SNAC(13,05) - Contact list checkout.
@@ -1260,7 +1261,7 @@ class Protocol:
         ''' Unknown '''
         log().log('Called unknown handler parseSSIItem_5D47')
 
-    def proc_2_3_12(self, data):
+    def proc_2_3_12(self, data, flag):
         ''' Server send this when user from your contact list goes 
         offline. See also additional information about online userinfo block.
         '''
@@ -1284,7 +1285,7 @@ class Protocol:
 
         self.react("Buddy status changed", buddy = b)
 
-    def proc_2_11_2(self, data):
+    def proc_2_11_2(self, data, flag):
         '''
         SNAC(0B,02)     SRV_SET_MINxREPORTxINTERVAL  
 
@@ -1299,7 +1300,7 @@ class Protocol:
         hours = int(struct.unpack('!H', data[0:2])[0]) 
         log().log("Server set minimum stats report interval: %d hours" % hours)
 
-    def proc_2_3_11(self, data):
+    def proc_2_3_11(self, data, flag):
         ''' Server sends this snac when user from your contact list 
         goes online. Also you'll receive this snac on user status 
         change (in this case snac doesn't contain TLV(0xC)). 
@@ -1477,7 +1478,7 @@ class Protocol:
                 t.append(_directConnectionType[dc])
         return ', '.join(t)
  
-    def proc_2_19_15(self, data):
+    def proc_2_19_15(self, data, flag):
         '''
         SNAC(13,0F)     SRV_SSI_UPxTOxDATE  
 
@@ -1489,7 +1490,7 @@ class Protocol:
         print timestamp, items
         raise Exception("proc_2_19_15 not implemented")
 
-    def proc_2_4_1(self, data):
+    def proc_2_4_1(self, data, flag):
         '''
         SNAC(04,01)     SRV_ICBM_ERROR      
 
@@ -1515,7 +1516,7 @@ class Protocol:
         log().log("Can't send your message to recipient (%d, %d) (%s)" %\
             (errorCode, subErrorCode, _msg_error_codes[errorCode]))
 
-    def proc_2_4_10(self, data):
+    def proc_2_4_10(self, data, flag):
         ''' SNAC(04,0A)     SRV_MISSED_MESSAGE      
 
         This snac mean that somebody send you a message but server 
@@ -1552,7 +1553,7 @@ class Protocol:
         log().log("Missed messages: %d, Reason: %s" %\
             (missedMessages, explainReason(reason)))
 
-    def proc_2_4_7(self, data):
+    def proc_2_4_7(self, data, flag):
         ''' Message received '''
         cookie = data[0:7]
         messageChannel = int(struct.unpack('!H', data[8:10])[0])
@@ -1613,7 +1614,7 @@ class Protocol:
 
     # 13 1C / 19 28
 
-    def proc_2_19_28(self, data):
+    def proc_2_19_28(self, data, flag):
         ''' you-were-added" message '''
         data = data[8:]
         ln = int(struct.unpack('!B', data[0])[0])
@@ -1663,7 +1664,7 @@ class Protocol:
         log().log('Message type 1: ' + str(msg))
         return msg
 
-    def proc_2_4_12(self, data):
+    def proc_2_4_12(self, data, flag):
         '''
         SNAC(04,0C)     SRV_MSG_ACK  
 
@@ -1679,7 +1680,7 @@ class Protocol:
         uin = data[11 : 11 + uinLen]
         log().log("Server accepted message for delivery (%s)" % uin)
 
-    def proc_2_2_3(self, data):
+    def proc_2_2_3(self, data, flag):
         ''' Client service parameters request '''
         tlvs = readTLVs(data)
         self.maxProfileLength = struct.unpack('!H', tlvs[1])[0]
@@ -1721,7 +1722,7 @@ class Protocol:
         log().log("Sending full user info request for '%s'" % str(uin))
         self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
 
-    def proc_2_21_3(self, data):
+    def proc_2_21_3(self, data, flag):
         '''
         user information packet.
         '''
@@ -1740,11 +1741,229 @@ class Protocol:
 
         dump2file(tmp, d[12:])
 
+        if flag == 0:
+            print "*"*10, 'Last packet'
+
         try:
             func = getattr(self, tmp)
             func(d[12:])
         except AttributeError, exc:
             print exc
+
+    def userFound_07DA_00C8(self, data):
+        '''
+        SNAC(15,03)/07DA/00C8   META_BASIC_USERINFO 
+
+        Basic user information packet. If success byte doesn't equal 0x0A - it is last SNAC byte. 
+        '''
+
+        log().log('Got META_BASIC_USERINFO packet')
+
+        if self._currentUser == None:
+            self._currentUser = Buddy()
+
+        d = data
+        assert d[0] == '\x0a'
+
+        vals = ['nick', 'first', 'last', 'email', 'city', 'state', 'phone',
+            'fax', 'address', 'cell', 'zip']
+
+        rest =['coutry_code', 'gmt_offset', 'authorization_flag',
+            'webaware_flag', 'dc_permission', 'publish_primary_email_flag']
+
+        d = d[1:]
+
+        self._parseVals(vals, d)
+        print self._currentUser
+
+    def userFound_07DA_00DC(self, data):
+        '''
+        SNAC(15,03)/07DA/00DC   META_MORE_USERINFO 
+
+        More user information packet. If success byte doesn't equal 0x0A - it is 
+        last SNAC byte. This snac contain some data not setable/viewable in current 
+        ICQ clients (except ICQLite and ICQ2003b), but you can change it thru your 
+        whitepage on wwp.icq.com. ICQLite (up to build 1150) doesn't use "marital 
+        status" field too. 
+        '''
+
+        log().log('Got META_MORE_USERINFO packet')
+
+        if self._currentUser == None:
+            self._currentUser = Buddy()
+
+        d = data
+        assert d[0] == '\x0a'
+
+        vals = [('age',), ('gender', ''), 'homepage_address', 
+            ('birth_year',), ('birth_month', ''), ('birth_day', ''), 
+            ('speaking_language_1', ''), ('speaking_language_2', ''), 
+            ('speaking_language_3', ''), ('unknown'), 'original_from_city',
+            'original_from_state', ('original_from_country_code',), ('timezone', '')
+        ]
+
+        d = d[1:]
+
+        self._parseVals(vals, d)
+        print self._currentUser
+
+
+    def userFound_07DA_00D2(self, data):
+        '''
+        SNAC(15,03)/07DA/00D2   META_WORK_USERINFO 
+
+        Work user information packet. If success byte doesn't equal 0x0A - it is last SNAC byte. 
+        '''
+
+        log().log('Got META_WORK_USERINFO packet')
+
+        if self._currentUser == None:
+            self._currentUser = Buddy()
+
+        d = data
+        assert d[0] == '\x0a'
+
+        vals = ['work_city', 'work_state', 'work_phone', 'work_fax',
+            'work_address', 'work_zip', ('work_country_code',), 'work_company', 
+            'work_department', 'work_position', ('work_occupation_code',),
+            'work_webpage' ]
+
+        d = d[1:]
+
+        self._parseVals(vals, d)
+        print self._currentUser
+
+    def userFound_07DA_00E6(self, data):
+        '''
+        SNAC(15,03)/07DA/00E6   META_NOTES_USERINFO 
+
+        Notes user information packet. If success byte doesn't 
+        equal 0x0A - it is last SNAC byte. 
+        '''
+
+        log().log('Got META_NOTES_USERINFO packet')
+
+        vals = [ 'notes' ]
+
+        d = data
+        d = d[1:]
+
+        self._parseVals(vals, d)
+        print self._currentUser
+
+    def userFound_07DA_00EB(self, data):
+        '''
+        SNAC(15,03)/07DA/00EB   META_EMAIL_USERINFO 
+
+        Extended email user information packet. If success byte doesn't 
+        equal 0x0A - it is last SNAC byte. 
+        '''
+
+        log().log('Got META_EMAIL_USERINFO packet')
+
+        d = data
+        d = d[1:]
+
+        nemail, d = parseByteLE(d)
+        nemail = int(nemail)
+
+        if nemail != 0:
+            for ii in range(nemail):
+                value, d = parseAsciiz(d)
+
+            pemail_flag, d = parseByteLE(d)
+            emailn, d = parseAsciiz(d)
+            print emailn
+
+        print self._currentUser
+
+    def userFound_07DA_00F0(self, data):
+        '''
+        SNAC(15,03)/07DA/00F0   META_INTERESTS_USERINFO 
+
+        Interests email user information packet. If success 
+        byte doesn't equal 0x0A - it is last SNAC byte. 
+        '''
+
+        log().log('Got META_INTERESTS_USERINFO packet')
+
+        d = data
+        assert d[0] == '\x0a'
+
+        d = d[1:]
+
+        nelem, d = parseByteLE(d)
+
+        for ii in range(int(nelem) - 1):
+            interest_code, d = parseByteLE(d)
+            interest, d = parseAsciiz(d)
+            print interest_code, interest_code
+
+    def userFound_07DA_00FA(self, data):
+        '''
+        SNAC(15,03)/07DA/00FA   META_AFFILATIONS_USERINFO 
+
+        Past/Affilations email user information packet. 
+        If success byte doesn't equal 0x0A - it is last SNAC byte. 
+        '''
+
+        log().log('Got META_AFFILATIONS_USERINFO packet')
+
+        d = data
+        assert d[0] == '\x0a'
+
+        d = d[1:]
+
+        nelem, d = parseByteLE(d)
+
+        for ii in range(int(nelem) - 1):
+            past_category_code, d = parseWordLE(d)
+            past_keyword, d = parseAsciiz(d)
+            print past_category_code, past_keyword
+
+        nelem, d = parseByteLE(d)
+
+        for ii in range(int(nelem) - 1):
+            aff_category_code, d = parseWordLE(d)
+            aff_keyword, d = parseAsciiz(d)
+            print aff_category_code, aff_keyword
+
+    def userFound_07DA_010E(self, data):
+        '''
+        SNAC(15,03)/07DA/010E   META_HPAGECAT_USERINFO 
+
+        Homepage category user information packet. If success byte 
+        doesn't equal 0x0A - it is last SNAC byte. 
+        '''
+
+        log().log('Got META_HPAGECAT_USERINFO packet')
+
+        d = data
+        assert d[0] == '\x0a'
+
+        d = d[1:]
+
+        enabled_flag, d = parseByteLE(d)
+        enabled_flag = int(enabled_flag)
+
+        if enabled_flag != 0:
+            homepage_category, d = parseWordLE(d)
+            homepage_keywords, d = parseAsciiz(d)
+            print homepage_category, homepage_keywords
+
+    def _parseVals(self, vals, d):
+        b = self._currentUser
+
+        for v in vals:
+            if type(v) == type(()):
+                if len(v) == 1:
+                    value, d = parseWordLE(d)
+                else:
+                    value, d = parseByteLE(d)
+                exec("self._currentUser.%s = %d" % (v[0], value))
+            else:
+                value, d = parseAsciiz(d)
+                exec("self._currentUser.%s = '''%s'''" % (v, value))
 
     def userFound_07DA_01A4(self, data):
         '''
@@ -1830,7 +2049,7 @@ class Protocol:
 
         self.react("Results", buddy = b)
 
-    def proc_2_3_10(self, data):
+    def proc_2_3_10(self, data, flag):
         '''
         SNAC(03,0A)     SRV_NOTIFICATION_REJECTED  
 
@@ -1842,13 +2061,13 @@ class Protocol:
         #raise Exception('proc_2_3_10')
         pass
 
-    def proc_4_9_2(self, data):
+    def proc_4_9_2(self, data, flag):
         ''' You have been disconnected from the ICQ network because you 
         logged on from another location using the same ICQ number. '''
         self.disconnect()
         log().log("You have been disconnected from the ICQ network because you logged on from another location using the same ICQ number.")
 
-    def proc_1_0_0(self, data):
+    def proc_1_0_0(self, data, flag):
         log().log("Logging in...")
 
     def CLI_FIND_BY_UIN2(self):
@@ -1948,8 +2167,13 @@ class Protocol:
 
         self.sendFLAP(0x01, '\000\000\000\001' + tlv(0x06, tlvs[TLV_Cookie]))
 
-        log().log('Post login, getting meta information')
-        uin = struct.pack('<L', int(self._config.get('icq', 'uin')))
+        log().log('Post login, getting meta information about ourselfs')
+
+        myUin = self._config.get('icq', 'uin')
+        self._currentUser = Buddy()
+        self._currentUser.uin = myUin
+
+        uin = struct.pack('<L', int(myUin))
         data = uin
         data += '\xd0\x07\x02\x00\xd0\x04' + uin
         data = struct.pack('<H', len(data)) + data

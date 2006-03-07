@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.86 2006/03/06 21:42:06 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.87 2006/03/07 11:12:32 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.86 2006/03/06 21:42:06 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.87 2006/03/07 11:12:32 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -105,10 +105,11 @@ class ICQThreaded(icq.Protocol):
                 print 'going to call proc_%d_%d_%d' % (ch, snac[0], snac[1])
                 print 'for this snac: ', unicode(snac)
 
+                flag1, flag2 = snac[2], snac[3]
                 tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
                 func = getattr(self, tmp)
 
-                func(snac[5])
+                func(snac[5], flag2)
             except:
                 typ, value, tb = sys.exc_info()
                 list = traceback.format_tb(tb, None) + \

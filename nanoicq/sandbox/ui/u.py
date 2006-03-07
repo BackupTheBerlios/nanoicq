@@ -110,6 +110,9 @@ for v in vals:
             value, d = parseByteLE(d)
     else:
         value, d = parseAsciiz(d)
+        if len(value) > 0:
+            exec("%s = '''%s'''" % (v, value))
+            print eval("%s" % v)
     print v, value
 
 
@@ -207,9 +210,9 @@ if enabled_flag != 0:
 SNAC(15,03)/07DA/019A   unknown
 '''
 
-d = restoreFromFile('userFound_07DA_019A')
-assert d[0] == '\x0a'
-
-d = d[1:]
+#d = restoreFromFile('userFound_07DA_019A')
+#assert d[0] == '\x0a'
+#
+#d = d[1:]
 
 #---
