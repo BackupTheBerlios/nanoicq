@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.72 2006/03/07 11:12:32 lightdruid Exp $
+# $Id: icq.py,v 1.73 2006/03/07 12:04:09 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1721,6 +1721,47 @@ class Protocol:
 
         log().log("Sending full user info request for '%s'" % str(uin))
         self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
+
+    def addSSIItem(self):
+        '''
+        SNAC(13,08)     CLI_SSIxADD     
+
+        Client use this to add new items to server-side info. 
+        Server should reply via SNAC(13,0E).
+
+        xx xx      word        Length of the item name 
+        xx ..      string      Item name string    
+        xx xx      word        Group ID#   
+        xx xx      word        Item ID#    
+        xx xx      word        Type of item flag (see list bellow) 
+        xx xx      word        Length of the additional data   
+
+        xx xx      word        TLV.Type (TLV #1)   
+        xx xx      word        TLV.Length  
+        .. ..      xxxx        TLV.Value
+                   ....
+        '''
+        pass
+
+    def addBuddyToList(self, buddies):
+        '''
+        SNAC(03,04)     CLI_BUDDYLIST_ADD   
+
+        Use this this to add new buddies to your client-side 
+        contact list. You can delete buddies from contact using 
+        SNAC(03,05). See also complete snac list for this service here.
+        '''
+
+        if type(buddies) != type([]):
+            buddies = [buddies]
+
+        log().log('Called add user to contact list (CLI_BUDDYLIST_ADD)')
+
+        out = ''
+        for b in buddies:
+            out += struct.pack('!H', len(b.uin)) + b.uin
+
+        self.sendSNAC(0x03, 0x04, 0, out)
 
     def proc_2_21_3(self, data, flag):
         '''

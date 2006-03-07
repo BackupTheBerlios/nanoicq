@@ -1,6 +1,6 @@
 
 #
-# $Id: buddy.py,v 1.7 2006/02/24 15:33:45 lightdruid Exp $
+# $Id: buddy.py,v 1.8 2006/03/07 12:04:08 lightdruid Exp $
 #
 
 from antarctica import Frozen
@@ -16,6 +16,12 @@ class Buddy:
         self.firstMessage = 0
 
     def __repr__(self):
+        out = []
+        for v in self.__dict__:
+            out.append("%s: %s" % (v, str(self.__dict__[v])))
+        return ',\n'.join(out)
+
+    def __repr__X(self):
         return "Buddy: name: '%s', gid = '%s', email: '%s', uin: '%s', firstMessage: '%d'" % \
             (self.name, self.gid, self.email, self.uin, self.firstMessage)
 

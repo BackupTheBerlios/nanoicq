@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.11 2006/02/20 16:19:32 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.12 2006/03/07 12:04:09 lightdruid Exp $
 #
 
 import sys
@@ -159,6 +159,22 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
 
         self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
+        if 0:
+            # Turn on labeltips in list control 
+            from win32api import SendMessage 
+            import commctrl # from win32 extensions for constants 
+
+            # All of the extended label styles are missing from the  
+            # current version (1.1) of commctrl.py, but this is the value  
+            # needed: 
+            LVS_EX_LABELTIP = 16384 
+
+            style = SendMessage(self.GetHandle(),  
+                         commctrl.LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0) 
+            style = style | LVS_EX_LABELTIP 
+            SendMessage(self.GetHandle(),  
+                 commctrl.LVM_SETEXTENDEDLISTVIEWSTYLE, 0, style) 
 
 def _test():
     class TopFrame(wx.Frame):

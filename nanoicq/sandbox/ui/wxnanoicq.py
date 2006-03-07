@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.87 2006/03/07 11:12:32 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.88 2006/03/07 12:04:09 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.87 2006/03/07 11:12:32 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.88 2006/03/07 12:04:09 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -245,9 +245,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
             print exc
             log().log('Adding new user UIN %s to list' % str(b.uin))
             self.connector['icq'].addBuddyAfterSearch(b)
-            self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)
+
+            # Add user to contact list
+            self.connector['icq'].addBuddyToList(b)
 
             # Now we ought to ask about user status
+            self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)
+
 
 #    def onUnableAddUserToList(self, evt):
 #        '''
