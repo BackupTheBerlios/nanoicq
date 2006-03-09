@@ -1,6 +1,6 @@
 
 #
-# $Id: Plugin.py,v 1.4 2006/03/06 11:17:57 lightdruid Exp $
+# $Id: Plugin.py,v 1.5 2006/03/09 15:36:01 lightdruid Exp $
 #
 
 import os
@@ -21,6 +21,9 @@ class Plugin(wx.EvtHandler):
     def onIncomingMessage(self, buddy = None, message = None):
         raise NotImplementedError('onIncomingMessage')
 
+    def sendMessage(self, buddy = None, message = None):
+        raise NotImplementedError('sendMessage')
+
 def __my_path():
     try:
         root = __file__
@@ -31,7 +34,7 @@ def __my_path():
         return os.path.dirname(sys.argv[0])
 
 
-def __load_plugins(plugin_dir):
+def __load_plugins(plugin_dir, connector):
     plugins = {}
 
     for d in glob.glob(os.path.join(plugin_dir, '*')):
@@ -42,7 +45,7 @@ def __load_plugins(plugin_dir):
         if module == 'CVS': continue
 
         try:
-            b = __import__(module).init_plugin()
+            b = __import__(module).init_plugin(connector)
         except (ImportError, AttributeError):
             log().log("Error loading plugin '%s'" % module)
             traceback.print_exc()
@@ -54,7 +57,7 @@ def __load_plugins(plugin_dir):
                 plugins[module] = (b)
     return plugins
 
-def load_plugins(top = None, mp = None):
+def load_plugins(top = None, mp = None, connector = None):
     if top is None:
         top = 'plugins'
     if mp is None:
@@ -62,14 +65,15 @@ def load_plugins(top = None, mp = None):
     else:
         m_path = mp
     sys.path = [os.path.join(m_path, top)] + sys.path
-    return __load_plugins(top)
+    return __load_plugins(top, connector)
 
 def _test():
-    p = load_plugins()
+    p = load_plugins(connector = None)
     log().log(p)
 
-    m = messageFactory("icq", 'user', '12345', 'text', Outgoing)
+    m = messageFactory("icq", 'user', '177033621', 'text', Outgoing)
     b = Buddy()
+    b.uin = '177033621'
 
     for k in p:
         p[k].onIncomingMessage(buddy = b, message = m)

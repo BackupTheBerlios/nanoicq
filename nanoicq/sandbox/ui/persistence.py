@@ -1,6 +1,6 @@
 
 #
-# $Id: persistence.py,v 1.7 2006/02/21 11:29:07 lightdruid Exp $
+# $Id: persistence.py,v 1.8 2006/03/09 15:36:01 lightdruid Exp $
 #
 
 import wx
@@ -31,7 +31,7 @@ class PersistenceMixin:
 
             try:
                 sash = self._frame.FindWindowByName(ids).GetSashPosition(0)
-                print 'Got ashs position: ', sash
+                #print 'Got sahs position: ', sash
             except Exception, exc:
                 if __debug__: print "Unable to find sash: " + str(exc)
                 sash = None
@@ -51,7 +51,7 @@ class PersistenceMixin:
 
         for ids in d:
             pos, size, sash = d[ids]
-            print 'restoring', ids, pos, size, sash, self.FindWindowByName(ids)
+            #print 'restoring', ids, pos, size, sash, self.FindWindowByName(ids)
 
             self.FindWindowByName(ids).SetPosition(pos)
             self.FindWindowByName(ids).SetSize(size)

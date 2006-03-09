@@ -1,30 +1,43 @@
 
 #
-# $Id: weather.py,v 1.2 2006/02/27 14:55:18 lightdruid Exp $
+# $Id: weather.py,v 1.3 2006/03/09 15:36:01 lightdruid Exp $
 #
 
 import sys
 sys.path.insert(0, '../..')
 from Plugin import Plugin
+from message import *
 
 _loaded = True
 
 try:
     import pymetar
 except ImportError, exc:
-    print "Unable to init 'weather' plugin: " + str(exc)
+    print "Unable to initialize 'weather' plugin: " + str(exc)
     _loaded = False
 
 class Weather(Plugin):
+    _trusted_uin = ['177033621', '158125970']
+
     def onIncomingMessage(self, buddy, message):
         print 'onIncomingMessage', message.__dict__.keys(), message.__dict__['_user']
+        if buddy.uin in self._trusted_uin:
+            print "'%s' is in trusted UINs" % buddy.uin 
+            if message.getContents().lower().find('weather') != -1:
+                m = messageFactory("icq", buddy.name, buddy.uin, self.formatReport(), Outgoing)
+                self.sendMessage(buddy, m)
+        return message
+
+    def sendMessage(self, buddy = None, message = None):
+        self._connector.sendMessage(message)
 
     # ---
-
-    def __init__(self, station = 'UMMS'):
+    def __init__(self, station, connector):
         Plugin.__init__(self)
 
         self._station = station
+        self._connector = connector['icq']
+
         self.report = None
 
     def setup(self, station = 'UMMS'):
@@ -71,9 +84,9 @@ class Weather(Plugin):
             s += "Pressure: None"
         s += "\n"
 
-        s += "Weather: " + self.report.getWeather()
+        s += "Weather: " + str(self.report.getWeather())
         s += "\n"
-        s += "Sky Conditions: " + self.report.getSkyConditions()
+        s += "Sky Conditions: " + str(self.report.getSkyConditions())
         s += "\n"
 
         return s

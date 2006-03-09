@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.88 2006/03/07 12:04:09 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.89 2006/03/09 15:36:01 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.88 2006/03/07 12:04:09 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.89 2006/03/09 15:36:01 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -220,7 +220,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
         import Plugin
-        self._plugins = Plugin.load_plugins('../../plugins', '../plugins')
+        self._plugins = Plugin.load_plugins('../../plugins', '../plugins',
+            connector = self.connector)
 
         #self.topPanel.userList.sampleFill()
         # ---
@@ -430,6 +431,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         b, m = evt.getVal()
         evt.Skip()
+
+        for k in self._plugins:
+            print 'Applying plugin ' + k
+            m = self._plugins[k].onIncomingMessage(b, m)
 
         self._showMessageDialog(m, b)
 
