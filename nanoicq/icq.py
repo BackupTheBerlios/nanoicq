@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.73 2006/03/07 12:04:09 lightdruid Exp $
+# $Id: icq.py,v 1.74 2006/03/10 15:22:25 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -2244,6 +2244,101 @@ class Protocol:
             func = getattr(self, tmp)
 
             func(snac[5])
+
+    def proc_2_19_14(self, data, flag):
+        '''
+        SNAC(13,0E)     SRV_SSIxMODxACK     
+
+        This SNAC is an ack sent by the server when adding a buddy, 
+        deleting a buddy, or otherwise modifying a group. 
+        See also snac list for SSI service here. This snac contain flag. 
+        Here is the list of its known values:
+
+          0x0000      No errors (success)   
+          0x0002      Item you want to modify not found in list 
+          0x0003      Item you want to add allready exists  
+          0x000A      Error adding item (invalid id, allready in list, 
+                      invalid data)    
+          0x000C      Can't add item. Limit for this type of items exceeded 
+          0x000D      Trying to add ICQ contact to an AIM list  
+          0x000E      Can't add this contact because it requires authorization
+        '''
+
+        log().log('Got server response while modifying SSI data')
+
+        while len(data) >= 2:
+            code = struct.unpack('!H', data[0:2])
+            data = data[2:]
+            print 'CODE:', code
+
+    def sendSSIAdd(self, b, awaitingAuth = True):
+        '''
+        SNAC(03,04)     CLI_BUDDYLIST_ADD   
+
+        Use this this to add new buddies to your client-side contact list. 
+        You can delete buddies from contact using SNAC(03,05). 
+        See also complete snac list for this service here.
+        '''
+        data = ''
+        data += struct.pack('!H', len(b.uin))
+        data += b.uin
+
+        gid = 0
+        itemid = generateServerId()
+        itemFlag = 0x0000
+        data += str(struct.pack('!HHH', gid, itemid, itemFlag))
+
+        # You can't add buddy that requires authorization without permission. 
+        # You can add it only with TLV(0x0066) as a buddy record awaiting 
+        # authorization.
+
+        data2 = ''
+        if awaitingAuth:
+            data2 += tlv(0x0066, '')
+
+        # Length of additional data
+        dataLen = len(data2)
+        data += struct.pack('!H', dataLen)
+        data += data2
+
+        log().log("Adding user '%s' to server-side contact list" % b.uin)
+        self.sendSNAC(0x13, 0x08, 0, data)
+
+    def sendSSIDelete(self, uin):
+        '''
+        SNAC(13,0A)     CLI_SSIxDELETE  
+
+        Client use this to delete items from server-side info. 
+        Server should reply via SNAC(13,0E).
+        '''
+        pass
+
+    def sendSSIEditBegin(self, isImport = False):
+        '''
+        SNAC(13,11)     CLI_SSI_EDIT_BEGIN
+
+        Use this before server side information (SSI) modification.
+        Also you should send SNAC(13,12) after SSI modification.
+        You could also use "import" transaction mode to add contacts
+        requiring authorization. Just add 0x00010000 to snac data to start
+        import transaction. See also snac list for SSI service here.
+        '''
+        data = ''
+        if isImport:
+            data = '\x00\x01\x00\x00'
+
+        log().log('Sending SSI edit begin (CLI_SSI_EDIT_BEGIN)')
+        self.sendSNAC(0x13, 0x11, 0, data)
+
+    def sendSSIEditEnd(self):
+        '''
+        SNAC(13,12)     CLI_SSI_EDIT_END    
+
+        This snac used after SSI modification to commit transaction started by SNAC(13,11). 
+        See also snac list for SSI service here.
+        '''
+        log().log('Sending SSI edit end (CLI_SSI_EDIT_END)')
+        self.sendSNAC(0x13, 0x12, 0, '')
 
     def sendMessage(self, message, thruServer = True, ack = False,
         autoResponse = False, offline = False):

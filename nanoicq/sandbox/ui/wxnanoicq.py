@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.89 2006/03/09 15:36:01 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.90 2006/03/10 15:22:25 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.89 2006/03/09 15:36:01 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.90 2006/03/10 15:22:25 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -250,9 +250,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
             # Add user to contact list
             self.connector['icq'].addBuddyToList(b)
 
-            # Now we ought to ask about user status
-            self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)
+            # Then start SSI edit strsaction
+            self.connector['icq'].sendSSIEditBegin()
+            self.connector['icq'].sendSSIAdd(b)
+            #self.connector['icq'].sendSSIEditEnd()
 
+            # Now we ought to ask about user status
+            #self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)
 
 #    def onUnableAddUserToList(self, evt):
 #        '''

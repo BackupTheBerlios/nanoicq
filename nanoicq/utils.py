@@ -1,16 +1,17 @@
 
 #
-# $Id: utils.py,v 1.18 2006/03/06 23:21:28 lightdruid Exp $
+# $Id: utils.py,v 1.19 2006/03/10 15:22:25 lightdruid Exp $
 #
 
 import string
 import cPickle
 import sys, codecs, time, random
 import warnings
-from wx import VERSION
 import re
 import struct
+import random
 
+from wx import VERSION
 
 _ver = VERSION
 if _ver[0] < 2:
@@ -29,6 +30,12 @@ else:
         _enc, _dec, _srdr, _swtr = codecs.lookup('utf-8')
     else:
         raise Exception('Codecs are not tuned yet for this platform')
+
+def generateServerId(startID = 0x1000, stopID = 0x7777):
+    '''
+    Generate ID between startID and stopID
+    '''
+    return random.randrange(startID, stopID)
 
 def parseAsciiz(data):
     ln = struct.unpack('<H', data[0:2])[0]
