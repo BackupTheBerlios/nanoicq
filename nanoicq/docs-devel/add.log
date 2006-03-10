@@ -1,0 +1,154 @@
+[13:38:48 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 A2-00 22 00 15-00 02 00 00-00 3E 00 02  *.H¢.".......>..
+00000010: 00 01 00 14-12 00 95 51-8D 0A D0 07-00 3E 69 05  ......ïQç.–..>i.
+00000020: 36 01 04 00-96 51 8D 0A-                         6...ñQç.
+[13:38:48 ICQ] (009F3BA8:628) Data received
+00000000: 2A 02 4E 5F-00 56 00 15-00 03 00 01-00 3E 00 02  *.N_.V.......>..
+00000010: 00 01 00 48-46 00 95 51-8D 0A DA 07-00 3E AE 01  ...HF.ïQç.⁄..>Æ.
+00000020: 0A 35 00 96-51 8D 0A 06-00 6D 69 6B-65 65 00 05  .5.ñQç...mikee..
+00000030: 00 6D 69 6B-65 00 0A 00-63 72 65 69-67 68 74 6F  .mike...creighto
+00000040: 6E 00 01 00-00 00 02 00-00 00 00 00-00 01 00 00  n...............
+00000050: 01 00 00 00-01 00 00 00-00 00 00 00-             ............
+[13:38:48 ICQ] SNAC(0x15,0x3: Search reply
+[13:38:55 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 05 48 A3-00 00                                *.H£..
+
+SNAC(13,02)     CLI_SSI_RIGHTS_REQUEST
+
+[13:39:02 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 A4-00 1E 00 15-00 02 00 00-00 3F 00 02  *.H§.........?..
+00000010: 00 01 00 10-0E 00 95 51-8D 0A D0 07-00 3F BA 04  ......ïQç.–..?∫.
+00000020: 96 51 8D 0A-                                     ñQç.
+
+SNAC(03,04)     CLI_BUDDYLIST_ADD   
+
+Use this this to add new buddies to your client-side contact list. 
+You can delete buddies from contact using SNAC(03,05). 
+See also complete snac list for this service here.
+
+[13:39:02 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 A5-00 14 00 03-00 04 00 00-00 00 00 04  *.H•............
+00000010: 09 31 37 37-30 33 33 36-32 32                    .177033622
+
+SNAC(13,0A)     CLI_SSIxDELETE  
+
+Client use this to delete items from server-side info. 
+Server should reply via SNAC(13,0E).
+
+[13:39:02 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 A6-00 15 00 13-00 0A 00 00-00 41 00 0A  *.H¶.........A..
+00000010: 00 01 30 00-00 00 01 00-13 00 00                 ..0........
+
+SNAC(13,11)     CLI_SSI_EDIT_BEGIN  
+
+Use this before server side information (SSI) modification. 
+Also you should send SNAC(13,12) after SSI modification. 
+You could also use "import" transaction mode to add contacts 
+requiring authorization. Just add 0x00010000 to snac data to start 
+import transaction. See also snac list for SSI service here.
+
+[13:39:02 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 A7-00 0E 00 13-00 11 00 00-00 00 00 11  *.Hß............
+00000010: 00 01 00 00-                                     ....
+
+SNAC(13,08)     CLI_SSIxADD     
+
+Client use this to add new items to server-side info. 
+Server should reply via SNAC(13,0E).
+
+[13:39:02 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 A8-00 1D 00 13-00 08 00 00-00 40 00 08  *.H®.........@..
+00000010: 00 09 31 37-37 30 33 33-36 32 32 54-30 6A 86 00  ..177033622T0jÜ.
+00000020: 00 00 00                                         ...
+
+NAC(15,03)  SRV_META_REPLY      
+
+This is the server response to client meta request SNAC(15,02).
+
+[13:39:02 ICQ] (009F3BA8:628) Data received
+00000000: 2A 02 4E 60-00 42 00 15-00 03 00 00-00 3F 00 02  *.N`.B.......?..
+00000010: 00 01 00 34-32 00 95 51-8D 0A DA 07-00 3F 04 01  ...42.ïQç.⁄..?..
+00000020: 0A 06 00 6D-69 6B 65 65-00 05 00 6D-69 6B 65 00  ...mikee...mike.
+00000030: 0A 00 63 72-65 69 67 68-74 6F 6E 00-01 00 00 00  ..creighton.....
+00000040: 02 00 00 00-00 01 00 00-                         ........
+[13:39:02 ICQ] SNAC(0x15,0x3): META_SHORT_USERINFO for 177033622
+
+SNAC(13,0E)     SRV_SSIxMODxACK     
+
+This SNAC is an ack sent by the server when adding a buddy, 
+deleting a buddy, or otherwise modifying a group. See also snac 
+list for SSI service here. This snac contain flag. Here is the 
+list of its known values:
+
+[13:39:02 ICQ] (009F3BA8:628) Data received
+00000000: 2A 02 4E 61-00 14 00 13-00 0E 80 00-00 41 00 0A  *.Na......Ä..A..
+00000010: 00 06 00 01-00 02 00 04-00 0A                    ..........
+
+SNAC(13,0E)     SRV_SSIxMODxACK     
+
+This SNAC is an ack sent by the server when adding a buddy, 
+deleting a buddy, or otherwise modifying a group. See also snac 
+list for SSI service here. This snac contain flag. Here is the 
+list of its known values:
+
+[13:39:02 ICQ] Re-starting import sequence failed, error 10
+[13:39:03 ICQ] (009F3BA8:628) Data received
+00000000: 2A 02 4E 62-00 14 00 13-00 0E 80 00-00 40 00 08  *.Nb......Ä..@..
+00000010: 00 06 00 01-00 02 00 04-00 0E                    ..........
+
+SNAC(13,08)     CLI_SSIxADD     
+
+Client use this to add new items to server-side info. 
+Server should reply via SNAC(13,0E).
+
+[13:39:03 ICQ] Contact could not be added without authorisation, add with await auth flag.
+[13:39:03 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 A9-00 21 00 13-00 08 00 00-00 42 00 08  *.H©.!.......B..
+00000010: 00 09 31 37-37 30 33 33-36 32 32 54-30 6A 86 00  ..177033622T0jÜ.
+00000020: 00 00 04 00-66 00 00                             ....f..
+
+SNAC(13,0E)     SRV_SSIxMODxACK     
+
+This SNAC is an ack sent by the server when adding a buddy, 
+deleting a buddy, or otherwise modifying a group. See also snac 
+list for SSI service here. This snac contain flag. Here is the 
+list of its known values:
+
+[13:39:03 ICQ] (009F3BA8:628) Data received
+00000000: 2A 02 4E 63-00 14 00 13-00 0E 80 00-00 42 00 08  *.Nc......Ä..B..
+00000010: 00 06 00 01-00 02 00 04-00 00                    ..........
+
+SNAC(13,09)     CLI_SSIxUPDATE  
+
+This can be used to modify either the name or additional data 
+for any items that are already in your server-stored information. 
+It is most commonly used after adding or removing a buddy: you should 
+either add or remove the buddy ID# from the type 0x00c9 TLV in the 
+additional data of the parent group, and then send this SNAC containing 
+the modified data. Server should reply via SNAC(13,0E).
+
+[13:39:03 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 AA-00 41 00 13-00 09 00 00-00 43 00 09  *.H™.A.......C..
+00000010: 00 07 47 65-6E 65 72 61-6C 54 30 00-00 00 01 00  ..GeneralT0.....
+00000020: 26 00 C8 00-22 86 6A 6A-6A 29 7B 40-7C 17 7C 9B  &.»."Üjjj){@|.|õ
+00000030: 6E 78 6E A6-5D A6 48 30-41 07 3E 8C-3D E5 33 2B  nxn¶]¶H0A.>å=Â3+
+00000040: 2F 81 2B A3-06 01 00                             /Å+£...
+
+SNAC(13,12)     CLI_SSI_EDIT_END    
+
+This snac used after SSI modification to commit transaction started by SNAC(13,11). 
+See also snac list for SSI service here.
+
+[13:39:03 ICQ] (009F3BA8:628) Data sent
+00000000: 2A 02 48 AB-00 0A 00 13-00 12 00 00-00 00 00 12  *.H´............
+
+SNAC(13,0E)     SRV_SSIxMODxACK     
+
+This SNAC is an ack sent by the server when adding a buddy, 
+deleting a buddy, or otherwise modifying a group. See also snac 
+list for SSI service here. This snac contain flag. Here is the 
+list of its known values:
+
+[13:39:03 ICQ] (009F3BA8:628) Data received
+00000000: 2A 02 4E 64-00 14 00 13-00 0E 80 00-00 43 00 09  *.Nd......Ä..C..
+00000010: 00 06 00 01-00 02 00 04-00 00                    ..........
