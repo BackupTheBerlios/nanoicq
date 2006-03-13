@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.77 2006/03/13 13:52:08 lightdruid Exp $
+# $Id: icq.py,v 1.78 2006/03/13 15:43:45 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -2379,8 +2379,9 @@ class Protocol:
         # authorization.
 
         data2 = ''
-        if awaitingAuth:
-            data2 += tlv(0x0066, '')
+        # FIXME: doesn't work
+        #if awaitingAuth:
+        #    data2 += tlv(0x0066, '')
 
         # Length of additional data
         dataLen = len(data2)
