@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.76 2006/03/13 13:17:10 lightdruid Exp $
+# $Id: icq.py,v 1.77 2006/03/13 13:52:08 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -2286,6 +2286,64 @@ class Protocol:
             data = data[2:]
             print 'CODE:', code
 
+    def sendAuthorizationRequest(self, b):
+        '''
+        SNAC(13,18)     CLI_SSI_SEND_AUTHxREQUEST 
+
+        Client use this snac to send authorization request. 
+        It contain screen name (uin) of the user and reason string. 
+        After that you may receive SNAC(13,1B) - authorization reply.
+        '''
+        _authReason = 'Please authorize me'
+        data = struct.pack('!B', len(b.uin)) + b.uin
+        data += struct.pack('!H', len(_authReason)) + _authReason
+        data += '\x00\x00'
+
+        self.sendSNAC(0x13, 0x18, 0, data)
+
+    def proc_2_19_18(self, data, flag):
+        '''
+        SNAC(13,12)     CLI_SSI_EDIT_END 
+
+        This snac used after SSI modification to commit transaction 
+        started by SNAC(13,11). See also snac list for SSI service here. 
+        '''
+        print 'Got 19/18 reply'
+        print coldump(flag)
+        print coldump(data)
+
+    def proc_2_19_9(self, data, flag):
+        '''
+        SNAC(13,09)     CLI_SSIxUPDATE 
+
+        This can be used to modify either the name or additional data for 
+        any items that are already in your server-stored information. 
+        It is most commonly used after adding or removing a buddy: you 
+        should either add or remove the buddy ID# from the 
+        type 0x00c9 TLV in the additional data of the parent group, 
+        and then send this SNAC containing the modified data. 
+        Server should reply via SNAC(13,0E). 
+        '''
+        print 'Got 19/9 reply'
+        print coldump(flag)
+        print coldump(data)
+
+    def proc_2_19_17(self, data, flag):
+        '''
+        Strange - why we got it from server?
+
+        SNAC(13,11)     CLI_SSI_EDIT_BEGIN 
+
+        Use this before server side information (SSI) modification. 
+        Also you should send SNAC(13,12) after SSI modification. 
+        You could also use "import" transaction mode to add contacts 
+        requiring authorization. Just add 0x00010000 to snac data to 
+        start import transaction. See also snac list for SSI service here. 
+        '''
+        print 'Got 19/17 reply'
+        print coldump(flag)
+        print coldump(data)
+
     def sendSSIAdd(self, b, awaitingAuth = True):
         '''
         SNAC(03,04)     CLI_BUDDYLIST_ADD   
@@ -2321,8 +2379,8 @@ class Protocol:
         # authorization.
 
         data2 = ''
-        #if awaitingAuth:
-        #    data2 += tlv(0x0066, '')
+        if awaitingAuth:
+            data2 += tlv(0x0066, '')
 
         # Length of additional data
         dataLen = len(data2)

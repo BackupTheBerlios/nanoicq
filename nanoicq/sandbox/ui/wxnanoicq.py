@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.91 2006/03/13 11:50:24 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.92 2006/03/13 13:52:08 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.91 2006/03/13 11:50:24 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.92 2006/03/13 13:52:08 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -254,6 +254,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             self.connector['icq'].sendSSIEditBegin()
             self.connector['icq'].sendSSIAdd(b)
             self.connector['icq'].sendSSIEditEnd()
+            self.connector['icq'].sendAuthorizationRequest(b)
 
             # Now we ought to ask about user status
             #self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)
