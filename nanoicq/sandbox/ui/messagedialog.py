@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.32 2006/03/06 11:17:57 lightdruid Exp $
+# $Id: messagedialog.py,v 1.33 2006/03/13 11:50:24 lightdruid Exp $
 #
 
 import sys
@@ -273,6 +273,9 @@ class MessageDialog(wx.Frame, PersistenceMixin):
     def onSendMessage(self, evt):
         print 'onSendMessage()'
         print 'Sending send message event for dialog...', self.GetId()
+
+        print 'Name: ', self._user.name
+        print 'uin: ', self._user.uin, type(self._user.uin)
 
         message = messageFactory("icq",
             self._user.name, self._user.uin,

@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.74 2006/03/10 15:22:25 lightdruid Exp $
+# $Id: icq.py,v 1.75 2006/03/13 11:50:24 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -32,7 +32,7 @@ from logger import log, init_log, LogException
 from message import messageFactory
 from proxy import *
 
-init_log([sys.stdout])
+init_log([sys.stdout, open('nanoicq.log', 'wb')])
 
 # for debug only
 SLEEP = 0
@@ -549,9 +549,10 @@ class Protocol:
         print 'for this snac: ', snac
 
         tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
+        flag1, flag2 = snac[2], snac[3]
         func = getattr(self, tmp)
 
-        func(snac[5])
+        func(snac[5], flag2)
         
     def proc_2_23_5(self, data, flag):
         '''
@@ -600,6 +601,8 @@ class Protocol:
         if tlvs[0x01] != 'image/jpeg':
             raise Exception("Unknown format of registration CAPTCHA picture (%s)" % tlvs[0x01])
 
+        # FIXME: decouple from wx!
+        import wx
         img = wx.ImageFromStream(cStringIO.StringIO(tlvs[0x02]))
         self.react("Got CAPTCHA", image = img)
 
@@ -1045,7 +1048,9 @@ class Protocol:
 
         #log().log('Notify server about our buddy list')
         #self.sendBuddyList()
+        self.sendActivateSSIList()
 
+    def sendActivateSSIList(self):
         log().log('Activate server-side contact... (SNAC(13,07)')
         self.sendSNAC(0x13, 0x07, 0, '')
         log().log('Activation done (SNAC(13,07)')
@@ -1075,6 +1080,8 @@ class Protocol:
         b.uin = name
         b.name = name
 
+        print 'Parsing buddy:', b
+
         for t in tlvs:
             tmp = "parseSSIItem_%02X" % t
             try:
@@ -1091,7 +1098,7 @@ class Protocol:
 
                 # Bad buddy, mark it as Null, do not add to list
                 b = None
-                break
+                continue
 
         if b is not None:
             # OK, let's pass new buddy upto gui
@@ -1142,11 +1149,14 @@ class Protocol:
 
         # FIXME: only buddies processing 
         if flagType == SSI_ITEM_GROUP:
+            print "### it's group"
             self._groups.add(groupID, name)
-
-        if flagType == SSI_ITEM_BUDDY:
+        # FIXME: 25
+        elif flagType == SSI_ITEM_BUDDY or flagType == 25:
+            print "### it's buddy"
             self.parseSSIBuddy(groupID, name, tlvs)
         else:
+            print "### it's others"
             for t in tlvs:
                 tmp = "parseSSIItem_%02X" % t
                 try:
@@ -1488,7 +1498,9 @@ class Protocol:
         timestamp = struct.unpack('!L', data[:4])
         items = struct.unpack('!H', data[4:6])
         print timestamp, items
-        raise Exception("proc_2_19_15 not implemented")
+        log().log("Warning: proc_2_19_15 (SRV_SSI_UPxTOxDATE) not implemented")
+
+        #self.sendActivateSSIList()
 
     def proc_2_4_1(self, data, flag):
         '''
@@ -1951,7 +1963,9 @@ class Protocol:
         log().log('Got META_AFFILATIONS_USERINFO packet')
 
         d = data
-        assert d[0] == '\x0a'
+        if d[0] != '\x0a':
+            log().log('Warning: Mailformed META_AFFILATIONS_USERINFO packet')
+            return
 
         d = d[1:]
 
@@ -2161,9 +2175,10 @@ class Protocol:
         print 'for this snac: ', snac
 
         tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
+        flag1, flag2 = snac[2], snac[3]
         func = getattr(self, tmp)
 
-        func(snac[5])
+        func(snac[5], flag2)
 
     def login(self, mainLoop = False):
         log().log('Logging in...')
@@ -2286,15 +2301,22 @@ class Protocol:
         gid = 0
         itemid = generateServerId()
         itemFlag = 0x0000
-        data += str(struct.pack('!HHH', gid, itemid, itemFlag))
+        data += struct.pack('!H', gid)
+
+        sitemid = struct.pack('!H', itemid)
+        print '>>>', type(data), type(sitemid), coldump(sitemid)
+        data = str(data)
+        data += sitemid
+
+        data += struct.pack('!H', itemFlag)
 
         # You can't add buddy that requires authorization without permission. 
         # You can add it only with TLV(0x0066) as a buddy record awaiting 
         # authorization.
 
         data2 = ''
-        if awaitingAuth:
-            data2 += tlv(0x0066, '')
+        #if awaitingAuth:
+        #    data2 += tlv(0x0066, '')
 
         # Length of additional data
         dataLen = len(data2)
@@ -2328,7 +2350,7 @@ class Protocol:
             data = '\x00\x01\x00\x00'
 
         log().log('Sending SSI edit begin (CLI_SSI_EDIT_BEGIN)')
-        self.sendSNAC(0x13, 0x11, 0, data)
+        self.sendSNAC(0x13, 0x11, 0x11, data)
 
     def sendSSIEditEnd(self):
         '''

@@ -1,9 +1,10 @@
 
 #
-# $Id: message.py,v 1.12 2006/02/22 16:13:56 lightdruid Exp $
+# $Id: message.py,v 1.13 2006/03/13 11:50:24 lightdruid Exp $
 #
 
 import time
+import types
 
 from utils import *
 from HistoryDirection import Incoming, Outgoing
@@ -48,7 +49,8 @@ class ICQMessage(Message):
 
     def __init__(self, user, uin, content, direction, timeStamp = None):
         Message.__init__(self, Message.ICQ_MESSAGE, user, content, direction, timeStamp)
-        assert type(uin) == type('')
+
+        assert type(uin) in types.StringTypes
         self._uin = uin
 
     def getUIN(self): return self._uin
@@ -65,11 +67,11 @@ def messageFactory(context, *kw, **kws):
         assert context in [Message.ICQ_MESSAGE]
         if context == Message.ICQ_MESSAGE:
             return ICQMessage(*kw, **kws)
-    if type(context) == type(''):
+    if type(context) in types.StringTypes:
         if context == "icq":
             return ICQMessage(*kw, **kws)
+    raise Exception('Message: Unknown context: ' + str(context))
 
-    raise Exception("Unknown messaeg type: " + str(context))
 
 def _test():
     m = Message(Message.ICQ_MESSAGE, '', 'aaa', Incoming)
