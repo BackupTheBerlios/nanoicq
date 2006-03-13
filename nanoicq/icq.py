@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.75 2006/03/13 11:50:24 lightdruid Exp $
+# $Id: icq.py,v 1.76 2006/03/13 13:17:10 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -2294,12 +2294,18 @@ class Protocol:
         You can delete buddies from contact using SNAC(03,05). 
         See also complete snac list for this service here.
         '''
+
+        #data = '\x2a\x02\x28\x8d\x00\x1d\x00\x13-00\x08\x00\x00\x00\x08\x00\x08\x00\x09\x32\x36\x34\x30\x32\x35-33\x32\x34\x54\x30\x49\x2c\x00\x00\x00\x00'
+        #self.send(data)
+        #return
+
         data = ''
         data += struct.pack('!H', len(b.uin))
         data += b.uin
 
-        gid = 0
-        itemid = generateServerId()
+        gid = 1
+        #itemid = generateServerId()
+        itemid = 1
         itemFlag = 0x0000
         data += struct.pack('!H', gid)
 
