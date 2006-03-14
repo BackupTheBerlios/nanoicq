@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.78 2006/03/13 15:43:45 lightdruid Exp $
+# $Id: icq.py,v 1.79 2006/03/14 11:53:06 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -685,7 +685,7 @@ class Protocol:
         mtype = self._decodeMotdType(typ)
         tlvs = readTLVs(data[2:])
 
-        log().log('Got MOTD message: ' + mtype)
+        log().log('Got (01,13) MOTD message: ' + mtype)
         if tlvs.has_key(0x0b):
             log().log('MOTD message contents: ' + tlvs[0x0b])
 
@@ -697,6 +697,17 @@ class Protocol:
         return ', '.join(out)
 
     def proc_2_1_3(self, data, flag):
+        '''
+        SNAC(01,03)     SRV_FAMILIES  
+
+        This is the first snac in protocol negotiation sequence. 
+        Client shouldn't use families not listed in this SNAC. 
+        See also known families list. So if your client use SNAC(13) family 
+        and server SNAC(01,03) doesn't contain it - your client should 
+        popup "server error" message when user want's to change server-stored 
+        information (SSI). 
+        '''
+        log().log('(01,03) Got SRV_FAMILIES')
         self.parseFamilies(data)
         self.families = supported
 
@@ -705,14 +716,49 @@ class Protocol:
             if self.families.has_key(f):
                 out += struct.pack("!2H", f, self.families[f])
 
+        '''
+        SNAC(01,17)     CLI_FAMILIES_VERSIONS  
+
+        This is the client response to SNAC(01,03). 
+        This snac contain families versions which client want's from server. 
+        Server should respond with SNAC(01,18). 
+        Client sends this SNAC during protocol negotiation sequence. 
+        See also known families list. 
+        '''
+        log().log('Sending (01,17) CLI_FAMILIES_VERSIONS')
         self.sendSNAC(0x01, 0x17, 0, out)
 
     def proc_2_1_24(self, data, flag):
+        '''
+        SNAC(01,18)     SRV_FAMILIES_VERSIONS  
+
+        This is the server response to SNAC(01,17). 
+        This snac contain families versions which server supports. 
+        Server sends this SNAC during protocol negotiation sequence. 
+        See also known families list. 
+        '''
+        log().log('Got (01,18) SRV_FAMILIES_VERSIONS')
+
+        '''
+        SNAC(01,06)     CLI_RATES_REQUEST  
+
+        Client use this SNAC to request server rate-limits. 
+        This happens during protocol negotiation sequence. 
+        Server should reply via SNAC(01,07).
+        '''
+        log().log('Sending (01,06) CLI_RATES_REQUEST')
         self.sendSNAC(0x01, 0x06, 0, '')
 
     def proc_2_1_7(self, data, flag):
-        ''' Rate info '''
+        '''
+        SNAC(01,07)     SRV_RATE_LIMIT_INFO  
 
+        This snac contain server information about its snac-rate 
+        limitations. You can read rate limits detailed information here. 
+        See also SNAC(01,0A) for more info.
+        '''
+
+        log().log('Got (01,07) SRV_RATE_LIMIT_INFO')
         log().packetin(data)
 
         count = struct.unpack('!H', data[0:2])[0]
@@ -753,45 +799,111 @@ class Protocol:
                 self.outRateTable[family] = subfamily
                 dt = dt[4:]
 
-        log().log("Sending connection rate limits")
+        log().log("Sending (01,08) CLI_RATES_ACK connection rate limits")
         self.sendSNAC(0x01, 0x08, 0, resp)
 
         time.sleep(SLEEP)
-        log().log("Sending location rights limits")
+        log().log("Sending (02,02) CLI_LOCATION_RIGHTS_REQ location rights limits")
         self.sendSNAC(0x02, 0x02, 0, '') # location rights info
 
     def proc_2_9_3(self, data, flag):
-        ''' BOS rights '''
+        '''
+        SNAC(09,03)     SRV_PRIVACY_RIGHTS_REPLY 
+
+        Server replies with this SNAC to SNAC(09,02) - client service 
+        parameters request.
+
+        '''
+        log().log('Got (09,03) SRV_PRIVACY_RIGHTS_REPLY')
         tlvs = readTLVs(data)
         self.maxPermitList = struct.unpack("!H", tlvs[1])[0]
         self.maxDenyList = struct.unpack("!H", tlvs[2])[0]
         log().log("Max permit list: %d, Max deny list: %d" % (self.maxPermitList, self.maxDenyList))
 
+        '''
+        SNAC(13,02)     CLI_SSI_RIGHTS_REQUEST 
+
+        Use this to request server-stored information (SSI) service 
+        limitations. Server should reply via SNAC(13,03), that contain 
+        limitations for server-stored information items. 
+        '''
         time.sleep(SLEEP)
-        log().log("Sending SSI rights info")
+        log().log("Sending (13,02) CLI_SSI_RIGHTS_REQUEST, SSI rights info")
         self.sendSNAC(0x13, 0x02, 0, '')
 
     def proc_2_4_5(self, data, flag):
-        ''' ICBM parameters '''
-        log().log("Sending changed default ICBM parameters command")
+        '''  
+        SNAC(04,05)     SRV_ICBM_PARAMS  
+
+        This is the server reply for SNAC(04,04). It contain client icbm 
+        parameters like channel, max_msgsize, max_sender_evil, 
+        max_receiver_evil. If "channel" parameter = 0 client want's to set 
+        parameters for all available message channels. 
+        See also SNAC(04,01) for more information. 
+        '''
+        log().log('Got SNAC(04,05) SRV_ICBM_PARAMS')
+
+        '''
+        SNAC(04,02)     CLI_SET_ICBM_PARAMS  
+
+        Client use this snac to set its icbm parameters like max_msgsize, 
+        max sender_evil... You can request these parameters from server 
+        using SNAC(04,04). Server will reply via SNAC(04,05). 
+        See also SNAC(04,01) for more information. 
+        '''
+        log().log("Sending (04,02) CLI_SET_ICBM_PARAMS - changed default ICBM parameters command")
         self.sendSNAC(0x04, 0x02, 0, '\x00\x00\x00\x00\x00\x0b\x1f@\x03\xe7\x03\xe7\x00\x00\x00\x00')
 
+        '''
+        SNAC(09,02)     CLI_PRIVACY_RIGHTS_REQ  
+
+        Client use this SNAC to request buddylist service parameters and limitations.
+        '''
+        log().log("Sending (09,02) CLI_PRIVACY_RIGHTS_REQ  - PRM service limitations")
         time.sleep(SLEEP)
-        log().log("Sending PRM service limitations")
         self.sendSNAC(0x09, 0x02, 0, '')
 
     def proc_2_3_3(self, data, flag):
-        ''' Buddy list rights '''
+        '''
+        SNAC(03,03)     SRV_BUDDYLIST_RIGHTS_REPLY 
+
+        Server replies with this SNAC to SNAC(03,02) - client 
+        service parameters request. 
+        '''
+        log().log("Got (03,03) SRV_BUDDYLIST_RIGHTS_REPLY")
+
         tlvs = readTLVs(data)
         self.maxBuddies = struct.unpack("!H", tlvs[1])[0]
         self.maxWatchers = struct.unpack("!H", tlvs[2])[0]
         log().log("Max buddies: %d, Max watchers: %d" % (self.maxBuddies, self.maxWatchers))
 
-        log().log("Sending ICBM service parameters")
-        self.sendSNAC(0x04,0x04,0,'') # ICBM parms
+        '''
+        SNAC(04,04)     CLI_ICBM_PARAM_REQ  
+
+        Use this snac to request your icbm parameters from server. 
+        Server should reply via SNAC(04,05). 
+        You can change them using SNAC(04,02).
+        '''
+        log().log("Sending (04,04) CLI_ICBM_PARAM_REQ - ICBM service parameters")
+        self.sendSNAC(0x04, 0x04, 0, '')
 
     def proc_2_19_3(self, data, flag):
-        ''' List service granted, request roster from server '''
+        '''
+        SNAC(13,03)     SRV_SSI_RIGHTS_REPLY 
+
+        Server replies with this SNAC to SNAC(13,02) - 
+        client SSI service parameters request. 
+        '''
+        log().log("Got (13,03) SRV_SSI_RIGHTS_REPLY")
+
+        '''
+        SNAC(13,07)     CLI_SSI_ACTIVATE 
+
+        Client should send this snac after login to activate server-side 
+        contact. After this snac server start send presense notifications 
+        for you.
+        '''
+        log().log("Sending (13,07) CLI_SSI_ACTIVATE ")
         self.sendSNAC(0x13, 0x07, 0, '')
 
         # Status
@@ -834,10 +946,25 @@ class Protocol:
         dcData += '\x00\x00'
 
         t += tlv(0x0C, dcData)
+
+        '''
+        SNAC(01,0E)     CLI_REQ_SELFINFO  
+
+        Client use this SNAC to request own online information (like 
+        direct connection info). Server should respond with SNAC(01,0F). 
+        '''
+        log().log('Sending (01,0E) CLI_REQ_SELFINFO')
         self.sendSNAC(0x01, 0x1e, 0, t)
 
-        # CLI_READY
-        log().log('Sending CLI_READY...')
+        '''
+        SNAC(01,02)     CLI_READY  
+
+        This is the last snac in protocol negotiation sequence. 
+        It tells BOS that we are ready to go online. 
+        Client must send this snac within 30 seconds after signon, or the 
+        connection will be dropped.
+        '''
+        log().log('Sending (01,02) CLI_READY  ')
         self.sendClientReady_original()
 
     def sendClientReady(self):
@@ -929,6 +1056,7 @@ class Protocol:
         0x0001 - text typed sign
         0x0002 - typing begun sign
         '''
+        log().log('Got (04,14) TYPING_NOTIFICATION')
 
         data = data[8:]
         channel = int(struct.unpack('!H', data[0:2])[0])
@@ -957,11 +1085,18 @@ class Protocol:
         '''
 
         # FIXME:
-        log().log('Got extended status (not implemented yet)')
+        log().log('Got (01,21) SRV_EXT_STATUS - extended status (not implemented yet)')
 
     def proc_2_1_15(self, data, flag):
-        ''' My status '''
+        '''
+        SNAC(01,0F)     SRV_ONLINExINFO  
 
+        Server reply with this SNAC to client SNAC(01,0E) request. 
+        Also it sends this snac after client status change. 
+        Status change notification SNAC(01,0F) doesn't contain TLV(0x0C), 
+        but contain TLV(0x06).
+        '''
+        log().log('Got (01,0F) SRV_ONLINExINFO')
         uinLen = int(struct.unpack('!B', data[0])[0])
         uin = str(data[1 : uinLen + 1])
 
@@ -972,7 +1107,15 @@ class Protocol:
         tlvs = readTLVs(data[uinLen + 1 + 4:])
         self.parseSelfStatus(tlvs)
 
-        log().log("Retrieving server-side contact list")
+        '''
+        SNAC(13,05)     CLI_SSI_CHECKOUT 
+
+        Use this snac to check if your SSI local copy up-to-date (mod-time & 
+        items-num match). If not - server will send SSI via SNAC(13,06), 
+        overwise you'll receive SNAC(13,0F).
+        '''
+
+        log().log("Sending (13,05) CLI_SSI_CHECKOUT - Retrieving server-side contact list")
         data = "\x00\x00\x00\x00\x00\x00"
         self.sendSNAC(0x13, 0x05, 0, data)
 
@@ -1004,6 +1147,8 @@ class Protocol:
         SNAC(03,01)     SRV_BLM_ERROR   
         This is an error notification snac.
         '''
+        log().log('Got (03,01) SRV_BLM_ERROR')
+
         errCode = struct.unpack('!H', data[0:2])[0]
         tlvs = readTLVs(data[2:])
         if tlvs.has_key(0x08):
@@ -1013,7 +1158,9 @@ class Protocol:
         log().log("SRV_BLM_ERROR: %d/%d" % (errCode, errSubCode))
 
     def proc_2_19_6(self, data, flag):
-        ''' This is the server reply to client roster 
+        ''' 
+        SNAC(13,06)     SRV_SSIxREPLY
+        This is the server reply to client roster 
         requests: SNAC(13,04) - Request contact list (first time),
         SNAC(13,05) - Contact list checkout.
 
@@ -1022,6 +1169,8 @@ class Protocol:
         list last change time" only exists in the last packet. 
         And the "Number of items" field indicates the number of 
         items in the current packet, not the entire list. '''
+
+        log().log('Got (13,06) SRV_SSIxREPLY')
 
         if __debug__:
             import cPickle
@@ -1051,7 +1200,7 @@ class Protocol:
         self.sendActivateSSIList()
 
     def sendActivateSSIList(self):
-        log().log('Activate server-side contact... (SNAC(13,07)')
+        log().log('Sending (13,07) CLI_SSI_ACTIVATE - Activate server-side contact')
         self.sendSNAC(0x13, 0x07, 0, '')
         log().log('Activation done (SNAC(13,07)')
 
@@ -1068,15 +1217,14 @@ class Protocol:
             data += struct.pack('!H', len(b.uin)) + b.uin
         self.sendSNAC(0x03, 0x04, 0, data)
 
-    def parseSSIBuddy(self, groupID, name, tlvs):
+    def parseSSIBuddy(self, groupID, itemID, name, tlvs):
         '''
         Requires group ID, default user name and list of TLV
         '''
 
         b = Buddy()
-
-        # Setup it's GID and UIN right now
         b.gid = groupID
+        b.ids = itemID
         b.uin = name
         b.name = name
 
@@ -1154,7 +1302,7 @@ class Protocol:
         # FIXME: 25
         elif flagType == SSI_ITEM_BUDDY or flagType == 25:
             print "### it's buddy"
-            self.parseSSIBuddy(groupID, name, tlvs)
+            self.parseSSIBuddy(groupID, itemID, name, tlvs)
         else:
             print "### it's others"
             for t in tlvs:
@@ -1306,15 +1454,19 @@ class Protocol:
         registry for ICQ stats information (don't forget to change uin 
         number in the path)
         '''
-
+        log().log('Got (0B,02) SRV_SET_MINxREPORTxINTERVAL')
         hours = int(struct.unpack('!H', data[0:2])[0]) 
         log().log("Server set minimum stats report interval: %d hours" % hours)
 
     def proc_2_3_11(self, data, flag):
-        ''' Server sends this snac when user from your contact list 
+        ''' 
+        SNAC(03,0B)     SRV_USER_ONLINE  
+        Server sends this snac when user from your contact list 
         goes online. Also you'll receive this snac on user status 
         change (in this case snac doesn't contain TLV(0xC)). 
         See also additional information about online userinfo block. '''
+
+        log().log('Got (03,0B) SRV_USER_ONLINE')
 
         uinLen = int(struct.unpack('!B', data[0])[0]) 
         uin = data[1 : uinLen + 1]
@@ -1516,6 +1668,7 @@ class Protocol:
         0x0E - your message is invalid (incorrectly formated)
         0x10 - receiver/sender blocked
         '''
+        log().log('Got (04,01) SRV_ICBM_ERROR')
         errorCode = int(struct.unpack('!H', data[0:2])[0])
         tlvs = readTLVs(data[2:])
 
@@ -1543,7 +1696,7 @@ class Protocol:
         4 - You are too evil (sender max_msg_revil > your warn level)
         '''
 
-        log().log("Missed message")
+        log().log("Got (04,0A) SRV_MISSED_MESSAGE")
 
         messageType = int(struct.unpack('!H', data[0:2])[0])
         uinLen = int(struct.unpack('!B', data[2:3])[0])
@@ -1566,7 +1719,23 @@ class Protocol:
             (missedMessages, explainReason(reason)))
 
     def proc_2_4_7(self, data, flag):
-        ''' Message received '''
+        '''
+        SNAC(04,07)     SRV_CLIENT_ICBM 
+
+        You'll receive this snac when another client send you a message thru 
+        server. Within the ICBM (Inter-Client Basic Message) types, a channel 
+        is defined. Each channel represents a different kind of message.
+
+        Channel 1 is used for simple plain text messages. 
+        Channel 2 is used for complex messages (rtf, utf8) and 
+        negotiating "rendezvous". These transactions end in something more 
+        complex happening, such as a chat invitation, or a file transfer. 
+        Channel 4 is used for various ICQ messages. Examples are normal 
+        messages, URLs, and old-style authorization.
+        '''
+
+        log().log('Got (04,07) SRV_CLIENT_ICBM')
+
         cookie = data[0:7]
         messageChannel = int(struct.unpack('!H', data[8:10])[0])
         snameLen = int(struct.unpack('!B', data[10])[0])
@@ -1627,7 +1796,15 @@ class Protocol:
     # 13 1C / 19 28
 
     def proc_2_19_28(self, data, flag):
-        ''' you-were-added" message '''
+        ''' 
+        SNAC(13,1C)     SRV_SSI_YOUxWERExADDED 
+
+        Server send this snac to clients, that announced the use of 
+        family 0x13 in SNAC(01,17). This is the "you-were-added" message 
+        meaning that somebody (snac contain his/her screenname) added you to 
+        his/her roster.
+        '''
+        log().log('Got (13,1C) SRV_SSI_YOUxWERExADDED')
         data = data[8:]
         ln = int(struct.unpack('!B', data[0])[0])
         uin = str(data[1:])
@@ -1777,20 +1954,23 @@ class Protocol:
 
     def proc_2_21_3(self, data, flag):
         '''
-        user information packet.
+        SNAC(15,03)     SRV_META_REPLY  
+
+        This is the server response to client meta request SNAC(15,02). 
         '''
+        log().log('Got (15,03)     SRV_META_REPLY')
         tlvs = readTLVs(data)
         d = tlvs[1]
-        print coldump(d)
+        #print coldump(d)
 
         dsize, ownerUin, dataType, seqNum, dataSubType = struct.unpack("<HLHHH", d[:12])
-        print dsize, ownerUin, dataType, seqNum, dataSubType
+        #print dsize, ownerUin, dataType, seqNum, dataSubType
 
         dataTypeX = "%04X" % dataType
         dataSubTypeX = "%04X" % dataSubType
 
         tmp = "userFound_%s_%s" % (dataTypeX, dataSubTypeX)
-        print tmp
+        #print tmp
 
         dump2file(tmp, d[12:])
 
@@ -2113,12 +2293,14 @@ class Protocol:
         some reason. The reason is unknown. 
         '''
         # FIXME:
-        #raise Exception('proc_2_3_10')
-        pass
+        log().log('Got (03,0A) SRV_NOTIFICATION_REJECTED')
 
     def proc_4_9_2(self, data, flag):
-        ''' You have been disconnected from the ICQ network because you 
-        logged on from another location using the same ICQ number. '''
+        '''
+        You have been disconnected from the ICQ network because you 
+        logged on from another location using the same ICQ number. 
+        '''
+        log().log('Got (4,9,2) - You have been disconnected')
         self.disconnect()
         log().log("You have been disconnected from the ICQ network because you logged on from another location using the same ICQ number.")
 
@@ -2126,17 +2308,21 @@ class Protocol:
         log().log("Logging in...")
 
     def CLI_FIND_BY_UIN2(self):
+        # FIMXE: wtf?
         log().log("CLI_FIND_BY_UIN2")
         tlvs = tlv(0x01, struct.pack())
 
     def CLI_WHITE_PAGES_SEARCH2(self):
+        # FIMXE: wtf?
         log().log("CLI_WHITE_PAGES_SEARCH2")
 
     def getOfflineMessages(self):
-        ''' Client sends this SNAC when wants to retrieve messages 
+        ''' 
+        Client sends this SNAC when wants to retrieve messages 
         that was sent by another user and buffered by server during 
-        client was offline. '''
-
+        client was offline. 
+        '''
+        # FIXME: 15/02 - wrong type for offline message retrieveing
         tlvs = tlv(0x01, '\x00\x08' + struct.pack("<L", int(username)) + '\x3c\x00\x02\x00')
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
@@ -2279,7 +2465,7 @@ class Protocol:
           0x000E      Can't add this contact because it requires authorization
         '''
 
-        log().log('Got server response while modifying SSI data')
+        log().log('Got (13,0E) SRV_SSIxMODxACK - server response while modifying SSI data')
 
         while len(data) >= 2:
             code = struct.unpack('!H', data[0:2])
@@ -2299,6 +2485,7 @@ class Protocol:
         data += struct.pack('!H', len(_authReason)) + _authReason
         data += '\x00\x00'
 
+        log().log('Sending (13,18) CLI_SSI_SEND_AUTHxREQUEST')
         self.sendSNAC(0x13, 0x18, 0, data)
 
     def proc_2_19_18(self, data, flag):
@@ -2352,7 +2539,7 @@ class Protocol:
         You can delete buddies from contact using SNAC(03,05). 
         See also complete snac list for this service here.
         '''
-
+        log().log('Sending (03,04) CLI_BUDDYLIST_ADD')
         #data = '\x2a\x02\x28\x8d\x00\x1d\x00\x13-00\x08\x00\x00\x00\x08\x00\x08\x00\x09\x32\x36\x34\x30\x32\x35-33\x32\x34\x54\x30\x49\x2c\x00\x00\x00\x00'
         #self.send(data)
         #return
@@ -2391,14 +2578,46 @@ class Protocol:
         log().log("Adding user '%s' to server-side contact list" % b.uin)
         self.sendSNAC(0x13, 0x08, 0, data)
 
-    def sendSSIDelete(self, uin):
+    def sendSSIDelete(self, b):
         '''
         SNAC(13,0A)     CLI_SSIxDELETE  
 
         Client use this to delete items from server-side info. 
         Server should reply via SNAC(13,0E).
         '''
-        pass
+        print b
+        data = ''
+        data += struct.pack('!H', len(b.uin))
+        data += b.uin
+
+        gid = b.gid
+        itemid = b.ids
+        itemFlag = 0x0000
+        data += struct.pack('!H', gid)
+
+        sitemid = struct.pack('!H', itemid)
+        print '>>>', type(data), type(sitemid), coldump(sitemid)
+        data = str(data)
+        data += sitemid
+
+        data += struct.pack('!H', itemFlag)
+
+        # You can't add buddy that requires authorization without permission. 
+        # You can add it only with TLV(0x0066) as a buddy record awaiting 
+        # authorization.
+
+        data2 = ''
+        # FIXME: doesn't work
+        #if awaitingAuth:
+        #    data2 += tlv(0x0066, '')
+
+        # Length of additional data
+        dataLen = len(data2)
+        data += struct.pack('!H', dataLen)
+        data += data2
+
+        log().log("Delete ((13,0A) CLI_SSIxDELETE  ) user '%s' from server-side contact list" % b.uin)
+        self.sendSNAC(0x13, 0x0a, 0, data)
 
     def sendSSIEditBegin(self, isImport = False):
         '''
