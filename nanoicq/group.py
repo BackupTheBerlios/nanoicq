@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.12 2006/03/14 14:15:24 lightdruid Exp $
+# $Id: group.py,v 1.13 2006/03/14 15:47:56 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -25,7 +25,7 @@ class Group:
         self._b[b.name] = b
 
     def deleteBuddy(self, b):
-        print 'Deleting ', b
+        print 'Deleting ', b, self._b.keys()
         del self._b[b.name]
 
     def getBuddies(self, gid = None, status = None):
@@ -44,7 +44,6 @@ class Group:
 
     def getBuddyByUin(self, uin):
         for b in self._b.values():
-            print b.uin
             if b.uin == uin:
                 return b
         raise Exception("UIN '%s' not found in buddies list" % uin)
