@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.79 2006/03/14 11:53:06 lightdruid Exp $
+# $Id: icq.py,v 1.80 2006/03/14 14:15:24 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1266,6 +1266,10 @@ class Protocol:
         self._groups.addBuddy(0, b)
         self.react("New buddy", buddy = b)
 
+    def deleteBuddy(self, b):
+        self._groups.deleteBuddy(b)
+        self.sendSSIDelete(b)
+
     def getBuddy(self, userName):
         return self._groups.getBuddy(userName)
 
@@ -1639,6 +1643,15 @@ class Protocol:
             if dc & dcType:
                 t.append(_directConnectionType[dc])
         return ', '.join(t)
+
+    def proc_2_19_8(self, data, flag):
+        '''
+        SNAC(13,08)     CLI_SSIxADD 
+
+        Client use this to add new items to server-side info. 
+        Server should reply via SNAC(13,0E).     
+        '''
+        log().log('Got (13,08) CLI_SSIxADD')
  
     def proc_2_19_15(self, data, flag):
         '''

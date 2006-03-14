@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.11 2006/03/13 11:50:24 lightdruid Exp $
+# $Id: group.py,v 1.12 2006/03/14 14:15:24 lightdruid Exp $
 #
 
 from buddy import Buddy
@@ -16,13 +16,17 @@ class Group:
         self._g[gid] = name
 
     def addBuddy(self, gid, b):
-        # add defautl group if it doesn't exist
+        # add default group if it doesn't exist
         if len(self._g.keys()) == 0:
             self.add(0, 'Global')
 
         assert gid in self._g.keys()
         b.gid = gid
         self._b[b.name] = b
+
+    def deleteBuddy(self, b):
+        print 'Deleting ', b
+        del self._b[b.name]
 
     def getBuddies(self, gid = None, status = None):
         if gid is None and status == None:

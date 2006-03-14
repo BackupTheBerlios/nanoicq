@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.92 2006/03/13 13:52:08 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.93 2006/03/14 14:15:24 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.92 2006/03/13 13:52:08 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.93 2006/03/14 14:15:24 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -205,7 +205,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
         self.Bind(EVT_START_REGISTER, self.onStartRegister)
         self.Bind(EVT_ADD_USER_TO_LIST, self.onAddUserToList)
-#        self.Bind(EVT_UNABLE_ADD_USER_TO_LIST, self.onUnableAddUserToList)
+        self.Bind(EVT_USER_DELETE, self.onUserDelete)
 
         self._keepAliveTimer = wx.Timer(self)
         if self.config.has_option('icq', 'keep.alive.interval'):
@@ -225,6 +225,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def onUserDelete(self, evt):
+        evt.Skip()
+        print 'onUserDelete'
+
+        name = evt.getVal()
+        b = self.connector['icq'].getBuddy(name)
+        self.connector['icq'].deleteBuddy(b)
 
     def onAddUserToList(self, evt):
         '''

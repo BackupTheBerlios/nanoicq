@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.12 2006/03/07 12:04:09 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.13 2006/03/14 14:15:24 lightdruid Exp $
 #
 
 import sys
@@ -14,6 +14,12 @@ from iconset import IconSet
 
 
 class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
+
+    ID_SEND_MESSAGE = wx.NewId()
+    ID_USER_DETAILS = wx.NewId()
+    ID_USER_RENAME = wx.NewId()
+    ID_USER_DELETE = wx.NewId()
+
     def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
             size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_SIMPLE):
 
@@ -22,6 +28,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
         listmix.ColumnSorterMixin.__init__(self, 2)
 
         self.itemDataMap = {}
+        self.currentItem = -1
 
         self._parent = parent
 
@@ -56,6 +63,49 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onItemDeselected, self)
         self.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.onRightClick)
 
+    def createPopUpMenu(self):
+        _topMenu = (
+            (self.ID_SEND_MESSAGE, "Send message", "self.onSendMessage"),
+            (),
+            (self.ID_USER_DETAILS, "User details", "self.onUserDetails"),
+            (),
+            (self.ID_USER_RENAME, "Rename", "self.onUserRename"),
+            (self.ID_USER_DELETE, "Delete", "self.onUserDelete"),
+        )
+
+        if self.currentItem == -1:
+            return
+
+        self.popUpMenu = wx.Menu()
+
+        for d in _topMenu:
+            if len(d) == 0:
+                self.popUpMenu.AppendSeparator()
+            else:
+                ids, txt, func = d
+                item = wx.MenuItem(self.popUpMenu, ids, txt, txt)
+                self.Bind(wx.EVT_MENU, eval(func), id = ids)
+                self.popUpMenu.AppendItem(item)
+
+        self.PopupMenu(self.popUpMenu)
+
+    def onSendMessage(self, evt):
+        evt.Skip()
+
+    def onUserDetails(self, evt):
+        evt.Skip()
+
+    def onUserRename(self, evt):
+        evt.Skip()
+
+    def onUserDelete(self, evt):
+        evt.Skip()
+        userName = self.getColumnText(self.currentItem, 1)
+
+        evt = NanoEvent(nanoEVT_USER_DELETE, self.GetId())
+        evt.setVal(userName)
+        self._parent.GetEventHandler().AddPendingEvent(evt)
+
     def addBuddy(self, b):
         index = self.InsertImageStringItem(sys.maxint, '', 0)
         self.SetStringItem(index, 1, b.name)
@@ -83,6 +133,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
 
     def onRightClick(self, evt):
         print self.currentItem
+        self.createPopUpMenu()
 
     def changeStatus(self, b):
         userName = b.name
