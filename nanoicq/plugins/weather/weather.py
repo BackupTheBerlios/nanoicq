@@ -1,6 +1,6 @@
 
 #
-# $Id: weather.py,v 1.3 2006/03/09 15:36:01 lightdruid Exp $
+# $Id: weather.py,v 1.4 2006/03/15 12:47:37 lightdruid Exp $
 #
 
 import sys
@@ -17,7 +17,7 @@ except ImportError, exc:
     _loaded = False
 
 class Weather(Plugin):
-    _trusted_uin = ['177033621', '158125970']
+    _trusted_uin = ['177033621', '158125970', '9992104', '306625983']
 
     def onIncomingMessage(self, buddy, message):
         print 'onIncomingMessage', message.__dict__.keys(), message.__dict__['_user']

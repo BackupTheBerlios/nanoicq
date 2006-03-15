@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.80 2006/03/14 14:15:24 lightdruid Exp $
+# $Id: icq.py,v 1.81 2006/03/15 12:47:37 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -292,6 +292,8 @@ def readTLVsd(data):
 #             00010017000000000000
 
 class Protocol:
+    _groupsFile = 'groups.nanoicq'
+
     def __init__(self, gui = None, sock = None, connected = False):
         self._sock = sock
         self._gui = gui
@@ -303,8 +305,14 @@ class Protocol:
         self._port = None
 
         self._connected = connected
-        self._groups = Group()
+        if os.path.exists(self._groupsFile):
+            self._groups = Group.load(self._groupsFile)
+        else:
+            self._groups = Group(self._groupsFile)
         self._currentUser = None
+
+    def saveState(self):
+        self._groups.save()
 
     def react(self, *kw, **kws):
         if self._gui is not None:
@@ -1246,7 +1254,7 @@ class Protocol:
 
                 # Bad buddy, mark it as Null, do not add to list
                 b = None
-                continue
+                break
 
         if b is not None:
             # OK, let's pass new buddy upto gui
@@ -1653,6 +1661,15 @@ class Protocol:
         '''
         log().log('Got (13,08) CLI_SSIxADD')
  
+    def proc_2_19_10(self, data, flag):
+        '''
+        SNAC(13,0A)     CLI_SSIxDELETE 
+
+        Client use this to delete items from server-side info. 
+        Server should reply via SNAC(13,0E). 
+        '''
+        log().log('Got (13,0A) CLI_SSIxDELETE')
+
     def proc_2_19_15(self, data, flag):
         '''
         SNAC(13,0F)     SRV_SSI_UPxTOxDATE  

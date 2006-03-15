@@ -1,15 +1,21 @@
 
 #
-# $Id: group.py,v 1.13 2006/03/14 15:47:56 lightdruid Exp $
+# $Id: group.py,v 1.14 2006/03/15 12:47:37 lightdruid Exp $
 #
+
+import os
 
 from buddy import Buddy
 from utils import *
 
 class Group:
-    def __init__(self):
+    def __init__(self, fileName):
+        self._fileName = fileName
         self._g = {}
         self._b = {}
+
+    def lastModified(self):
+        return os.path.getmtime(self._fileName)
 
     def add(self, gid, name):
         assert gid not in self._g.keys()
@@ -55,7 +61,9 @@ class Group:
         return "Group: groups count: %d, groups = %s, buddies: %s" % \
             (len(self._g), '|'.join(self._g.values()), '|'.join(self._b.keys()))
 
-    def save(self, fileName):
+    def save(self, fileName = None):
+        if fileName is None:
+            fileName = self._fileName
         dump2file(fileName, self)
 
     @staticmethod
@@ -64,7 +72,7 @@ class Group:
 
 
 if __name__ == '__main__':
-    g = Group()
+    g = Group('groups.dump')
     g.add(1, '#1')
     g.add(2, '#2')
 
@@ -93,5 +101,8 @@ if __name__ == '__main__':
     g.save('groups.dump')
     g2 = Group.load('groups.dump')
     assert len(g.getBuddies()) == len(g2.getBuddies())
+
+    import time
+    print time.asctime(time.localtime(g2.lastModified()))
 
 # ---

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.94 2006/03/15 10:25:36 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.95 2006/03/15 12:47:38 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.94 2006/03/15 10:25:36 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.95 2006/03/15 12:47:38 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -568,6 +568,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             # done't have parents
             d.Destroy()
 
+        self.connector['icq'].saveState()
         self.trayIcon.Destroy()
 
     def OnExit(self, *evts):

@@ -1,6 +1,6 @@
 
 #
-# $Id: logger.py,v 1.4 2006/03/06 11:17:57 lightdruid Exp $
+# $Id: logger.py,v 1.5 2006/03/15 12:47:37 lightdruid Exp $
 #
 
 import sys
@@ -41,9 +41,11 @@ class _Log:
             try:
                 for h in self._handles:
                     print >> h, "LOG (%d):" % level, msg
+                    h.flush()
             except UnicodeEncodeError, exc:
                 for h in self._handles:
                     print >> h, "LOG (%d):" % level, coldump(msg)
+                    h.flush()
 
     def setLevel(self, level):
         self._level = level
