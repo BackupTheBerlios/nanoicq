@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.81 2006/03/15 12:47:37 lightdruid Exp $
+# $Id: icq.py,v 1.82 2006/03/15 15:42:30 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1182,7 +1182,7 @@ class Protocol:
 
         if __debug__:
             import cPickle
-            f = open('string.dump', 'wb')
+            f = open('userlist.dump', 'wb')
             cPickle.dump(data, f)
             f.close()
 

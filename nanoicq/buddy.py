@@ -1,6 +1,6 @@
 
 #
-# $Id: buddy.py,v 1.10 2006/03/14 11:53:05 lightdruid Exp $
+# $Id: buddy.py,v 1.11 2006/03/15 15:42:30 lightdruid Exp $
 #
 
 from antarctica import Frozen
@@ -23,8 +23,8 @@ class Buddy:
         return ',\n'.join(out)
 
     def __repr__(self):
-        return "Buddy: name: '%s', gid = '%s', email: '%s', uin: '%s', firstMessage: '%d'" % \
-            (self.name, self.gid, self.email, self.uin, self.firstMessage)
+        return "Buddy: name: '%s', id: %s, gid: %s, email: '%s', uin: '%s', firstMessage: '%d'" % \
+            (self.name, self.ids, self.gid, self.email, self.uin, self.firstMessage)
 
 if __name__ == '__main__':
     b = Buddy()

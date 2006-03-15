@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.13 2006/03/13 11:50:24 lightdruid Exp $
+# $Id: message.py,v 1.14 2006/03/15 15:42:30 lightdruid Exp $
 #
 
 import time
@@ -17,6 +17,9 @@ class Message:
         assert context in self.MessageTypes
         assert direction in [Incoming, Outgoing]
 
+        # If message is blocked, it will not appear in 'incoming' box
+        self._blocked = False
+
         self._context = context
         self._user = user
         self._content = content
@@ -25,6 +28,11 @@ class Message:
             self._timeStamp = time.localtime()
         else:
             self._timeStamp = timeStamp
+
+    def blocked(self, flag = None):
+        if flag is not None:
+            self._blocked = flag
+        return self._blocked
         
     def getContext(self): return self._context
     def getUser(self): return self._user
@@ -87,6 +95,10 @@ def _test():
     mm2 = messageFactory("icq", 'user', '12345', 'text', Outgoing)
     assert mm2 != im
     assert mm2.getDirection() == Outgoing
+
+    assert mm2.blocked() == False
+    mm2.blocked(True)
+    assert mm2.blocked() == True
 
 if __name__ == '__main__':
     _test()
