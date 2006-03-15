@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.93 2006/03/14 14:15:24 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.94 2006/03/15 10:25:36 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.93 2006/03/14 14:15:24 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.94 2006/03/15 10:25:36 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -227,12 +227,19 @@ class TopFrame(wx.Frame, PersistenceMixin):
         # ---
 
     def onUserDelete(self, evt):
-        evt.Skip()
-        print 'onUserDelete'
-
         name = evt.getVal()
         b = self.connector['icq'].getBuddy(name)
-        self.connector['icq'].deleteBuddy(b)
+
+        rc = wx.MessageBox("Delete user %s?" % b.name, "Delete user", wx.YES_NO)
+        if rc != wx.YES:
+            return
+
+        try:
+            self.connector['icq'].deleteBuddy(b)
+            self.topPanel.userList.deleteBuddy(b)
+        except Exception, exc:
+            log().log('Got exception while deleting user: ' + str(exc))
+            raise
 
     def onAddUserToList(self, evt):
         '''
@@ -262,7 +269,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
             self.connector['icq'].sendSSIEditBegin()
             self.connector['icq'].sendSSIAdd(b)
             self.connector['icq'].sendSSIEditEnd()
-            self.connector['icq'].sendAuthorizationRequest(b)
+
+            rc = wx.MessageBox("Send authorization request to this user?",
+                "New user", wx.YES_NO)
+            if rc == wx.YES:
+                self.connector['icq'].sendAuthorizationRequest(b)
 
             # Now we ought to ask about user status
             #self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)

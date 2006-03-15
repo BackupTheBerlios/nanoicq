@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.13 2006/03/14 14:15:24 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.14 2006/03/15 10:25:36 lightdruid Exp $
 #
 
 import sys
@@ -106,12 +106,18 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
         evt.setVal(userName)
         self._parent.GetEventHandler().AddPendingEvent(evt)
 
+    def deleteBuddy(self, b):
+        item = self.FindItemData(-1, int(b.uin))
+        if item != -1:
+            self.DeleteItem(item)
+        else:
+            raise Exception('Unable to delete user %s' % b.uin)
+
     def addBuddy(self, b):
         index = self.InsertImageStringItem(sys.maxint, '', 0)
         self.SetStringItem(index, 1, b.name)
         self.SetItemData(index, int(b.uin))
 
-        print b, b.status
         self.changeStatus(b)
         self.itemDataMap[int(b.uin)] = (b.status, b.name)
 
