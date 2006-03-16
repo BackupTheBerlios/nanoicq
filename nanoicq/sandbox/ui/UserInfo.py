@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.2 2006/03/16 13:02:42 lightdruid Exp $
+# $Id: UserInfo.py,v 1.3 2006/03/16 16:01:07 lightdruid Exp $
 #
 
 import sys
@@ -23,63 +23,172 @@ class TestNB(wx.Notebook):
 
 class _Pane_auto:
     def __init__(self):
-        sz = None
-        c = 0
-        r = 0
+        pass
 
     def _pre(self, items):
         for n in items:
             nn = eval("wx.TextCtrl(self, -1, '', style = wx.NO_BORDER, name = '%s')" % n)
 
     def _put_item(self, name):
-        sz.Add(self.FindWindowByName(name), row = r, col = c + 2)
+        self.sz.Add(self.FindWindowByName(name), row = self.r, col = self.c + 2)
         self.FindWindowByName(name).SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
-        if hasattr(b, name):
-            self.FindWindowByName(name).SetValue(eval('b.%s' % name))
+        if hasattr(self.b, name) and eval('self.b.%s' % name) is not None:
+            self.FindWindowByName(name).SetValue(eval('self.b.%s' % name))
+
+class Pane_AvatarZZZ(wx.Panel, _Pane_auto):
+    def __init__(self, parent, b):
+        wx.Panel.__init__(self, parent, -1)
+        _Pane_auto.__init__(self)
+
+        self.b = b
+        self.sz = rcs.RowColSizer()
+        sz = self.sz
+
+        self._pre(['', '', 'internal_ip', 'port', 
+            'protocol_version', 'user_client', 'online_since', 
+            'system_up_since', 'idle_since'])
+        g = self._put_item
+
+        self.c = 1
+        self.r = 1
+        sz.Add(wx.StaticText(self, -1, ''), row = self.r, col = self.c)
+        g('')
+        self.r += 1
+
+        # ---
+        self.SetSizer(sz)
+        self.SetAutoLayout(True)
+
+class Pane_Contact(wx.Panel, _Pane_auto):
+    def __init__(self, parent, b):
+        wx.Panel.__init__(self, parent, -1)
+        _Pane_auto.__init__(self)
+
+        self.sz = wx.BoxSizer(wx.VERTICAL)
+        sz = self.sz
+
+        self.mails = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE)
+        self.phones = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE)
+
+        sz.Add(wx.StaticText(self, -1, 'E-mail:'), 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
+        sz.Add(self.mails, 1, wx.ALL | wx.EXPAND, 7)
+        sz.Add(wx.StaticText(self, -1, 'Phone:'), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 7)
+        sz.Add(self.phones, 1, wx.ALL | wx.EXPAND, 7)
+
+        # ---
+        self.SetSizer(sz)
+        self.SetAutoLayout(True)
+
+class Pane_Avatar(wx.Panel, _Pane_auto):
+    def __init__(self, parent, b):
+        wx.Panel.__init__(self, parent, -1)
+        _Pane_auto.__init__(self)
+
+        self.sz = wx.StaticBoxSizer(wx.StaticBox(self, -1, ''), wx.VERTICAL)
+        sz = self.sz
+
+        img  = wx.NullBitmap
+        self.avatar = wx.StaticBitmap(self, -1, img)
+        sz.Add(self.avatar, 1, wx.ALL | wx.EXPAND, 1)
+
+        # ---
+        self.SetSizer(sz)
+        self.SetAutoLayout(True)
+
+class Pane_ICQ(wx.Panel, _Pane_auto):
+    def __init__(self, parent, b):
+        wx.Panel.__init__(self, parent, -1)
+        _Pane_auto.__init__(self)
+
+        self.b = b
+        self.sz = rcs.RowColSizer()
+        sz = self.sz
+
+        self._pre(['uin', 'external_ip', 'internal_ip', 'port', 
+            'protocol_version', 'user_client', 'online_since', 
+            'system_up_since', 'idle_since'])
+        g = self._put_item
+
+        self.c = 1
+        self.r = 1
+        sz.Add(wx.StaticText(self, -1, 'UIN:'), row = self.r, col = self.c)
+        g('uin')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'External IP:'), row = self.r, col = self.c)
+        g('external_ip')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'Internal IP:'), row = self.r, col = self.c)
+        g('internal_ip')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'Port:'), row = self.r, col = self.c)
+        g('port')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'Protocol Version:'), row = self.r, col = self.c)
+        g('protocol_version')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'User Client:'), row = self.r, col = self.c)
+        g('user_client')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'Online since:'), row = self.r, col = self.c)
+        g('online_since')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'System up since:'), row = self.r, col = self.c)
+        g('system_up_since')
+        self.r += 1
+
+        sz.Add(wx.StaticText(self, -1, 'Idle since:'), row = self.r, col = self.c)
+        g('idle_since')
+        self.r += 1
+
+        # ---
+        self.SetSizer(sz)
+        self.SetAutoLayout(True)
 
 class Pane_Summary(wx.Panel, _Pane_auto):
     def __init__(self, parent, b):
         wx.Panel.__init__(self, parent, -1)
         _Pane_auto.__init__(self)
 
+        self.b = b
+        self.sz = rcs.RowColSizer()
+        sz = self.sz
+
+        self._pre(['name', 'first', 'last', 'mail', 'dob', 'gender', 'age'])
         g = self._put_item
-        sz = rcs.RowColSizer()
 
-        #for n in ['name', 'first', 'last', 'mail', 'dob', 'gender', 'age']:
-        #    nn = eval("wx.TextCtrl(self, -1, '', style = wx.NO_BORDER, name = '%s')" % n)
-
-        #def g(name):
-        #    sz.Add(self.FindWindowByName(name), row = r, col = c + 2)
-        #    self.FindWindowByName(name).SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
-        #    if hasattr(b, name):
-        #        self.FindWindowByName(name).SetValue(eval('b.%s' % name))
-
-        c = 1
-        r = 1
-        sz.Add(wx.StaticText(self, -1, 'Nickname:'), row = r, col = c)
+        self.c = 1
+        self.r = 1
+        sz.Add(wx.StaticText(self, -1, 'Nickname:'), row = self.r, col = self.c)
         g('name')
-        r += 1
-        sz.Add(wx.StaticText(self, -1, 'First name:'), row = r, col = c)
+        self.r += 1
+        sz.Add(wx.StaticText(self, -1, 'First name:'), row = self.r, col = self.c)
         g('first')
-        r += 1
-        sz.Add(wx.StaticText(self, -1, 'Last name:'), row = r, col = c)
+        self.r += 1
+        sz.Add(wx.StaticText(self, -1, 'Last name:'), row = self.r, col = self.c)
         g('last')
-        r += 1
-        sz.Add(wx.StaticText(self, -1, 'E-mail:'), row = r, col = c)
+        self.r += 1
+        sz.Add(wx.StaticText(self, -1, 'E-mail:'), row = self.r, col = self.c)
         g('mail')
-        r += 1
-        sz.Add(wx.StaticText(self, -1, 'Date of birth:'), row = r, col = c)
+        self.r += 1
+        sz.Add(wx.StaticText(self, -1, 'Date of birth:'), row = self.r, col = self.c)
         g('dob')
-        r += 1
+        self.r += 1
 
-        c = 4
-        r = 1
-        sz.Add(wx.StaticText(self, -1, 'Gender:'), row = r, col = c)
+        self.c = 4
+        self.r = 1
+        sz.Add(wx.StaticText(self, -1, 'Gender:'), row = self.r, col = self.c)
         g('gender')
-        r += 1
-        sz.Add(wx.StaticText(self, -1, 'Age:'), row = r, col = c)
+        self.r += 1
+        sz.Add(wx.StaticText(self, -1, 'Age:'), row = self.r, col = self.c)
         g('age')
-        r += 1
+        self.r += 1
 
         # ---
         self.SetSizer(sz)
@@ -132,7 +241,7 @@ class UserInfoPanel(wx.Panel):
                 self.nb.AddPage(win, h)
             except NameError, msg:
                 print msg
-                raise
+                #raise
 
         self.wp = WhitePane(self, self.iconSet['main'], b)
         sz.Add(self.wp, 1, wx.EXPAND | wx.ALL, 0)
