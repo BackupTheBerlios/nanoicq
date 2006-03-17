@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.83 2006/03/17 12:00:00 lightdruid Exp $
+# $Id: icq.py,v 1.84 2006/03/17 12:56:49 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -15,6 +15,7 @@ import struct
 import socket
 import types
 import cStringIO
+import traceback
 
 #socket.setdefaulttimeout(1.0)
 
@@ -1190,16 +1191,23 @@ class Protocol:
         assert ver == 0
 
         nitems = int(struct.unpack('!H', data[1:3])[0])
-        log().log("Items number: %d" % nitems)
 
-        data = data[3:]
+        # FIXME: problems with SSI list parsing
+        if nitems > 500:
+            nitems = int(struct.unpack('!H', data[9:11])[0])
+            data = data[11:]
+        else:
+            data = data[3:]
+
+        log().log("Items number: %d" % nitems)
 
         # FIXME: still have a problems with parsing SSI items
         try:
             for ii in range(0, nitems):
                 data = self.parseSSIItem(data)
-        except Exception, msg:
-            log().log("Exception while parsing SSI items (%s)" % str(msg))
+        except:
+            traceback.print_exc(file = sys.stdout)
+            #log().log("Exception while parsing SSI items (%s)" % str(msg))
             
         log().log('Current list of groups: %s' % self._groups)
 
@@ -1257,12 +1265,17 @@ class Protocol:
                 break
 
         if b is not None:
-            # OK, let's pass new buddy upto gui
-            log().log("Got new buddy from SSI list: %s" % b)
-            self._groups.addBuddy(groupID, b)
+            try:
+                self._groups.getBuddyByUin(b.uin)
+            except Exception, msg:
+                print msg
 
-            # ract must be called after groups/buddies list was updated
-            self.react("New buddy", buddy = b)
+                # OK, let's pass new buddy upto gui
+                log().log("Got new buddy from SSI list: %s" % b)
+                self._groups.addBuddy(groupID, b)
+
+                # ract must be called after groups/buddies list was updated
+                self.react("New buddy", buddy = b)
 
     def getBuddies(self, gid = None, status = None):
         return self._groups.getBuddies(gid = gid, status = status)

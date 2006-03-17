@@ -1,10 +1,9 @@
 
 #
-# $Id: UserInfo.py,v 1.5 2006/03/17 12:00:00 lightdruid Exp $
+# $Id: UserInfo.py,v 1.6 2006/03/17 12:56:49 lightdruid Exp $
 #
 
 import sys
-import traceback
 import string
 
 import wx

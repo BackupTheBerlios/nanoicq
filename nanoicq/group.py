@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.14 2006/03/15 12:47:37 lightdruid Exp $
+# $Id: group.py,v 1.15 2006/03/17 12:56:49 lightdruid Exp $
 #
 
 import os
@@ -18,7 +18,7 @@ class Group:
         return os.path.getmtime(self._fileName)
 
     def add(self, gid, name):
-        assert gid not in self._g.keys()
+        #assert gid not in self._g.keys()
         self._g[gid] = name
 
     def addBuddy(self, gid, b):
