@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.82 2006/03/15 15:42:30 lightdruid Exp $
+# $Id: icq.py,v 1.83 2006/03/17 12:00:00 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1921,7 +1921,7 @@ class Protocol:
         log().log("Sending buddylist service parameters ")
         self.sendSNAC(0x03, 0x02, 0, '')
 
-    def getUserInfo(self, ownerUin, uin):
+    def getFullUserInfo(self, ownerUin, uin):
         '''
         Client full userinfo request. Last reply snac flag bit1=0, 
         other reply packets have flags bit1=1 to inform client that 
@@ -2004,14 +2004,15 @@ class Protocol:
 
         dump2file(tmp, d[12:])
 
-        if flag == 0:
-            print "*"*10, 'Last packet'
-
         try:
             func = getattr(self, tmp)
             func(d[12:])
         except AttributeError, exc:
             print exc
+
+        if flag == 0:
+            print "*"*10, 'Last packet'
+            self.react('Last meta', buddy = self._currentUser)
 
     def userFound_07DA_00C8(self, data):
         '''

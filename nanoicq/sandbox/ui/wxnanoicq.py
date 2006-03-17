@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.95 2006/03/15 12:47:38 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.96 2006/03/17 12:00:00 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.95 2006/03/15 12:47:38 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.96 2006/03/17 12:00:00 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -206,6 +206,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_START_REGISTER, self.onStartRegister)
         self.Bind(EVT_ADD_USER_TO_LIST, self.onAddUserToList)
         self.Bind(EVT_USER_DELETE, self.onUserDelete)
+        self.Bind(EVT_REQUEST_USER_INFO, self.onRequestUserInfo)
 
         self._keepAliveTimer = wx.Timer(self)
         if self.config.has_option('icq', 'keep.alive.interval'):
@@ -225,6 +226,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def onRequestUserInfo(self, evt):
+        print 'onRequestUserInfo'
+        b = evt.getVal()
+        self.connector['icq'].getFullUserInfo(self.config.get("icq", "uin"), b.uin)
 
     def onUserDelete(self, evt):
         name = evt.getVal()
@@ -274,9 +280,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 "New user", wx.YES_NO)
             if rc == wx.YES:
                 self.connector['icq'].sendAuthorizationRequest(b)
-
-            # Now we ought to ask about user status
-            #self.connector['icq'].getUserInfo(self.config.get("icq", "uin"), b.uin)
 
 #    def onUnableAddUserToList(self, evt):
 #        '''
@@ -421,6 +424,22 @@ class TopFrame(wx.Frame, PersistenceMixin):
         wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
         if hasattr(self, 'registerFrame'):
             self.registerFrame.GetEventHandler().AddPendingEvent(evt)
+
+    def event_Last_meta(self, kw):
+        ''' We got last packet after requesting information about user
+        '''
+        print 'Called event_Last_meta with '
+        print str(kw)
+
+        b = kw['buddy']
+        for v in b.__dict__.keys():
+            print v, b.__dict__[v]
+
+        dump2file('buddy.dump', b)
+
+        #evt = NanoEvent(nanoEVT_LAST_META, self.GetId())
+        #evt.setVal(b)
+        #self.GetEventHandler().AddPendingEvent(evt)
 
     def event_Incoming_message(self, kw):
         print 'Called event_Incoming_message with '

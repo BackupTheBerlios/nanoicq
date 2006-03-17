@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.13 2006/03/06 21:42:06 lightdruid Exp $
+# $Id: FindUser.py,v 1.14 2006/03/17 12:00:00 lightdruid Exp $
 #
 
 import sys
@@ -190,16 +190,20 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         item = self.GetItem(index, col)
         return item.GetText()
 
-    def onAddToContactList(self, evt):
-        print 'onAddToContactList'
-        evt.StopPropagation()
-
+    def _grabCurrentUser(self):
         b = Buddy()
         b.name = self.getColumnText(self.currentItem, 1)
         b.first = self.getColumnText(self.currentItem, 2)
         b.last = self.getColumnText(self.currentItem, 3)
         b.email = self.getColumnText(self.currentItem, 4)
         b.uin = self.getColumnText(self.currentItem, 5)
+        return b
+
+    def onAddToContactList(self, evt):
+        print 'onAddToContactList'
+        evt.StopPropagation()
+
+        b = self._grabCurrentUser()
 
         newEvent = NanoEvent(nanoEVT_ADD_USER_TO_LIST, self.GetId())
         newEvent.setVal(b)
@@ -208,6 +212,11 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def onUserDetails(self, evt):
         evt.Skip()
         print evt
+
+        b = self._grabCurrentUser()
+        newEvent = NanoEvent(nanoEVT_REQUEST_USER_INFO, self.GetId())
+        newEvent.setVal(b)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(newEvent)
 
     def onSendMessage(self, evt):
         evt.Skip()

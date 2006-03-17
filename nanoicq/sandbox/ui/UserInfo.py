@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.4 2006/03/17 09:47:54 lightdruid Exp $
+# $Id: UserInfo.py,v 1.5 2006/03/17 12:00:00 lightdruid Exp $
 #
 
 import sys
@@ -15,13 +15,34 @@ sys.path.insert(0, '../..')
 from events import *
 from buddy import Buddy
 from iconset import IconSet
+from utils import *
 
+
+def _safe_to_str(v):
+    if v is None: v = str(None)
+    elif type(v) == type(1): v = str(v)
+    return v
+
+def _safe_to_int(v):
+    if v is None: v = 0
+    return v
+
+_gender = {
+    1: 'Female',
+    2: 'Male'
+}
+
+def _conv_gender(v):
+    if v in _gender.keys():
+        return _gender[v]
+    return '<not specified>'
 
 class TestNB(wx.Notebook):
     def __init__(self, parent, id):
         wx.Notebook.__init__(self, parent, id, style = wx.NB_MULTILINE )
 
 class _Pane_auto:
+    _NA = '<not specified>'
     def __init__(self):
         pass
 
@@ -29,13 +50,24 @@ class _Pane_auto:
         for n in items:
             nn = eval("wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_READONLY, name = '%s')" % n)
 
-    def _put_item(self, name, val = None):
+    def _put_item(self, name, val = None, proc = None):
+
         self.sz.Add(self.FindWindowByName(name), row = self.r, col = self.c + 2)
         self.FindWindowByName(name).SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
-        if hasattr(self.b, name) and eval('self.b.%s' % name) is not None:
-            self.FindWindowByName(name).SetValue(eval('self.b.%s' % name))
+
+        if hasattr(self.b, name):
+            v = eval('self.b.%s' % name)
+            if v is not None:
+                if proc is not None:
+                    v = proc(v)
+                self.FindWindowByName(name).SetValue(_safe_to_str(v))
         elif val is not None:
             self.FindWindowByName(name).SetValue(val)
+        else:
+            self.FindWindowByName(name).SetValue(self._NA)
+
+        if self.FindWindowByName(name).GetValue() == self._NA:
+            self.FindWindowByName(name).SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT))
 
 class Pane_Notes(wx.Panel, _Pane_auto):
     def __init__(self, parent, b):
@@ -67,15 +99,15 @@ class Pane_Background(wx.Panel, _Pane_auto):
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
 
-        self.web = wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_READONLY)
-        self.web.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
-        self.web.SetValue('<none>')
+        self.homepage_address = wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_READONLY)
+        self.homepage_address.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
+        self.homepage_address.SetValue(self._NA)
 
         self.past_background = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY)
         self.interests = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY)
 
         sz.Add(wx.StaticText(self, -1, 'Web site:'), 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
-        sz.Add(self.web, 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
+        sz.Add(self.homepage_address, 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
         sz.Add(wx.StaticText(self, -1, 'Past background:'), 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
         sz.Add(self.past_background, 10, wx.ALL | wx.EXPAND, 7)
         sz.Add(wx.StaticText(self, -1, 'Interests:'), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 7)
@@ -149,7 +181,7 @@ class Pane_Location(wx.Panel, _Pane_auto):
         self.sz = rcs.RowColSizer()
         sz = self.sz
 
-        self._pre(['street', 'city', 'state', 'zip', 'country', 'lang1', 'lang2', 'lang3', 'timezone', 'local_time'])
+        self._pre(['street', 'city', 'state', 'zip', 'original_from_country_code', 'lang1', 'lang2', 'lang3', 'timezone', 'local_time'])
         g = self._put_item
 
         self.c = 1
@@ -171,7 +203,7 @@ class Pane_Location(wx.Panel, _Pane_auto):
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Country:'), row = self.r, col = self.c)
-        g('country')
+        g('original_from_country_code')
         self.r += 1
 
         self.c = 4
@@ -301,13 +333,13 @@ class Pane_Summary(wx.Panel, _Pane_auto):
         self.sz = rcs.RowColSizer()
         sz = self.sz
 
-        self._pre(['name', 'first', 'last', 'mail', 'dob', 'gender', 'age'])
+        self._pre(['nick', 'first', 'last', 'mail', 'dob', 'gender', 'age'])
         g = self._put_item
 
         self.c = 1
         self.r = 1
         sz.Add(wx.StaticText(self, -1, 'Nickname:'), row = self.r, col = self.c)
-        g('name')
+        g('nick')
         self.r += 1
         sz.Add(wx.StaticText(self, -1, 'First name:'), row = self.r, col = self.c)
         g('first')
@@ -318,14 +350,25 @@ class Pane_Summary(wx.Panel, _Pane_auto):
         sz.Add(wx.StaticText(self, -1, 'E-mail:'), row = self.r, col = self.c)
         g('mail')
         self.r += 1
+
+        # Special handling for DOB
         sz.Add(wx.StaticText(self, -1, 'Date of birth:'), row = self.r, col = self.c)
         g('dob')
+
+        dob_text = self._NA
+        if hasattr(b, 'birth_day') and hasattr(b, 'birth_month') and hasattr(b, 'birth_year'):
+            bd = _safe_to_int(getattr(b, 'birth_day'))
+            bm = _safe_to_int(getattr(b, 'birth_month'))
+            by = _safe_to_int(getattr(b, 'birth_year'))
+            dob_text = "%02d.%02d.%04d" % (bd, bm, by)
+            self.FindWindowByName('dob').SetValue(dob_text)
+            self.FindWindowByName('dob').SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENUTEXT))
         self.r += 1
 
         self.c = 4
         self.r = 1
         sz.Add(wx.StaticText(self, -1, 'Gender:'), row = self.r, col = self.c)
-        g('gender')
+        g('gender', proc = _conv_gender)
         self.r += 1
         sz.Add(wx.StaticText(self, -1, 'Age:'), row = self.r, col = self.c)
         g('age')
@@ -348,7 +391,7 @@ class WhitePane(wx.Panel):
         sz.Add(self.picture, 0, wx.EXPAND | wx.ALL, 10)
 
         hz = wx.BoxSizer(wx.VERTICAL)
-        self.userName = wx.StaticText(self, -1, b.name)
+        self.userName = wx.StaticText(self, -1, _safe_to_str(b.nick))
 
         f = self.userName.GetFont()
         f.SetWeight(wx.BOLD)
@@ -424,7 +467,11 @@ class UserInfoFrame(wx.Frame):
         self.mainIcon.CopyFromBitmap(self.iconSet['main'])
         self.SetIcon(self.mainIcon)
 
-        self.SetTitle('User info: ' + b.name)
+        if b.nick is None:
+            title = b.uin
+        else:
+            title = b.nick
+        self.SetTitle('User info: ' + title)
         self.panel = UserInfoPanel(self, self.iconSet, b)
 
 
@@ -437,10 +484,13 @@ def _test():
             self.iconSet.addPath('icons/' + iconSetName)
             self.iconSet.loadIcons()
             self.iconSet.setActiveSet(iconSetName)
-            b = Buddy()
-            b.name = 'Light Druid'
+
+            b = restoreFromFile('buddy.dump')
+            #b.name = 'Light Druid'
+
             frame = UserInfoFrame(None, -1, self.iconSet, b)
             self.SetTopWindow(frame)
+            frame.CentreOnParent()
             frame.Show(True)
             return True
 
