@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.14 2006/03/15 10:25:36 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.15 2006/03/17 16:24:40 lightdruid Exp $
 #
 
 import sys
@@ -11,7 +11,6 @@ sys.path.insert(0, '../..')
 from events import *
 from buddy import Buddy
 from iconset import IconSet
-
 
 class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
 
@@ -94,6 +93,12 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
 
     def onUserDetails(self, evt):
         evt.Skip()
+
+        userName = self.getColumnText(self.currentItem, 1)
+
+        newEvent = NanoEvent(nanoEVT_REQUEST_USER_INFO, self.GetId())
+        newEvent.setVal(userName)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(newEvent)
 
     def onUserRename(self, evt):
         evt.Skip()

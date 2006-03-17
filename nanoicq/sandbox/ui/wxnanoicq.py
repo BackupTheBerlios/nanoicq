@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.96 2006/03/17 12:00:00 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.97 2006/03/17 16:24:40 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.96 2006/03/17 12:00:00 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.97 2006/03/17 16:24:40 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -41,6 +41,7 @@ from AboutDialog import AboutDialog
 from FindUser import FindUserFrame
 from Captcha import CaptchaFrame
 from Register import RegisterFrame
+from UserInfo import UserInfoFrame
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -96,7 +97,12 @@ class ICQThreaded(icq.Protocol):
         while self.keepGoing:
 
             try:
-                wx.YieldIfNeeded()
+                #if wx.Thread_IsMain():
+                try:
+                    wx.YieldIfNeeded()
+                except:
+                    pass
+
                 buf = self.read()
                 log().packetin_col(buf)
 
@@ -224,13 +230,19 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self._plugins = Plugin.load_plugins('../../plugins', '../plugins',
             connector = self.connector)
 
+        # FIXME:
+        self._userInfoRequested = False
+
         #self.topPanel.userList.sampleFill()
         # ---
 
     def onRequestUserInfo(self, evt):
         print 'onRequestUserInfo'
-        b = evt.getVal()
+        userName = evt.getVal()
+
+        b = self.connector['icq'].getBuddy(userName)
         self.connector['icq'].getFullUserInfo(self.config.get("icq", "uin"), b.uin)
+        self._userInfoRequested = True
 
     def onUserDelete(self, evt):
         name = evt.getVal()
@@ -436,6 +448,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
             print v, b.__dict__[v]
 
         dump2file('buddy.dump', b)
+
+        if self._userInfoRequested:
+            self._userInfoFrame = UserInfoFrame(self, -1, self.iconSet, b)
+            self._userInfoFrame.Show(True)
+            self._userInfoRequested = False
 
         #evt = NanoEvent(nanoEVT_LAST_META, self.GetId())
         #evt.setVal(b)

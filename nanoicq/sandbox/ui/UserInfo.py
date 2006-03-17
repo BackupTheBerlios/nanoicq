@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.6 2006/03/17 12:56:49 lightdruid Exp $
+# $Id: UserInfo.py,v 1.7 2006/03/17 16:24:40 lightdruid Exp $
 #
 
 import sys
@@ -458,7 +458,7 @@ class UserInfoFrame(wx.Frame):
             size = (370, 380), pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX):
 
-        wx.Frame.__init__(self, None, ID, size = size, style = style,
+        wx.Frame.__init__(self, parentFrame, ID, size = size, style = style,
             title = title)
 
         self.iconSet = iconSet

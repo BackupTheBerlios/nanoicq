@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.84 2006/03/17 12:56:49 lightdruid Exp $
+# $Id: icq.py,v 1.85 2006/03/17 16:24:40 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -313,7 +313,9 @@ class Protocol:
         self._currentUser = None
 
     def saveState(self):
-        self._groups.save()
+        # FIXME:
+        #self._groups.save()
+        pass
 
     def react(self, *kw, **kws):
         if self._gui is not None:
