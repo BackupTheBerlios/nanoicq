@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.8 2006/03/19 12:24:48 lightdruid Exp $
+# $Id: UserInfo.py,v 1.9 2006/03/19 16:53:11 lightdruid Exp $
 #
 
 import sys
@@ -15,6 +15,7 @@ from events import *
 from buddy import Buddy
 from iconset import IconSet
 from utils import *
+import codes
 
 
 def _safe_to_str(v):
@@ -36,6 +37,13 @@ def _conv_gender(v):
         return _gender[v]
     return '<not specified>'
 
+def _conv_country(v):
+    print v
+    try:
+        return codes.countries[v]
+    except:
+        return '<not specified>'
+
 class TestNB(wx.Notebook):
     def __init__(self, parent, id):
         wx.Notebook.__init__(self, parent, id, style = wx.NB_MULTILINE )
@@ -54,10 +62,14 @@ class _Pane_auto:
         self.sz.Add(self.FindWindowByName(name), row = self.r, col = self.c + 2)
         self.FindWindowByName(name).SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
 
+        if proc is not None:
+            print proc, name, val
+
         if hasattr(self.b, name):
             v = eval('self.b.%s' % name)
             if v is not None:
                 if proc is not None:
+                    print v
                     v = proc(v)
                 self.FindWindowByName(name).SetValue(_safe_to_str(v))
         elif val is not None:
@@ -125,26 +137,26 @@ class Pane_Work(wx.Panel, _Pane_auto):
         self.sz = rcs.RowColSizer()
         sz = self.sz
 
-        self._pre(['company', 'department', 'position', 'work_street', 
-            'work_city', 'work_state', 'work_zip', 'work_country', 'work_web'])
+        self._pre(['work_company', 'work_department', 'work_occupation_code', 'work_address',
+            'work_city', 'work_state', 'work_zip', 'work_country', 'work_web_page'])
         g = self._put_item
 
         self.c = 1
         self.r = 1
         sz.Add(wx.StaticText(self, -1, 'Company:'), row = self.r, col = self.c)
-        g('company')
+        g('work_company')
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Department:'), row = self.r, col = self.c)
-        g('department')
+        g('work_department')
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Position:'), row = self.r, col = self.c)
-        g('position')
+        g('work_occupation_code')
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Street:'), row = self.r, col = self.c)
-        g('work_street')
+        g('work_address')
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'City:'), row = self.r, col = self.c)
@@ -160,11 +172,11 @@ class Pane_Work(wx.Panel, _Pane_auto):
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Country:'), row = self.r, col = self.c)
-        g('work_country')
+        g('work_country', proc = _conv_country)
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Web site:'), row = self.r, col = self.c)
-        g('work_web')
+        g('work_web_page')
         self.r += 1
 
         # ---

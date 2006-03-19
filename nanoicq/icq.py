@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.85 2006/03/17 16:24:40 lightdruid Exp $
+# $Id: icq.py,v 1.86 2006/03/19 16:53:11 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1247,6 +1247,7 @@ class Protocol:
         b.name = name
 
         print 'Parsing buddy:', b
+        print 'tlvs:', tlvs
 
         for t in tlvs:
             tmp = "parseSSIItem_%02X" % t
@@ -1327,7 +1328,9 @@ class Protocol:
             print "### it's group"
             self._groups.add(groupID, name)
         # FIXME: 25
-        elif flagType == SSI_ITEM_BUDDY or flagType == 25:
+        elif flagType == 25:
+            print "### it's buddy???"
+        elif flagType == SSI_ITEM_BUDDY:
             print "### it's buddy"
             self.parseSSIBuddy(groupID, itemID, name, tlvs)
         else:

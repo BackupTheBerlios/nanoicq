@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.98 2006/03/19 12:24:48 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.99 2006/03/19 16:53:11 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.98 2006/03/19 12:24:48 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.99 2006/03/19 16:53:11 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -242,9 +242,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onRequestUserInfo(self, evt):
         print 'onRequestUserInfo'
-        userName = evt.getVal()
+        b = evt.getVal()
 
-        b = self.connector['icq'].getBuddy(userName)
+        #b = self.connector['icq'].getBuddy(userName)
         self.connector['icq'].getFullUserInfo(self.config.get("icq", "uin"), b.uin)
         self._userInfoRequested = True
 
@@ -451,7 +451,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         for v in b.__dict__.keys():
             print v, b.__dict__[v]
 
-        dump2file('buddy.dump', b)
+        #dump2file('buddy.dump', b)
 
         evt = NanoEvent(nanoEVT_GOT_USER_INFO, self.GetId())
         evt.setVal(b)
@@ -487,7 +487,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def onBuddyStatusChanged(self, evt):
         '''
         Buddy status is changed, let's change his icon in user list
-        TODO: change ison in opened message boxes
+        TODO: change icon in opened message boxes
         '''
         b = evt.getVal()
         self.topPanel.userList.changeStatus(b)
