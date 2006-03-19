@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.33 2006/03/13 11:50:24 lightdruid Exp $
+# $Id: messagedialog.py,v 1.34 2006/03/19 19:40:47 lightdruid Exp $
 #
 
 import sys
@@ -17,6 +17,8 @@ from message import Message, messageFactory
 from history import History
 from buddy import Buddy
 import HistoryDirection
+
+import guidebug
 
 # Default colorset bg/fg for incoming/outgoing messages
 _DEFAULT_COLORSET = ("white", "black", "white", "black")
@@ -284,7 +286,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         self._history.append(message)
 
         evt = NanoEvent(nanoEVT_SEND_MESSAGE, self.GetId())
-        evt.setVal( (self.GetId(), message) )
+        evt.setVal( (self._user, message) )
         wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
         # Update UI

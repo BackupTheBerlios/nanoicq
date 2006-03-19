@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.100 2006/03/19 18:26:27 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.101 2006/03/19 19:40:47 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.100 2006/03/19 18:26:27 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.101 2006/03/19 19:40:47 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -382,10 +382,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onSendMessage(self, evt):
         log().log('GUI sending message: ' + str(evt))
-        ids, message = evt.getVal()
+        b, message = evt.getVal()
+        print b, message, type(b), type(message)
 
         # FIXME: only icq handled
-        b = self.connector['icq'].getBuddyByUin(message.getUIN())
+        #b = self.connector['icq'].getBuddyByUin(message.getUIN())
         log().log('User is ' + b.status)
 
         status = b.status == 'offline'
@@ -395,8 +396,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt.Skip()
         print 'onMessagePrepare', evt.getVal()
 
-        currentItem, userName = evt.getVal()
-        b = self.connector['icq'].getBuddy(userName)
+        v = evt.getVal()
+        if isinstance(v, Buddy):
+            b = v
+        else:
+            currentItem, userName = v
+            b = self.connector['icq'].getBuddy(userName)
 
         message = None
         self._showMessageDialog(message, b)
@@ -526,7 +531,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             d.SetFocus()
             d.Raise()
         else:
-            self.showMessage(b.name, m)
+            self.showMessage(b, m)
 
     def event_Results(self, kw):
         b = kw['buddy']
@@ -655,12 +660,12 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector['icq'].login()
         self.connector['icq'].Start()
 
-    def showMessage(self, userName, message, hide = False):
+    def showMessage(self, b, message, hide = False):
         print 'showMessage()'
-        print "username: '%s'" % userName
-        print "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
+        print "username: '%s'" % b.name
+        #print "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
 
-        b = self.connector["icq"].getBuddy(userName)
+        #b = self.connector["icq"].getBuddy(userName)
         colorSet = self.connector["icq"].getColorSet()
         d = MessageDialog(self, -1, b, message, colorSet)
         d.SetIcon(self.mainIcon)

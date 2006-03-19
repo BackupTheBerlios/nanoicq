@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.14 2006/03/17 12:00:00 lightdruid Exp $
+# $Id: FindUser.py,v 1.15 2006/03/19 19:40:47 lightdruid Exp $
 #
 
 import sys
@@ -94,7 +94,7 @@ class DigitValidator(wx.PyValidator):
 
 
 class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    ID_SEND_MESSAGE = wx.NewId()
+    ID_ADD_TO_LIST = wx.NewId()
     ID_USER_DETAILS = wx.NewId()
     ID_SEND_MESSAGE = wx.NewId()
 
@@ -165,7 +165,7 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
     def createPopUpMenu(self):
         _topMenu = (
-            (self.ID_SEND_MESSAGE, "Add to list", "self.onAddToContactList"),
+            (self.ID_ADD_TO_LIST, "Add to list", "self.onAddToContactList"),
             (),
             (self.ID_USER_DETAILS, "User details", "self.onUserDetails"),
             (self.ID_SEND_MESSAGE, "Send message", "self.onSendMessage"),
@@ -221,6 +221,11 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def onSendMessage(self, evt):
         evt.Skip()
         print evt
+
+        b = self._grabCurrentUser()
+        evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
+        evt.setVal(b)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
 
 ID_userIDRadio = wx.NewId()
@@ -333,6 +338,7 @@ class FindUserPanel(wx.Panel):
         # ---
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
+
 
     def _getActiveSearch(self):
         self.results.DeleteAllItems()
