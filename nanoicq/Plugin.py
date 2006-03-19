@@ -1,6 +1,6 @@
 
 #
-# $Id: Plugin.py,v 1.5 2006/03/09 15:36:01 lightdruid Exp $
+# $Id: Plugin.py,v 1.6 2006/03/19 19:56:44 lightdruid Exp $
 #
 
 import os
@@ -14,6 +14,11 @@ from message import *
 from buddy import Buddy
 from icq import log
 
+
+class PluginException(Exception):
+    pass
+
+
 class Plugin(wx.EvtHandler):
     def __init__(self):
         wx.EvtHandler.__init__(self)
@@ -23,6 +28,7 @@ class Plugin(wx.EvtHandler):
 
     def sendMessage(self, buddy = None, message = None):
         raise NotImplementedError('sendMessage')
+
 
 def __my_path():
     try:
@@ -46,12 +52,15 @@ def __load_plugins(plugin_dir, connector):
 
         try:
             b = __import__(module).init_plugin(connector)
+        except PluginException, exc:
+            log().log("Error loading plugin '%s'" % module)
+            log().log(str(exc))
         except (ImportError, AttributeError):
             log().log("Error loading plugin '%s'" % module)
             traceback.print_exc()
         else:
-            if module is None:
-                log().log("Plugin '%s' is empty, not loaded" % module)
+            if module is None or b.isLoaded() == False:
+                log().log("Plugin '%s', not loaded" % module)
             else:
                 log().log("Loaded '%s' plugin" % module)
                 plugins[module] = (b)

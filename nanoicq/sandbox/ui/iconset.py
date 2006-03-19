@@ -1,6 +1,6 @@
 
 #
-# $Id: iconset.py,v 1.6 2006/03/06 11:17:57 lightdruid Exp $
+# $Id: iconset.py,v 1.7 2006/03/19 19:56:44 lightdruid Exp $
 #
 
 import wx
@@ -86,12 +86,12 @@ class IconSet:
             os.path.walk(path, loadIcon, icons)
 
             if not self._isFullSet(icons):
-                log().log("Loaded '%s' (not full) icon set" % alias)
+                log().log("Loaded '%s' (not complete) icon set" % alias)
 
                 if adjust_missing:
                     self._adjustMissing(icons)
             else:
-                log().log("Loaded '%s' (FULL) icon set" % alias)
+                log().log("Loaded '%s' icon set" % alias)
 
         self._icons[alias] = icons
 

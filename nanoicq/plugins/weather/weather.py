@@ -1,11 +1,11 @@
 
 #
-# $Id: weather.py,v 1.4 2006/03/15 12:47:37 lightdruid Exp $
+# $Id: weather.py,v 1.5 2006/03/19 19:56:44 lightdruid Exp $
 #
 
 import sys
 sys.path.insert(0, '../..')
-from Plugin import Plugin
+from Plugin import Plugin, PluginException
 from message import *
 
 _loaded = True
@@ -13,8 +13,9 @@ _loaded = True
 try:
     import pymetar
 except ImportError, exc:
-    print "Unable to initialize 'weather' plugin: " + str(exc)
+    raise PluginException("Unable to initialize 'weather' plugin: " + str(exc))
     _loaded = False
+
 
 class Weather(Plugin):
     _trusted_uin = ['177033621', '158125970', '9992104', '306625983']
