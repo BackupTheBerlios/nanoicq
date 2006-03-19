@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.86 2006/03/19 16:53:11 lightdruid Exp $
+# $Id: icq.py,v 1.87 2006/03/19 18:26:26 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1330,6 +1330,11 @@ class Protocol:
         # FIXME: 25
         elif flagType == 25:
             print "### it's buddy???"
+            if len(name) > 0:
+                import re
+                digit = re.compile('^\d+$')
+                if digit.match(name):
+                    self.parseSSIBuddy(groupID, itemID, name, tlvs)
         elif flagType == SSI_ITEM_BUDDY:
             print "### it's buddy"
             self.parseSSIBuddy(groupID, itemID, name, tlvs)

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.99 2006/03/19 16:53:11 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.100 2006/03/19 18:26:27 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.99 2006/03/19 16:53:11 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.100 2006/03/19 18:26:27 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -20,6 +20,7 @@ import time
 import wx
 import cPickle
 import string
+import types
 
 from buddy import Buddy
 import icq
@@ -244,7 +245,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'onRequestUserInfo'
         b = evt.getVal()
 
-        #b = self.connector['icq'].getBuddy(userName)
+        # FIXME: ugly hack
+        print type(b)
+        if type(b) in types.StringTypes:
+            b = self.connector['icq'].getBuddy(b)
+
         self.connector['icq'].getFullUserInfo(self.config.get("icq", "uin"), b.uin)
         self._userInfoRequested = True
 
@@ -463,9 +468,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
         b = evt.getVal()
 
         if self._userInfoRequested:
-            self._userInfoFrame = UserInfoFrame(None, -1, self.iconSet, b)
-            self._userInfoFrame.CentreOnParent(wx.BOTH)
-            self._userInfoFrame.Show(True)
+            _userInfoFrame = UserInfoFrame(None, -1, self.iconSet, b)
+            _userInfoFrame.CentreOnParent(wx.BOTH)
+            _userInfoFrame.Show(True)
+
             self._userInfoRequested = False
 
     def event_Incoming_message(self, kw):
@@ -560,9 +566,20 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.trayIcon.setToolTip('ICQ offline')
 
     def onDisconnect(self, evt):
-        evt.Skip()
-        self.connector['icq'].disconnect()
-        self.connector['icq'].Stop()
+        b = restoreFromFile('buddy.dump')
+        #b.name = 'Light Druid'
+
+        self.connector['icq'].connect()
+        self.connector['icq'].login()
+        self.connector['icq'].Start()
+
+        _userInfoFrame = UserInfoFrame(None, -1, self.iconSet, b)
+        _userInfoFrame.CentreOnParent(wx.BOTH)
+        _userInfoFrame.Show(True)
+
+        #evt.Skip()
+        #self.connector['icq'].disconnect()
+        #self.connector['icq'].Stop()
 
     @dtrace
     def event_Disconnected(self, kw):
