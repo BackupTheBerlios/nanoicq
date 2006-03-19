@@ -1,9 +1,12 @@
 
 #
-# $Id: events.py,v 1.15 2006/03/17 12:00:00 lightdruid Exp $
+# $Id: events.py,v 1.16 2006/03/19 12:24:48 lightdruid Exp $
 #
 
 import wx
+
+nanoEVT_GOT_USER_INFO = wx.NewEventType()
+EVT_GOT_USER_INFO = wx.PyEventBinder(nanoEVT_GOT_USER_INFO, 1)
 
 nanoEVT_REQUEST_USER_INFO = wx.NewEventType()
 EVT_REQUEST_USER_INFO = wx.PyEventBinder(nanoEVT_REQUEST_USER_INFO, 1)

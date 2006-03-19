@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.97 2006/03/17 16:24:40 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.98 2006/03/19 12:24:48 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.97 2006/03/17 16:24:40 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.98 2006/03/19 12:24:48 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -98,10 +98,13 @@ class ICQThreaded(icq.Protocol):
 
             try:
                 #if wx.Thread_IsMain():
-                try:
-                    wx.YieldIfNeeded()
-                except:
-                    pass
+
+                #try:
+                #    wx.YieldIfNeeded()
+                #except:
+                #    pass
+
+                wx.YieldIfNeeded()
 
                 buf = self.read()
                 log().packetin_col(buf)
@@ -213,6 +216,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_ADD_USER_TO_LIST, self.onAddUserToList)
         self.Bind(EVT_USER_DELETE, self.onUserDelete)
         self.Bind(EVT_REQUEST_USER_INFO, self.onRequestUserInfo)
+        self.Bind(EVT_GOT_USER_INFO, self.onGotUserInfo)
 
         self._keepAliveTimer = wx.Timer(self)
         if self.config.has_option('icq', 'keep.alive.interval'):
@@ -449,14 +453,20 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         dump2file('buddy.dump', b)
 
+        evt = NanoEvent(nanoEVT_GOT_USER_INFO, self.GetId())
+        evt.setVal(b)
+        self.GetEventHandler().AddPendingEvent(evt)
+
+    def onGotUserInfo(self, evt):
+        #evt.Skip()
+
+        b = evt.getVal()
+
         if self._userInfoRequested:
-            self._userInfoFrame = UserInfoFrame(self, -1, self.iconSet, b)
+            self._userInfoFrame = UserInfoFrame(None, -1, self.iconSet, b)
+            self._userInfoFrame.CentreOnParent(wx.BOTH)
             self._userInfoFrame.Show(True)
             self._userInfoRequested = False
-
-        #evt = NanoEvent(nanoEVT_LAST_META, self.GetId())
-        #evt.setVal(b)
-        #self.GetEventHandler().AddPendingEvent(evt)
 
     def event_Incoming_message(self, kw):
         print 'Called event_Incoming_message with '
