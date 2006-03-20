@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.10 2006/03/20 14:31:40 lightdruid Exp $
+# $Id: UserInfo.py,v 1.11 2006/03/20 15:23:59 lightdruid Exp $
 #
 
 import sys
@@ -99,7 +99,7 @@ class Pane_Notes(wx.Panel, _Pane_auto):
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
 
-        self.notes = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY)
+        self.notes = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY. name = 'notes')
         self.notes.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
 
         self.my_notes = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE)
