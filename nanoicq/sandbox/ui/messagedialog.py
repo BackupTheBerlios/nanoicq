@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.34 2006/03/19 19:40:47 lightdruid Exp $
+# $Id: messagedialog.py,v 1.35 2006/03/20 16:14:19 lightdruid Exp $
 #
 
 import sys
@@ -122,10 +122,17 @@ class MessagePanel(wx.Panel):
             name = 'buttonOk_' + userName)
         self.boxSizer3.Add(self.buttonOk, 0, wx.ALIGN_RIGHT)
 
+        # 4th
+        box4 = wx.StaticBox(self, -1)
+        self.boxSizer4 = wx.BoxSizer(wx.HORIZONTAL)
+        self._sb = wx.StaticText(self, -1, '')
+        self.boxSizer4.Add(self._sb, 0, wx.ALIGN_RIGHT)
+
         #
         self.sizer.Add(self.boxSizer1, 0, wx.EXPAND)
         self.sizer.Add(self.boxSizer2, 4, wx.EXPAND)
         self.sizer.Add(self.boxSizer3, 0, wx.EXPAND)
+        self.sizer.Add(self.boxSizer4, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
         self.SetAutoLayout(True)
@@ -314,8 +321,13 @@ def _test():
             b = Buddy()
             b.name = 'user'
             b.uin = '123456'
-            d = MessageDialog(self, -1, b, message)
-            d.Show(True)
+            self.d = MessageDialog(self, -1, b, message)
+            self.d.Show(True)
+
+            wx.CallAfter(self.a)
+
+        def a(self):
+            self.d.Raise()
 
     class NanoApp(wx.App):
         def OnInit(self):
