@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.87 2006/03/19 18:26:26 lightdruid Exp $
+# $Id: icq.py,v 1.88 2006/03/20 14:31:39 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1961,6 +1961,10 @@ class Protocol:
 
         data = struct.pack('<H', len(data)) + data
 
+        if self._currentUser == None:
+            self._currentUser = Buddy()
+            self._currentUser.uin = uin
+
         log().log("Sending full user info request for '%s'" % str(uin))
         self.sendSNAC(0x15, 0x02, 0, tlv(0x01, data))
 
@@ -2036,6 +2040,7 @@ class Protocol:
         if flag == 0:
             print "*"*10, 'Last packet'
             self.react('Last meta', buddy = self._currentUser)
+            self._currentUser = None
 
     def userFound_07DA_00C8(self, data):
         '''

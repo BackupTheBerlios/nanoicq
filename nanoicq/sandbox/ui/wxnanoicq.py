@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.101 2006/03/19 19:40:47 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.102 2006/03/20 14:31:40 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.101 2006/03/19 19:40:47 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.102 2006/03/20 14:31:40 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -100,12 +100,12 @@ class ICQThreaded(icq.Protocol):
             try:
                 #if wx.Thread_IsMain():
 
-                #try:
-                #    wx.YieldIfNeeded()
-                #except:
-                #    pass
+                try:
+                    wx.YieldIfNeeded()
+                except:
+                    pass
 
-                wx.YieldIfNeeded()
+                #wx.YieldIfNeeded()
 
                 buf = self.read()
                 log().packetin_col(buf)
@@ -458,10 +458,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print str(kw)
 
         b = kw['buddy']
+
+        if b is None:
+            return
+
         for v in b.__dict__.keys():
             print v, b.__dict__[v]
 
-        #dump2file('buddy.dump', b)
+        dump2file('buddy.dump', b)
 
         evt = NanoEvent(nanoEVT_GOT_USER_INFO, self.GetId())
         evt.setVal(b)

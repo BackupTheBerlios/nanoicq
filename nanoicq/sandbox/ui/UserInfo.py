@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.9 2006/03/19 16:53:11 lightdruid Exp $
+# $Id: UserInfo.py,v 1.10 2006/03/20 14:31:40 lightdruid Exp $
 #
 
 import sys
@@ -9,6 +9,7 @@ import string
 import wx
 import wx.lib.rcsizer as rcs
 import wx.lib.mixins.listctrl as listmix
+import wx.lib.hyperlink as hyperlink
 
 sys.path.insert(0, '../..')
 from events import *
@@ -32,24 +33,32 @@ _gender = {
     2: 'Male'
 }
 
+_NA = '<not specified>'
+
 def _conv_gender(v):
     if v in _gender.keys():
         return _gender[v]
-    return '<not specified>'
+    return _NA
 
 def _conv_country(v):
-    print v
     try:
         return codes.countries[v]
     except:
-        return '<not specified>'
+        return _NA
+
+def _conv_lang(v):
+    print 'LANG:', v
+    try:
+        return codes.languages[v]
+    except:
+        return _NA
 
 class TestNB(wx.Notebook):
     def __init__(self, parent, id):
         wx.Notebook.__init__(self, parent, id, style = wx.NB_MULTILINE )
 
 class _Pane_auto:
-    _NA = '<not specified>'
+    _NA = _NA
     def __init__(self):
         pass
 
@@ -67,14 +76,16 @@ class _Pane_auto:
 
         if hasattr(self.b, name):
             v = eval('self.b.%s' % name)
+            #print name, v
             if v is not None:
                 if proc is not None:
-                    print v
+                    #print v
                     v = proc(v)
                 self.FindWindowByName(name).SetValue(_safe_to_str(v))
         elif val is not None:
             self.FindWindowByName(name).SetValue(val)
         else:
+            print 'NOT FOUND', name
             self.FindWindowByName(name).SetValue(self._NA)
 
         if self.FindWindowByName(name).GetValue() == self._NA:
@@ -107,15 +118,18 @@ class Pane_Background(wx.Panel, _Pane_auto):
         wx.Panel.__init__(self, parent, -1)
         _Pane_auto.__init__(self)
 
+        self.b = b
+
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
 
-        self.homepage_address = wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_READONLY)
+        #self.homepage_address = wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_READONLY, name = 'homepage_address')
+        self.homepage_address = hyperlink.HyperLinkCtrl(self, -1, '', URL = '', name = 'homepage_address')
         self.homepage_address.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
-        self.homepage_address.SetValue(self._NA)
+        #self.homepage_address.SetValue(self._NA)
 
-        self.past_background = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY)
-        self.interests = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY)
+        self.past_background = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY, name = 'past_background')
+        self.interests = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY, name = 'interests')
 
         sz.Add(wx.StaticText(self, -1, 'Web site:'), 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
         sz.Add(self.homepage_address, 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
@@ -124,9 +138,25 @@ class Pane_Background(wx.Panel, _Pane_auto):
         sz.Add(wx.StaticText(self, -1, 'Interests:'), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 7)
         sz.Add(self.interests, 10, wx.ALL | wx.EXPAND, 7)
 
+        self._set('homepage_address')
+        self._set('past_background')
+        self._set('interests')
+
         # ---
         self.SetSizer(sz)
         self.SetAutoLayout(True)
+
+    def _set(self, name, proc = None):
+        if hasattr(self.b, name):
+            v = eval('self.b.%s' % name)
+            if v is not None:
+                if proc is not None:
+                    v = proc(v)
+                if isinstance(self.FindWindowByName(name), hyperlink.HyperLinkCtrl):
+                    self.FindWindowByName(name).SetLabel(_safe_to_str(v))
+                    self.FindWindowByName(name).SetURL(_safe_to_str(v))
+                else:
+                    self.FindWindowByName(name).SetValue(_safe_to_str(v))
 
 class Pane_Work(wx.Panel, _Pane_auto):
     def __init__(self, parent, b):
@@ -138,7 +168,7 @@ class Pane_Work(wx.Panel, _Pane_auto):
         sz = self.sz
 
         self._pre(['work_company', 'work_department', 'work_occupation_code', 'work_address',
-            'work_city', 'work_state', 'work_zip', 'work_country', 'work_web_page'])
+            'work_city', 'work_state', 'work_zip', 'work_country', 'work_webpage'])
         g = self._put_item
 
         self.c = 1
@@ -176,12 +206,24 @@ class Pane_Work(wx.Panel, _Pane_auto):
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Web site:'), row = self.r, col = self.c)
-        g('work_web_page')
+        g('work_webpage')
         self.r += 1
 
         # ---
         self.SetSizer(sz)
         self.SetAutoLayout(True)
+
+    def _set(self, name, proc = None):
+        if hasattr(self.b, name):
+            v = eval('self.b.%s' % name)
+            if v is not None:
+                if proc is not None:
+                    v = proc(v)
+                if isinstance(self.FindWindowByName(name), hyperlink.HyperLinkCtrl):
+                    self.FindWindowByName(name).SetLabel(_safe_to_str(v))
+                    self.FindWindowByName(name).SetURL(_safe_to_str(v))
+                else:
+                    self.FindWindowByName(name).SetValue(_safe_to_str(v))
 
 class Pane_Location(wx.Panel, _Pane_auto):
     def __init__(self, parent, b):
@@ -192,7 +234,10 @@ class Pane_Location(wx.Panel, _Pane_auto):
         self.sz = rcs.RowColSizer()
         sz = self.sz
 
-        self._pre(['street', 'city', 'state', 'zip', 'original_from_country_code', 'lang1', 'lang2', 'lang3', 'timezone', 'local_time'])
+        self._pre(['street', 'city', 'state', 'zip', 
+            'original_from_country_code', 
+            'speaking_language_1', 'speaking_language_2', 'speaking_language_3',
+            'timezone', 'local_time'])
         g = self._put_item
 
         self.c = 1
@@ -220,15 +265,15 @@ class Pane_Location(wx.Panel, _Pane_auto):
         self.c = 4
         self.r = 1
         sz.Add(wx.StaticText(self, -1, 'Languages:'), row = self.r, col = self.c)
-        g('lang1')
+        g('speaking_language_1', proc = _conv_lang)
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, ''), row = self.r, col = self.c)
-        g('lang2')
+        g('speaking_language_2', proc = _conv_lang)
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, ''), row = self.r, col = self.c)
-        g('lang3')
+        g('speaking_language_3', proc = _conv_lang)
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Time zone:'), row = self.r, col = self.c)
@@ -501,6 +546,10 @@ def _test():
 
             b = restoreFromFile('buddy.dump')
             #b.name = 'Light Druid'
+
+            for v in b.__dict__.keys():
+                print v, b.__dict__[v]
+
 
             frame = UserInfoFrame(None, -1, self.iconSet, b)
             self.SetTopWindow(frame)
