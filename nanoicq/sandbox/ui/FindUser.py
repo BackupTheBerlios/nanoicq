@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.17 2006/03/21 13:53:46 lightdruid Exp $
+# $Id: FindUser.py,v 1.18 2006/03/21 14:33:49 lightdruid Exp $
 #
 
 import sys
@@ -270,7 +270,7 @@ class AdvancedPanel(wx.Panel):
         self.age = wx.Choice(self, -1, size = (137, -1))
         self.summarySizer.Add(self.age, row = 6, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
-        self.summarySizerB.Add(self.summarySizer, 1, wx.ALL | wx.EXPAND, 0)
+        self.summarySizerB.Add(self.summarySizer, 0, wx.ALL | wx.EXPAND, 0)
 
         sizer.Add(self.summarySizerB, row = 0, col = 0, flag = wx.EXPAND)
 
@@ -381,6 +381,7 @@ class FindUserPanel(wx.Panel):
     def __init__(self, parent, iconSet):
         wx.Panel.__init__(self, parent, -1)
 
+        self.topSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer = rcs.RowColSizer()
         r = 0
 
@@ -458,7 +459,7 @@ class FindUserPanel(wx.Panel):
         self.resultsSizer = wx.BoxSizer(wx.VERTICAL)
         self.results = ResultsList(self, ID_RESULTS_LIST, self.iconSet)
         self.resultsSizer.Add(self.results, 1, wx.ALL | wx.GROW | wx.EXPAND, 8)
-        self.sizer.Add(self.resultsSizer, row = 0, col = 2, rowspan = r - 0, colspan = 10, flag = wx.EXPAND)
+        self.sizer.Add(self.resultsSizer, row = 0, col = 2, rowspan = 30, colspan = 10, flag = wx.EXPAND)
 
         self.sizer.AddGrowableCol(2)
         self.sizer.AddGrowableRow(r-1)
@@ -481,7 +482,8 @@ class FindUserPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.doSearch, id = self.searchButton.GetId())
 
         # ---
-        self.SetSizer(self.sizer)
+        self.topSizer.Add(self.sizer, 1, wx.ALL | wx.GROW, 0)
+        self.SetSizer(self.topSizer)
         self.SetAutoLayout(True)
 
 
@@ -564,6 +566,7 @@ class FindUserPanel(wx.Panel):
             self.advanced.Layout()
             self.sizer.Layout()
             self.Layout()
+            self.Refresh()
         else:
             self.resultsSizer.Detach(self.advanced)
             self.advanced.Hide()
@@ -573,6 +576,7 @@ class FindUserPanel(wx.Panel):
             self.results.Layout()
             self.sizer.Layout()
             self.Layout()
+            self.Refresh()
 
     def onUserIDSelect(self, evt):
         evt.Skip()
