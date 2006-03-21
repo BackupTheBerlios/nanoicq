@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.15 2006/03/19 19:40:47 lightdruid Exp $
+# $Id: FindUser.py,v 1.16 2006/03/21 13:04:02 lightdruid Exp $
 #
 
 import sys
@@ -17,6 +17,8 @@ from buddy import Buddy
 from iconset import IconSet
 from persistence import PersistenceMixin
 
+ID_RESULTS_LIST = wx.NewId()
+ID_ADVANCED = wx.NewId()
 
 class SearchStatusBar(wx.StatusBar):
     def __init__(self, parent):
@@ -233,19 +235,94 @@ ID_emailRadio = wx.NewId()
 ID_nameRadio = wx.NewId()
 
 
+class AdvancedPanel(wx.Panel):
+
+    def __init__(self, parent, ids):
+        wx.Panel.__init__(self, parent, ids)
+
+        sizer = rcs.RowColSizer()
+
+        # 1st
+        self.summarySizerB = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Summary'), wx.VERTICAL)
+        self.summarySizer = rcs.RowColSizer()
+
+        self.summarySizer.Add(wx.StaticText(self, -1, 'First name:'), row = 0, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.first = wx.TextCtrl(self, -1, '')
+        self.summarySizer.Add(self.first, row = 0, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.summarySizer.Add(wx.StaticText(self, -1, 'Last name:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.last = wx.TextCtrl(self, -1, '')
+        self.summarySizer.Add(self.last, row = 1, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.summarySizer.Add(wx.StaticText(self, -1, 'Nickname:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.nick = wx.TextCtrl(self, -1, '')
+        self.summarySizer.Add(self.nick, row = 2, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.summarySizer.Add(wx.StaticText(self, -1, 'E-mail:'), row = 3, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.email = wx.TextCtrl(self, -1, '')
+        self.summarySizer.Add(self.email, row = 3, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.summarySizer.Add(wx.StaticText(self, -1, 'Gender:'), row = 5, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.gender = wx.Choice(self, -1)
+        self.summarySizer.Add(self.gender, row = 5, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.summarySizer.Add(wx.StaticText(self, -1, 'Age:'), row = 6, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.age = wx.Choice(self, -1)
+        self.summarySizer.Add(self.age, row = 6, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.summarySizerB.Add(self.summarySizer, 1, wx.ALL | wx.EXPAND, 0)
+
+        sizer.Add(self.summarySizerB, row = 0, col = 0, flag = wx.EXPAND)
+
+        # 2nd
+        self.workSizerB = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Work'), wx.VERTICAL)
+        self.workSizer = rcs.RowColSizer()
+
+        self.workSizer.Add(wx.StaticText(self, -1, 'Field:'), row = 0, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.field = wx.Choice(self, -1)
+        self.workSizer.Add(self.field, row = 0, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.workSizer.Add(wx.StaticText(self, -1, 'Company:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.company = wx.TextCtrl(self, -1, '')
+        self.workSizer.Add(self.company, row = 1, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.workSizer.Add(wx.StaticText(self, -1, 'Department:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.department = wx.TextCtrl(self, -1, '')
+        self.workSizer.Add(self.department, row = 2, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.workSizer.Add(wx.StaticText(self, -1, 'Position:'), row = 3, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.position = wx.TextCtrl(self, -1, '')
+        self.workSizer.Add(self.position, row = 3, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.workSizer.Add(wx.StaticText(self, -1, 'Organisation:'), row = 5, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.organisation = wx.Choice(self, -1)
+        self.workSizer.Add(self.organisation, row = 5, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.workSizer.Add(wx.StaticText(self, -1, 'Keywords:'), row = 6, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.keywords = wx.TextCtrl(self, -1, '')
+        self.workSizer.Add(self.keywords, row = 6, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.workSizerB.Add(self.workSizer, 1, wx.ALL | wx.EXPAND, 0)
+
+        sizer.Add(self.workSizerB, row = 1, col = 0, flag = wx.EXPAND)
+
+        # ---
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+
 class FindUserPanel(wx.Panel):
     protocolList = ["ICQ"]
 
     def __init__(self, parent, iconSet):
         wx.Panel.__init__(self, parent, -1)
 
-        sizer = rcs.RowColSizer()
+        self.sizer = rcs.RowColSizer()
         r = 0
 
         self.g = wx.Gauge(self, -1, size = (168, 15), style = wx.GA_SMOOTH)
         self.g.SetBezelFace(0)
         self.g.SetShadowWidth(0)
-        sizer.Add(self.g, row = r, col = 1)
+        self.sizer.Add(self.g, row = r, col = 1)
         self.g.Hide()
         r += 1
 
@@ -253,7 +330,7 @@ class FindUserPanel(wx.Panel):
         self.protocol = wx.ComboBox(self, -1, self.protocolList[0], size = (110, -1), choices = self.protocolList, style = wx.CB_READONLY)
         protoSizer.Add(wx.StaticText(self, -1, 'Search:'), row = 0, col = 0)
         protoSizer.Add(self.protocol, row = 0, col = 3)
-        sizer.Add(protoSizer, row = r, col = 1, flag = wx.EXPAND)
+        self.sizer.Add(protoSizer, row = r, col = 1, flag = wx.EXPAND)
         r += 1
 
         boxSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
@@ -262,7 +339,7 @@ class FindUserPanel(wx.Panel):
             validator = DigitValidator())
         boxSizer1.Add(self.userIDRadio, 0, wx.ALL, 3)
         boxSizer1.Add(self.userID, 0, wx.ALL, 3)
-        sizer.Add(boxSizer1, row = r, col = 1)
+        self.sizer.Add(boxSizer1, row = r, col = 1)
         r += 1
 
         boxSizer2 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
@@ -270,7 +347,7 @@ class FindUserPanel(wx.Panel):
         self.email = wx.TextCtrl(self, -1, '', size = (155, -1))
         boxSizer2.Add(self.emailRadio, 0, wx.ALL, 3)
         boxSizer2.Add(self.email, 0, wx.ALL, 3)
-        sizer.Add(boxSizer2, row = r, col = 1)
+        self.sizer.Add(boxSizer2, row = r, col = 1)
         r += 1
 
         boxSizer3 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
@@ -289,7 +366,7 @@ class FindUserPanel(wx.Panel):
 
         boxSizer3.Add(self.nameRadio, 0, wx.ALL, 3)
         boxSizer3.Add(self.nameSizer, 0, wx.ALL, 3)
-        sizer.Add(boxSizer3, row = r, col = 1)
+        self.sizer.Add(boxSizer3, row = r, col = 1)
         r += 1
 
         boxSizer4 = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
@@ -297,26 +374,29 @@ class FindUserPanel(wx.Panel):
         self.advancedButton = wx.ToggleButton(self, -1, 'Advanced >>', size = (155, -1))
         boxSizer4.Add(self.advancedRadio, 0, wx.ALL, 3)
         boxSizer4.Add(self.advancedButton, 0, wx.ALL, 3)
-        sizer.Add(boxSizer4, row = r, col = 1)
+        self.sizer.Add(boxSizer4, row = r, col = 1)
 
         r += 2
 
         searchSizer = wx.BoxSizer(wx.VERTICAL)
         self.searchButton = wx.Button(self, -1, "Search", size = (155, 30))
         searchSizer.Add(self.searchButton, 1, wx.ALL, 8)
-        sizer.Add(searchSizer, row = r, col = 1)
+        self.sizer.Add(searchSizer, row = r, col = 1)
         r += 1
 
         ###
         self.iconSet = iconSet
 
-        resultsSizer = wx.BoxSizer(wx.VERTICAL)
-        self.results = ResultsList(self, -1, self.iconSet)
-        resultsSizer.Add(self.results, 1, wx.ALL | wx.GROW | wx.EXPAND, 8)
-        sizer.Add(resultsSizer, row = 0, col = 2, rowspan = r - 0, colspan = 10, flag = wx.EXPAND)
+        self.advanced = AdvancedPanel(self, ID_ADVANCED)
+        self.advanced.Hide()
 
-        sizer.AddGrowableCol(2)
-        sizer.AddGrowableRow(r-1)
+        self.resultsSizer = wx.BoxSizer(wx.VERTICAL)
+        self.results = ResultsList(self, ID_RESULTS_LIST, self.iconSet)
+        self.resultsSizer.Add(self.results, 1, wx.ALL | wx.GROW | wx.EXPAND, 8)
+        self.sizer.Add(self.resultsSizer, row = 0, col = 2, rowspan = r - 0, colspan = 10, flag = wx.EXPAND)
+
+        self.sizer.AddGrowableCol(2)
+        self.sizer.AddGrowableRow(r-1)
 
         self.setDefaults()
 
@@ -336,7 +416,7 @@ class FindUserPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.doSearch, id = self.searchButton.GetId())
 
         # ---
-        self.SetSizer(sizer)
+        self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
 
 
@@ -410,6 +490,24 @@ class FindUserPanel(wx.Panel):
     def onToggle(self, evt):
         evt.Skip()
         self.advancedRadio.SetValue(True)
+        if evt.GetInt() != 0:
+            self.resultsSizer.Detach(self.results)
+            self.results.Hide()
+            self.resultsSizer.Add(self.advanced, 1, wx.ALL | wx.GROW | wx.EXPAND, 8)
+            self.advanced.Show()
+
+            self.advanced.Layout()
+            self.sizer.Layout()
+            self.Layout()
+        else:
+            self.resultsSizer.Detach(self.advanced)
+            self.advanced.Hide()
+            self.resultsSizer.Add(self.results, 1, wx.ALL | wx.GROW | wx.EXPAND, 8)
+            self.results.Show()
+
+            self.results.Layout()
+            self.sizer.Layout()
+            self.Layout()
 
     def onUserIDSelect(self, evt):
         evt.Skip()
@@ -499,3 +597,4 @@ if __name__ == '__main__':
     _test()
 
 # ---
+

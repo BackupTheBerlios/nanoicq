@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.11 2006/03/20 15:23:59 lightdruid Exp $
+# $Id: UserInfo.py,v 1.12 2006/03/21 13:04:02 lightdruid Exp $
 #
 
 import sys
@@ -99,10 +99,10 @@ class Pane_Notes(wx.Panel, _Pane_auto):
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
 
-        self.notes = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY. name = 'notes')
+        self.notes = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE | wx.TE_READONLY, name = 'notes')
         self.notes.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
 
-        self.my_notes = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE)
+        self.my_notes = wx.TextCtrl(self, -1, '', style = wx.TE_MULTILINE, name = 'my_notes')
 
         sz.Add(wx.StaticText(self, -1, 'About:'), 0, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 7)
         sz.Add(self.notes, 1, wx.ALL | wx.EXPAND, 7)
@@ -495,6 +495,9 @@ class UserInfoPanel(wx.Panel):
         hz.Add((1, 1), 1, wx.ALL, 0)
         hz.Add(self.okButton, 0, wx.ALL, 0)
         sz.Add(hz, 1, wx.EXPAND | wx.ALL, 7)
+
+        # FIXME:
+        self.updateButton.Enable(False)
 
         self.SetSizer(sz)
         self.SetAutoLayout(True)
