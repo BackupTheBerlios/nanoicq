@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.18 2006/03/21 14:33:49 lightdruid Exp $
+# $Id: FindUser.py,v 1.19 2006/03/21 14:47:38 lightdruid Exp $
 #
 
 import sys
@@ -240,6 +240,8 @@ class AdvancedPanel(wx.Panel):
     def __init__(self, parent, ids):
         wx.Panel.__init__(self, parent, ids)
 
+        self._names = []
+
         sizer = rcs.RowColSizer()
 
         # 1st
@@ -274,6 +276,10 @@ class AdvancedPanel(wx.Panel):
 
         sizer.Add(self.summarySizerB, row = 0, col = 0, flag = wx.EXPAND)
 
+        vlist = ['first', 'last', 'nick', 'email', 'gender', 'age']
+        for v in vlist:
+            self._names.append(v)
+
         # 2nd
         self.workSizerB = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Work'), wx.VERTICAL)
         self.workSizer = rcs.RowColSizer()
@@ -306,6 +312,10 @@ class AdvancedPanel(wx.Panel):
 
         sizer.Add(self.workSizerB, row = 1, col = 0, flag = wx.EXPAND)
 
+        vlist = ['field', 'company', 'department', 'position', 'organisation', 'keywords']
+        for v in vlist:
+            self._names.append(v)
+
         # 3rd
         self.locationSizerB = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Work'), wx.VERTICAL)
         self.locationSizer = rcs.RowColSizer()
@@ -329,6 +339,10 @@ class AdvancedPanel(wx.Panel):
         self.locationSizerB.Add(self.locationSizer, 1, wx.ALL | wx.EXPAND, 0)
 
         sizer.Add(self.locationSizerB, row = 0, col = 2, flag = wx.EXPAND)
+
+        vlist = ['language', 'country', 'state', 'city']
+        for v in vlist:
+            self._names.append(v)
 
         # 3th
         self.backgroundSizerB = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Background'), wx.VERTICAL)
@@ -371,9 +385,30 @@ class AdvancedPanel(wx.Panel):
 
         sizer.Add(self.backgroundSizerB, row = 1, col = 2, flag = wx.EXPAND)
 
+        vlist = ['interestsCategory', 'interestsKeywords', 
+            'pastCategory', 'pastKeywords', 
+            'homePageCategory', 'homePageKeywords']
+        for v in vlist:
+            self._names.append(v)
+
         # ---
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
+
+    def prepareDict(self):
+        d = {}
+        for n in self._names:
+            widget = getattr(self, n)
+            if isinstance(widget, wx.Choice):
+                v = widget.GetStringSelection()
+            else:
+                v = widget.GetValue()
+            if v is not None:
+                v = string.strip(v)
+                if len(v) > 0:
+                    d[n] = v
+        return d
+
 
 class FindUserPanel(wx.Panel):
     protocolList = ["ICQ"]
@@ -497,7 +532,7 @@ class FindUserPanel(wx.Panel):
         elif self.FindWindowById(ID_nameRadio).GetValue():
             self._searchByName()
         else:
-            assert 1 == 2
+            self._searchByAdvanced()
 
     def _checkFilled(self, requestedId):
         rc = False
@@ -509,6 +544,10 @@ class FindUserPanel(wx.Panel):
         if not rc:
             wx.MessageBox('''You haven't filled in the search field. Please enter a search term and try again.''', "Search", wx.OK)
         return rc
+
+    def _searchByAdvanced(self):
+        d = self.advanced.prepareDict()
+        print d
 
     def _searchByUin(self):
         if self._checkFilled(ID_userIDRadio):
