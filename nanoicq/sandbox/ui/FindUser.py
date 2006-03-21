@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.16 2006/03/21 13:04:02 lightdruid Exp $
+# $Id: FindUser.py,v 1.17 2006/03/21 13:53:46 lightdruid Exp $
 #
 
 import sys
@@ -247,27 +247,27 @@ class AdvancedPanel(wx.Panel):
         self.summarySizer = rcs.RowColSizer()
 
         self.summarySizer.Add(wx.StaticText(self, -1, 'First name:'), row = 0, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.first = wx.TextCtrl(self, -1, '')
+        self.first = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.summarySizer.Add(self.first, row = 0, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.summarySizer.Add(wx.StaticText(self, -1, 'Last name:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.last = wx.TextCtrl(self, -1, '')
+        self.last = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.summarySizer.Add(self.last, row = 1, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.summarySizer.Add(wx.StaticText(self, -1, 'Nickname:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.nick = wx.TextCtrl(self, -1, '')
+        self.nick = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.summarySizer.Add(self.nick, row = 2, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.summarySizer.Add(wx.StaticText(self, -1, 'E-mail:'), row = 3, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.email = wx.TextCtrl(self, -1, '')
+        self.email = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.summarySizer.Add(self.email, row = 3, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.summarySizer.Add(wx.StaticText(self, -1, 'Gender:'), row = 5, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.gender = wx.Choice(self, -1)
+        self.gender = wx.Choice(self, -1, size = (137, -1))
         self.summarySizer.Add(self.gender, row = 5, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.summarySizer.Add(wx.StaticText(self, -1, 'Age:'), row = 6, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.age = wx.Choice(self, -1)
+        self.age = wx.Choice(self, -1, size = (137, -1))
         self.summarySizer.Add(self.age, row = 6, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.summarySizerB.Add(self.summarySizer, 1, wx.ALL | wx.EXPAND, 0)
@@ -279,32 +279,97 @@ class AdvancedPanel(wx.Panel):
         self.workSizer = rcs.RowColSizer()
 
         self.workSizer.Add(wx.StaticText(self, -1, 'Field:'), row = 0, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.field = wx.Choice(self, -1)
+        self.field = wx.Choice(self, -1, size = (137, -1))
         self.workSizer.Add(self.field, row = 0, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.workSizer.Add(wx.StaticText(self, -1, 'Company:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.company = wx.TextCtrl(self, -1, '')
+        self.company = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.workSizer.Add(self.company, row = 1, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.workSizer.Add(wx.StaticText(self, -1, 'Department:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.department = wx.TextCtrl(self, -1, '')
+        self.department = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.workSizer.Add(self.department, row = 2, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.workSizer.Add(wx.StaticText(self, -1, 'Position:'), row = 3, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.position = wx.TextCtrl(self, -1, '')
+        self.position = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.workSizer.Add(self.position, row = 3, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.workSizer.Add(wx.StaticText(self, -1, 'Organisation:'), row = 5, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.organisation = wx.Choice(self, -1)
+        self.organisation = wx.Choice(self, -1, size = (137, -1))
         self.workSizer.Add(self.organisation, row = 5, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.workSizer.Add(wx.StaticText(self, -1, 'Keywords:'), row = 6, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
-        self.keywords = wx.TextCtrl(self, -1, '')
+        self.keywords = wx.TextCtrl(self, -1, '', size = (137, -1))
         self.workSizer.Add(self.keywords, row = 6, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
 
         self.workSizerB.Add(self.workSizer, 1, wx.ALL | wx.EXPAND, 0)
 
         sizer.Add(self.workSizerB, row = 1, col = 0, flag = wx.EXPAND)
+
+        # 3rd
+        self.locationSizerB = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Work'), wx.VERTICAL)
+        self.locationSizer = rcs.RowColSizer()
+
+        self.locationSizer.Add(wx.StaticText(self, -1, 'Language:'), row = 0, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.language = wx.Choice(self, -1, size = (137, -1))
+        self.locationSizer.Add(self.language, row = 0, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.locationSizer.Add(wx.StaticText(self, -1, 'Country:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.country = wx.Choice(self, -1, size = (137, -1))
+        self.locationSizer.Add(self.country, row = 1, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.locationSizer.Add(wx.StaticText(self, -1, 'State:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.state = wx.TextCtrl(self, -1, '', size = (137, -1))
+        self.locationSizer.Add(self.state, row = 2, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.locationSizer.Add(wx.StaticText(self, -1, 'City:'), row = 3, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.city = wx.TextCtrl(self, -1, '', size = (137, -1))
+        self.locationSizer.Add(self.city, row = 3, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.locationSizerB.Add(self.locationSizer, 1, wx.ALL | wx.EXPAND, 0)
+
+        sizer.Add(self.locationSizerB, row = 0, col = 2, flag = wx.EXPAND)
+
+        # 3th
+        self.backgroundSizerB = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Background'), wx.VERTICAL)
+        self.backgroundSizer = rcs.RowColSizer()
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Interests'), row = 0, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.backgroundSizer.Add(wx.StaticLine(self, -1, size = (100, -1)), row = 0, col = 2, flag = wx.ALIGN_CENTER)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Category:'), row = 1, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.interestsCategory = wx.Choice(self, -1, size = (137, -1))
+        self.backgroundSizer.Add(self.interestsCategory, row = 1, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Keywords:'), row = 2, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.interestsKeywords = wx.TextCtrl(self, -1, '', size = (137, -1))
+        self.backgroundSizer.Add(self.interestsKeywords, row = 2, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Past'), row = 3, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.backgroundSizer.Add(wx.StaticLine(self, -1, size = (100, -1)), row = 3, col = 2, flag = wx.ALIGN_CENTER)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Category:'), row = 4, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.pastCategory = wx.Choice(self, -1, size = (137, -1))
+        self.backgroundSizer.Add(self.pastCategory, row = 4, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Keywords:'), row = 5, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.pastKeywords = wx.TextCtrl(self, -1, '', size = (137, -1))
+        self.backgroundSizer.Add(self.pastKeywords, row = 5, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Home page'), row = 6, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.backgroundSizer.Add(wx.StaticLine(self, -1, size = (100, -1)), row = 6, col = 2, flag = wx.ALIGN_CENTER)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Category:'), row = 7, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.homePageCategory = wx.Choice(self, -1, size = (137, -1))
+        self.backgroundSizer.Add(self.homePageCategory, row = 7, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.backgroundSizer.Add(wx.StaticText(self, -1, 'Keywords:'), row = 8, col = 1, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.homePageKeywords = wx.TextCtrl(self, -1, '', size = (137, -1))
+        self.backgroundSizer.Add(self.homePageKeywords, row = 8, col = 2, flag = wx.ALIGN_CENTER_VERTICAL)
+
+        self.backgroundSizerB.Add(self.backgroundSizer, 1, wx.ALL | wx.EXPAND, 0)
+
+        sizer.Add(self.backgroundSizerB, row = 1, col = 2, flag = wx.EXPAND)
 
         # ---
         self.SetSizer(sizer)
