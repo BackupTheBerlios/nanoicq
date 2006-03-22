@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.102 2006/03/20 14:31:40 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.103 2006/03/22 12:47:17 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.102 2006/03/20 14:31:40 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.103 2006/03/22 12:47:17 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -255,6 +255,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onUserDelete(self, evt):
         name = evt.getVal()
+        evt.Skip()
         b = self.connector['icq'].getBuddy(name)
 
         rc = wx.MessageBox("Delete user %s?" % b.name, "Delete user", wx.YES_NO)

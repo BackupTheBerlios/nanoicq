@@ -1,10 +1,11 @@
 
 #
-# $Id: userlistctrl.py,v 1.15 2006/03/17 16:24:40 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.16 2006/03/22 12:47:17 lightdruid Exp $
 #
 
 import sys
 import wx
+import wx.lib.mixins.listctrl as listmix
 import wx.lib.mixins.listctrl as listmix
 
 sys.path.insert(0, '../..')
@@ -12,7 +13,48 @@ from events import *
 from buddy import Buddy
 from iconset import IconSet
 
-class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
+
+class NanoTextEditMixin(listmix.TextEditMixin):
+    def __init__(self):
+        listmix.TextEditMixin.__init__(self)
+        self.Unbind(wx.EVT_LEFT_DCLICK)
+
+        self.Bind(wx.EVT_CHAR, self.OnChar)
+
+    def OnLeftDown(self, evt=None):
+        evt.Skip()
+
+    def OnChar(self, event):
+        ''' Catch the TAB, Shift-TAB, cursor DOWN/UP key code
+            so we can open the editor at the next column (if any).'''
+
+        keycode = event.GetKeyCode()
+        print keycode
+        if keycode == wx.WXK_F2:
+
+            self.col_locs = [0]
+            loc = 0
+            for n in range(self.GetColumnCount()):
+                loc = loc + self.GetColumnWidth(n)
+                self.col_locs.append(loc)
+
+            if self.editor.IsShown():
+                event.Skip()
+            else:
+                self.CloseEditor()
+                if self.curRow >= 0:
+                    self._SelectIndex(self.curRow)
+                    self.OpenEditor(1, self.curRow)
+        elif keycode == wx.WXK_ESCAPE:
+            self.CloseEditor()
+        else:
+            event.Skip()
+
+
+class UserListCtrl(wx.ListCtrl, 
+    listmix.ListCtrlAutoWidthMixin,
+    listmix.ColumnSorterMixin,
+    NanoTextEditMixin):
 
     ID_SEND_MESSAGE = wx.NewId()
     ID_USER_DETAILS = wx.NewId()
@@ -25,6 +67,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         listmix.ColumnSorterMixin.__init__(self, 2)
+        NanoTextEditMixin.__init__(self)
 
         self.itemDataMap = {}
         self.currentItem = -1
@@ -91,6 +134,12 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
     def onSendMessage(self, evt):
         evt.Skip()
 
+        userName = self.getColumnText(self.currentItem, 1)
+
+        evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
+        evt.setVal((self.currentItem, userName))
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
     def onUserDetails(self, evt):
         evt.Skip()
 
@@ -137,6 +186,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSo
         return item.GetText()
 
     def onItemSelected(self, evt):
+        NanoTextEditMixin.OnItemSelected(self, evt)
         self.currentItem = evt.m_itemIndex
 
     def onItemDeselected(self, evt):
