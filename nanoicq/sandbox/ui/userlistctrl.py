@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.18 2006/03/22 14:20:25 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.19 2006/03/22 23:46:37 lightdruid Exp $
 #
 
 import sys
@@ -127,8 +127,14 @@ class UserListCtrl(wx.ListCtrl,
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDoubleClick)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onItemDeselected, self)
-        self.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.onRightClick)
 
+        if "wxMSW" in wx.PlatformInfo:
+            # Works on MSW only
+            self.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.onRightClick)
+        else:
+            # Works on GTK only, not sure about Mac
+            self.Bind(wx.EVT_RIGHT_UP, self.onRightClick)
+ 
     def createPopUpMenu(self):
         _topMenu = (
             (self.ID_SEND_MESSAGE, "Send message", "self.onSendMessage"),
