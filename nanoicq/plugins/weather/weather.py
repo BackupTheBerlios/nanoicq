@@ -1,12 +1,13 @@
 
 #
-# $Id: weather.py,v 1.6 2006/03/20 10:11:10 lightdruid Exp $
+# $Id: weather.py,v 1.7 2006/03/22 14:34:37 lightdruid Exp $
 #
 
 import sys
 sys.path.insert(0, '../..')
 from Plugin import Plugin, PluginException
 from message import *
+from icq import log
 
 _loaded = True
 
@@ -24,12 +25,20 @@ class Weather(Plugin):
         return _loaded
 
     def onIncomingMessage(self, buddy, message):
-        print 'onIncomingMessage', message.__dict__.keys(), message.__dict__['_user']
+
         if buddy.uin in self._trusted_uin:
-            print "'%s' is in trusted UINs" % buddy.uin 
-            if message.getContents().lower().find('weather') != -1:
+            log().log("WEATHER: '%s' is in trusted UINs" % buddy.uin)
+
+            txt = message.getContents().lower().strip()
+            if txt == 'weather':
                 m = messageFactory("icq", buddy.name, buddy.uin, self.formatReport(), Outgoing)
                 self.sendMessage(buddy, m)
+
+                # Set 'blocked' flag - do not deisplay message
+                message.blocked(True)
+        else:
+            log().log("WEATHER: '%s' is NOT in trusted UINs" % buddy.uin)
+
         return message
 
     def sendMessage(self, buddy = None, message = None):
@@ -100,7 +109,7 @@ class Weather(Plugin):
 
 
 def _test():
-    w = Weather('UMMS')
+    w = Weather('UMMS', None)
     print w.formatReport()
 
 if __name__ == '__main__':

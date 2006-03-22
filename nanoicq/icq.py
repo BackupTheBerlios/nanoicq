@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.89 2006/03/22 14:20:25 lightdruid Exp $
+# $Id: icq.py,v 1.90 2006/03/22 14:34:36 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1079,7 +1079,9 @@ class Protocol:
         data = data[1 : uinLen + 1]
         ntype = int(struct.unpack('!H', data[0:2])[0])
 
-        log().log('Got MTN from %s (not implemented yet)' % uin)
+        log().log('Got TYPING_NOTIFICATION from %s (not implemented yet)' % uin)
+
+        self.react('Typing notification', uin = uin, ntype = ntype)
 
     def proc_2_1_33(self, data, flag):
         '''

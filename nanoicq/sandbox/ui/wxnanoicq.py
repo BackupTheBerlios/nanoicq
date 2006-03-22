@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.103 2006/03/22 12:47:17 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.104 2006/03/22 14:34:37 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.103 2006/03/22 12:47:17 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.104 2006/03/22 14:34:37 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -522,7 +522,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
             print 'Applying plugin ' + k
             m = self._plugins[k].onIncomingMessage(b, m)
 
-        self._showMessageDialog(m, b)
+        if m.blocked():
+            log().log('Message is blocked, not needed to display it')
+        else:
+            self._showMessageDialog(m, b)
 
     def _showMessageDialog(self, m, b):
         d = self.findDialogForBuddy(b)
