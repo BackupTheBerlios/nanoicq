@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.88 2006/03/20 14:31:39 lightdruid Exp $
+# $Id: icq.py,v 1.89 2006/03/22 14:20:25 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -578,8 +578,8 @@ class Protocol:
             return
 
         d = tlvs[0x01]
-        dump2file('new-uin.data', d)
-        print coldump(d)
+        #dump2file('new-uin.data', d)
+        #print coldump(d)
 
         d = d[10:]
         port = int(struct.unpack('!L', d[0:4])[0])
@@ -2034,11 +2034,11 @@ class Protocol:
         try:
             func = getattr(self, tmp)
             func(d[12:])
-        except AttributeError, exc:
-            print exc
+        except Exception, exc:
+            log().log("Exception while parsing user details: " + str(exc))
 
         if flag == 0:
-            print "*"*10, 'Last packet'
+            log().log("It was last META information packet")
             self.react('Last meta', buddy = self._currentUser)
             self._currentUser = None
 

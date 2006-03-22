@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.17 2006/03/22 13:10:14 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.18 2006/03/22 14:20:25 lightdruid Exp $
 #
 
 import sys
@@ -177,7 +177,7 @@ class UserListCtrl(wx.ListCtrl,
         evt.Skip()
 
     def onUserDelete(self, evt):
-        evt.Skip()
+        #evt.Skip()
         userName = self.getColumnText(self.currentItem, 1)
 
         evt = NanoEvent(nanoEVT_USER_DELETE, self.GetId())

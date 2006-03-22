@@ -1,6 +1,6 @@
 
 #
-# $Id: persistence.py,v 1.8 2006/03/09 15:36:01 lightdruid Exp $
+# $Id: persistence.py,v 1.9 2006/03/22 14:20:25 lightdruid Exp $
 #
 
 import wx
@@ -24,14 +24,12 @@ class PersistenceMixin:
 
         for o in objs:
             ids = o.GetName()
-            # print 'Processing', o.__class__, ids
 
             pos = self.FindWindowByName(ids).GetPosition()
             size = self.FindWindowByName(ids).GetSize()
 
             try:
                 sash = self._frame.FindWindowByName(ids).GetSashPosition(0)
-                #print 'Got sahs position: ', sash
             except Exception, exc:
                 if __debug__: print "Unable to find sash: " + str(exc)
                 sash = None
@@ -58,6 +56,7 @@ class PersistenceMixin:
             if sash is not None:
                 self._frame.FindWindowByName(ids).SetSashPosition(0, sash)
             self.FindWindowByName(ids).Layout()
+            self.FindWindowByName(ids).Refresh()
 
     def storeGeometry(self):
         fp = open(self._fileName, "wb")

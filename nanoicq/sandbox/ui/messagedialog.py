@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.35 2006/03/20 16:14:19 lightdruid Exp $
+# $Id: messagedialog.py,v 1.36 2006/03/22 14:20:25 lightdruid Exp $
 #
 
 import sys
@@ -33,7 +33,6 @@ class MySplitter(MultiSplitterWindow):
             style = wx.SP_LIVE_UPDATE, name = name)
 
     def SetSashPosition(self, idx, newPos1):
-        print '_DoSetSashPosition:', idx, newPos1
         self._DoSetSashPosition(idx, newPos1)
 
 
@@ -41,13 +40,11 @@ class NanoTextDropTarget(wx.TextDropTarget):
     def __init__(self, window):
         wx.TextDropTarget.__init__(self)
         self.window = window
-        print 'NanoTextDropTarget.__init__'
 
     def OnDropText(self, x, y, text):
         log().log("Drop: (%d, %d)\n%s\n" % (x, y, text))
 
     def _OnDragOver(self, x, y, d):
-        print wx.DragCopy
         return wx.DragCopy
 
 
@@ -197,6 +194,14 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         if message is not None:
             self.updateMessage(message)
+
+    def Show(self, flag = True):
+        wx.Frame.Show(self, flag)
+        self._outgoing.SetFocus()
+
+    def Raise(self):
+        wx.Frame.Raise(self)
+        self._outgoing.SetFocus()
 
     def populateHistory(self, mmax = None):
         '''
