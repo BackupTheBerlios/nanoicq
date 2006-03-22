@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.16 2006/03/22 12:47:17 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.17 2006/03/22 13:10:14 lightdruid Exp $
 #
 
 import sys
@@ -17,19 +17,18 @@ from iconset import IconSet
 class NanoTextEditMixin(listmix.TextEditMixin):
     def __init__(self):
         listmix.TextEditMixin.__init__(self)
-        self.Unbind(wx.EVT_LEFT_DCLICK)
 
-        self.Bind(wx.EVT_CHAR, self.OnChar)
+        self.Unbind(wx.EVT_LEFT_DCLICK)
+        self.Bind(wx.EVT_CHAR, self.onMainChar)
+
+        self._origValue = self.editor.GetValue()
 
     def OnLeftDown(self, evt=None):
         evt.Skip()
 
-    def OnChar(self, event):
-        ''' Catch the TAB, Shift-TAB, cursor DOWN/UP key code
-            so we can open the editor at the next column (if any).'''
+    def onMainChar(self, event):
 
         keycode = event.GetKeyCode()
-        print keycode
         if keycode == wx.WXK_F2:
 
             self.col_locs = [0]
@@ -47,6 +46,31 @@ class NanoTextEditMixin(listmix.TextEditMixin):
                     self.OpenEditor(1, self.curRow)
         elif keycode == wx.WXK_ESCAPE:
             self.CloseEditor()
+            #self.editor.SetValue(self._origValue)
+        else:
+            event.Skip()
+
+    def OnChar(self, event):
+
+        keycode = event.GetKeyCode()
+
+        if keycode == wx.WXK_TAB and event.ShiftDown():
+            self.CloseEditor()
+            if self.curCol-1 >= 0:
+                self.OpenEditor(self.curCol-1, self.curRow)
+            
+        elif keycode == wx.WXK_TAB:
+            self.CloseEditor()
+            if self.curCol+1 < self.GetColumnCount():
+                self.OpenEditor(self.curCol+1, self.curRow)
+
+        elif keycode == wx.WXK_ESCAPE:
+            self.CloseEditor()
+            #self.editor.SetValue(self._origValue)
+
+        elif keycode in [wx.WXK_UP, wx.WXK_DOWN]:
+            pass
+
         else:
             event.Skip()
 
