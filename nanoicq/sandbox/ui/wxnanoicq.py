@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.104 2006/03/22 14:34:37 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.105 2006/03/30 14:22:04 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.104 2006/03/22 14:34:37 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.105 2006/03/30 14:22:04 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -218,6 +218,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_USER_DELETE, self.onUserDelete)
         self.Bind(EVT_REQUEST_USER_INFO, self.onRequestUserInfo)
         self.Bind(EVT_GOT_USER_INFO, self.onGotUserInfo)
+        self.Bind(EVT_AUTHENTIFICATION_REQUEST, self.onAuthentificationRequest)
 
         self._keepAliveTimer = wx.Timer(self)
         if self.config.has_option('icq', 'keep.alive.interval'):
@@ -240,6 +241,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def onAuthentificationRequest(self, evt):
+        b = evt.getVal()
+        rc = wx.MessageBox('Got authentification request from ' + b.name + ", allow?",
+            'Request', wx.YES_NO)
+
+        self.connector['icq'].sendAuthorizationReply(b, rc == wx.YES)
 
     def onRequestUserInfo(self, evt):
         print 'onRequestUserInfo'
@@ -440,6 +448,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
         wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
         if hasattr(self, 'registerFrame'):
             self.registerFrame.GetEventHandler().AddPendingEvent(evt)
+
+    def event_Authentification_request(self, kw):
+        b = kw['buddy']
+
+        evt = NanoEvent(nanoEVT_AUTHENTIFICATION_REQUEST, self.GetId())
+        evt.setVal(b)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
     def event_New_UIN(self, kw):
         print 'Called event_New_UIN'

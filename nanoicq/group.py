@@ -1,12 +1,17 @@
 
 #
-# $Id: group.py,v 1.15 2006/03/17 12:56:49 lightdruid Exp $
+# $Id: group.py,v 1.16 2006/03/30 14:22:04 lightdruid Exp $
 #
 
 import os
 
 from buddy import Buddy
 from utils import *
+
+
+class NotFound(Exception):
+    pass
+
 
 class Group:
     def __init__(self, fileName):
@@ -52,7 +57,7 @@ class Group:
         for b in self._b.values():
             if b.uin == uin:
                 return b
-        raise Exception("UIN '%s' not found in buddies list" % uin)
+        raise NotFound("UIN '%s' not found in buddies list" % uin)
 
     def __getitem__(self, key):
         return self._g[key]

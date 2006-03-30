@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.91 2006/03/30 10:36:00 lightdruid Exp $
+# $Id: icq.py,v 1.92 2006/03/30 14:22:04 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -24,7 +24,7 @@ from snacs import *
 from isocket import ISocket
 
 from buddy import Buddy
-from group import Group
+from group import Group, NotFound
 from history import History
 import HistoryDirection
 
@@ -32,6 +32,8 @@ import caps
 from logger import log, init_log, LogException
 from message import messageFactory
 from proxy import *
+
+_default_reject_reason = 'Your authorization request is rejected, reason unknown'
 
 init_log([sys.stdout, open('nanoicq.log', 'wb')])
 
@@ -96,6 +98,10 @@ _messageTypes = {
 0xEB:    "MTYPE_AUTODND",
 0xEC:    "MTYPE_AUTOFFC",
 }   
+
+MTYPE_AUTHREQ =    0x06
+MTYPE_AUTHDENY =   0x07
+MTYPE_AUTHOK =     0x08
 
 _messageFlags = {
 0x01:    "MFLAG_NORMAL",
@@ -1713,6 +1719,24 @@ class Protocol:
 
         #self.sendActivateSSIList()
 
+    def sendAuthorizationReply(self, b, flag, reason = None):
+        '''
+        Approve/reject authentification request which we've got from user
+        '''
+
+        if flag: flag = 1
+        else: flag = 0
+
+        if reason is None:
+            reason = _default_reject_reason
+
+        data = struct.pack('!B', len(b.uin)) + b.uin
+        data += struct.pack('!B', flag)
+        data += struct.pack('!B', len(reason)) + reason
+
+        log().log("Sending authorization reponse (%d) to %s" % (flag, b.uin))
+        self.sendSNAC(0x13, 0x0A, 0, data)
+
     def proc_2_4_1(self, data, flag):
         '''
         SNAC(04,01)     SRV_ICBM_ERROR      
@@ -1828,15 +1852,26 @@ class Protocol:
         # Dispatch on message channel
         tmp = "proc_2_4_7_%d" % messageChannel
         func = getattr(self, tmp)
-        msg = func(tlvs)
+        mtype, msg = func(tlvs)
 
         # FIXME: will throw exceptino when buddy is not in current list
-        b = self._groups.getBuddyByUin(sname)
+        try:
+            b = self._groups.getBuddyByUin(sname)
+        except NotFound, exc:
+            log().log("Looks like new user: " + str(exc))
 
-        m = messageFactory("icq",
-            b.name, b.uin, msg, HistoryDirection.Incoming)
+            b = Buddy()
+            b.uin = sname
+            b.name = sname
 
-        self.react("Incoming message", buddy = b, message = m)
+        if mtype == MTYPE_AUTHREQ:
+            log().log("Got authentification request message")
+            self.react("Authentification request", buddy = b)
+        else:
+            m = messageFactory("icq",
+                b.name, b.uin, msg, HistoryDirection.Incoming)
+
+            self.react("Incoming message", buddy = b, message = m)
 
 #        try:
 #            if msg == 'winamp':
@@ -1896,7 +1931,7 @@ class Protocol:
         self.parseMessageType(mtype)
         self.parseMessageFlags(mflags)
 
-        return msg
+        return (mtype, msg)
 
     def proc_2_4_7_1(self, tlvs):
         '''  Channel 1 message format (typed old-style messages) '''
@@ -1910,7 +1945,7 @@ class Protocol:
         msg = t[6:]
 
         log().log('Message type 1: ' + str(msg))
-        return msg
+        return (0, msg)
 
     def proc_2_4_12(self, data, flag):
         '''
