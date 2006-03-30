@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.90 2006/03/22 14:34:36 lightdruid Exp $
+# $Id: icq.py,v 1.91 2006/03/30 10:36:00 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -413,10 +413,14 @@ class Protocol:
             print 'len(buf) < 6', len(buf) < 6
             return
         flap = struct.unpack(header, buf[:6])
-        if len(buf) < 6 + flap[3]:
-            print 'len(buf) < 6 + flap[3]', len(buf) < 6 + flap[3]
-            print 'len(buf), flap[3]', len(buf), int(flap[3])
-            return
+
+        # ========================
+        #if len(buf) < 6 + flap[3]:
+        #    print 'len(buf) < 6 + flap[3]', len(buf) < 6 + flap[3]
+        #    print 'len(buf), flap[3]', len(buf), int(flap[3])
+        #    return
+        # ========================
+
         data, buf = buf[6:6 + flap[3]], buf[6 + flap[3]:]
         return [flap[1], buf, data]
 

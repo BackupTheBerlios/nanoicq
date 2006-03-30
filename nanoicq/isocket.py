@@ -1,12 +1,17 @@
 
 #
-# $Id: isocket.py,v 1.15 2006/02/11 00:31:15 lightdruid Exp $
+# $Id: isocket.py,v 1.16 2006/03/30 10:36:00 lightdruid Exp $
 #
 
 import socket
 import thread
 import struct
 import time
+
+
+def _fake_log(s):
+    print 'FAKE LOG:', s
+
 
 class ISocket:
     _mutex = thread.allocate_lock()
@@ -68,26 +73,53 @@ class ISocket:
             raise
 
         length += 6
+
+        # How many times to try to recover and read number of bytes
+        # specified in header
+        max_attempts = 5 
+
+        # And how long we should wait for next portion in seconds
+        sleep_timout = 0.1
+
         lnbuf = len(buf)
 
         if lnbuf != length:
-            print "Actual packet length (%d) differs from header length (%d)" %\
-                (lnbuf, length)
+            _fake_log("Actual packet length (%d) differs from header length (%d)" %\
+                (lnbuf, length))
 
-            if length > lnbuf:
-                gap = length - lnbuf
-                print 'Trying to recover and read %d bytes...' % gap
+            attempt = 1
+            while True:
+                lnbuf = len(buf)
 
-                try:
-                    self._mutex.acquire()
-                    buf2 = self._sock.recv(gap)
-                    self._mutex.release()
-                    buf += buf2
-                except socket.error, err:
-                    self._mutex.release()
-                    print 'Unable to recover:' + str(err)
-            else:
-                print 'Unable to recover'
+                if length > lnbuf:
+                    gap = length - lnbuf
+                    _fake_log('Trying to recover and read %d bytes...' % gap)
+
+                    try:
+                        self._mutex.acquire()
+                        buf2 = self._sock.recv(gap)
+                        self._mutex.release()
+
+                        buf += buf2
+
+                        _fake_log('Got %d bytes in %d attempt' % (len(buf2), attempt))
+
+                        if len(buf) != length:
+                            _fake_log('Even after retrying len(buf) = %d bytes' % (len(buf)))
+                            time.sleep(sleep_timout)
+                        else:
+                            _fake_log('Recover complete')
+                            break
+
+                    except socket.error, err:
+                        self._mutex.release()
+                        _fake_log('Unable to recover:' + str(err))
+                else:
+                    _fake_log('Unable to recover after %d attempts' % max_attempts)
+                    if attempt > max_attempts:
+                        break
+
+                attempt += 1
 
         return buf
 
