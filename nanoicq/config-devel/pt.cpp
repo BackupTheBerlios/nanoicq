@@ -149,11 +149,8 @@ class PatriciaTree {
 
     template <>
     bool compare(char* k1, char* k2) {
-            //std::cerr << "compare" << std::endl;
-        if(!k1 || !k2) {
+        if(!k1 || !k2)
             return false;
-        }
-            //std::cerr << k1 << ":" << k2 << std::endl;
         return strcmp(k1, k2) == 0;
     }
 
