@@ -1,9 +1,15 @@
 
+// Patricia tree 
+// http://www.dcc.uchile.cl/~rbaeza/handbook/algs/3/3445.ins.c.html
+
 #include <algorithm>
 #include <functional>
 #include <memory>
 #include <cassert>
 #include <iostream>
+
+#define ZZ std::cerr << "line: " << __LINE__ << std::endl;
+
 
 template <class K, class D>
 class PatriciaTree;
@@ -26,6 +32,8 @@ public:
     ~PatriciaTreeNode();
 
     PatriciaTreeNode(const PatriciaTreeNode& ptn);
+    PatriciaTreeNode(const K& nkey, const D& ndata,
+        const TPT& nright, const TPT& nleft, const int nsplit_bit);
     PatriciaTreeNode& operator=(const PatriciaTreeNode& ptn);
 
     void setData(const D& d) {
@@ -56,6 +64,13 @@ template <class K, class D>
 PatriciaTreeNode<K, D>::PatriciaTreeNode() : key(), data(), split_bit(-1) {
     right = this;
     left = this;
+}
+
+template <class K, class D>
+PatriciaTreeNode<K, D>::PatriciaTreeNode(const K& nkey, const D& ndata,
+    const TPT& nright, const TPT& nleft, const int nsplit_bit)
+        : key(nkey), data(ndata), left(nleft), right(nright), 
+            split_bit(nsplit_bit) {
 }
 
 template <class K, class D>
@@ -114,6 +129,9 @@ class PatriciaTree {
         return k1 == k2;
     }
 
+    // Will fail if bit number > std::numeric_limits<int>::max()
+    int findSplitBit(const K& k1, const K& k2);
+
 public:
     PatriciaTree() {
         root = new node();
@@ -137,8 +155,6 @@ int PatriciaTree<K, D>::getBit(K d, int n) {
 
 template <class K, class D>
 bool PatriciaTree<K, D>::insert(K key, D data) {
-    bool rc = false;
-
     pnode p = root;
     pnode r = p->right;
 
@@ -148,24 +164,47 @@ bool PatriciaTree<K, D>::insert(K key, D data) {
     }
 
     if(compare(key, r->key))
-        return rc;
+        return false;
 
-    return rc;
+    // split bit
+    int sb = findSplitBit(key, r->key);
+    assert(sb >= 0);
+
+    // rewind
+    p = root;
+    pnode n = p->right;
+
+    // can we remember n->split_bit < sb pos in upper cycle?
+    while(p->split_bit < n->split_bit && n->split_bit < sb) {
+        p = n;
+        n = getBit(key, n->split_bit) ? n->right : n->left;
+    }
+
+    // create a new internal node
+    int nb = getBit(key, sb);
+    assert(nb >= 0);
+    pnode newNode = new node(key, data, nb ? n : r, nb ? r : n, sb);
+
+    // balance
+    getBit(key, p->split_bit) ? p->right = newNode : p->left = newNode;
+
+    return true;
 }
 
-// Patricia tree insertion
-// http://www.dcc.uchile.cl/~rbaeza/handbook/algs/3/3445.ins.c.html
 
 template <class K, class D>
 int PatriciaTree<K, D>::findSplitBit(const K& k1, const K& k2) {
     int byte = 0;
+
+    if(!k1 || !k2)
+        return 0;
 
     for(; k1[byte] != 0 && k2[byte] != 0 && k1[byte] == k2[byte]; ++byte) {
         // empty
     }
 
     int bit = 0;
-    for(; getBit(k1[byte], bit) != getBit(k2[byte], bit); ++bit) {
+    for(; getBit(&k1[byte], bit) != getBit(&k2[byte], bit); ++bit) {
         // empty
     }
 

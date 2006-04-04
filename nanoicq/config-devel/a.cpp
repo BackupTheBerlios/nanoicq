@@ -42,6 +42,16 @@ template <class Y> void ff(A<K, D>& a, const Y& val) {
     cout << "A<K, D>::f<D>()" << endl;
 }
 
+template <class Y> void fun1(Y val) {
+    cout << "fun1(Y val)" << endl;
+}
+template <class Y> void fun1(Y* val) {
+    cout << "fun1(Y* val)" << endl;
+}
+template <> void fun1(int val) {
+    cout << "fun1(int val)" << endl;
+}
+
 int main() {
     A<int, int> a1;
     a1.w();
@@ -73,6 +83,15 @@ int main() {
 
     int i = 20;
     cout << (i<<3) << ":" << (i * 8) << endl;
+
+    fun1(i);
+    fun1(&i);
+    fun1(junk1);
+    fun1(a1);
+
+    int j;
+    i == 0 ? j = 1 : j = 2;
+    cout << j << endl;
 
     return 0;
 }
