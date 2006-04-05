@@ -294,7 +294,8 @@ int main() {
     // ---
     PatriciaTree<char*, int>* ptn7 = new PatriciaTree<char*, int>();
     const int MX = 100;
-    for(int ii = 0; ii < MX; ++ii) {
+    int ii;
+    for(ii = 0; ii < MX; ++ii) {
         static char c[10];
         sprintf(c, "string #%d", ii);
         assert(ptn7->insert(c, ii) != 0);
