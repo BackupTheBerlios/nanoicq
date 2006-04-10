@@ -3,6 +3,11 @@
 
 using namespace std;
 
+class A {
+public:
+int pad;
+};
+
 void as_bin(const int bb) {
     for(int ii = sizeof(bb) << 3; ii >= 0; --ii) {
         if(bb & (1 << ii))
@@ -16,6 +21,12 @@ void as_bin(const int bb) {
 int main() {
     const int JMX = 8;
     int ii = 29;
+
+    int c = 0;
+    A** buffer = new A*[offsetof(A, pad) * ii];
+    void *p = buffer[c];
+    //c += sizeof(A);
+    A* a1 = new (p) A();
 
     for(int jj = 0; jj < JMX; ++jj) {
         cout << "j = " << jj << ", " << ii << " << " << jj << " = " << (ii << jj) << endl;

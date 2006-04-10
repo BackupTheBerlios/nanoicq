@@ -2,6 +2,9 @@
 // Patricia tree 
 // http://www.dcc.uchile.cl/~rbaeza/handbook/algs/3/3445.ins.c.html
 
+#define _CRT_SECURE_NO_DEPRECATE 1
+#define _CRT_NONSTDC_NO_DEPRECATE 1
+
 #include <algorithm>
 #include <functional>
 #include <memory>
@@ -73,7 +76,7 @@ PatriciaTreeNode<K, D>::PatriciaTreeNode() : key(), data(), split_bit(-1) {
 template <class K, class D>
 PatriciaTreeNode<K, D>::PatriciaTreeNode(const K& nkey, const D& ndata,
     const TPT& nright, const TPT& nleft, const int nsplit_bit)
-        : left(nleft), right(nright), 
+        : left(nleft), right(nright),
             split_bit(nsplit_bit) {
 
     key = strdup(nkey);
@@ -135,19 +138,21 @@ PatriciaTreeNode<K, D>::operator!=(const PatriciaTreeNode& ptn) const {
 template <class K, class D>
 class PatriciaTree {
 
-    typedef typename PatriciaTreeNode<K, D> node;
-    typedef typename node* pnode;
+    typedef PatriciaTreeNode<K, D> node;
+    typedef node* pnode;
 
     pnode root;
+	pnode* buffer;
+	int maxNodes_;
+	int curNode;
 
     int getBit(K d, int n);
 
-    template <class Y>
+    template <class Y, class Z>
     bool compare(Y k1, Y k2) {
         return k1 == k2;
     }
 
-    template <>
     bool compare(char* k1, char* k2) {
         if(!k1 || !k2)
             return false;
@@ -158,13 +163,20 @@ class PatriciaTree {
     int findSplitBit(const K& k1, const K& k2);
 
 public:
-    PatriciaTree() {
+    PatriciaTree(int maxNodes = 64) : maxNodes_(maxNodes), curNode(0) {
         root = new node();
         root->key = K();
+		buffer = new pnode[maxNodes_ * sizeof(node)];
     }
+
+    ~PatriciaTree() {
+		delete root;
+		delete [] buffer;
+	}
 
     pnode insert(K key, D data);
 };
+
 
 template <class K, class D>
 int PatriciaTree<K, D>::getBit(K d, int n) {
@@ -210,7 +222,11 @@ PatriciaTree<K, D>::insert(K key, D data) {
     int nb = getBit(key, sb);
     assert(nb >= 0);
 
-    pnode newNode = new node();
+	void *z = buffer[curNode];
+	curNode += sizeof(node);
+    pnode newNode = new (z) node();
+	cerr << curNode << endl;
+    //pnode newNode = new (buffer[curNode++]) node();
     newNode->init(key, data, nb ? newNode : n, nb ? n : newNode, sb);
 
     // balance
@@ -311,6 +327,8 @@ int main() {
     //FX* fx = new FX('1');
     //ptn8->insert(FX('1'), 1);
     delete ptn8;
+
+	delete ptn2;
 
     std::cout << "Ok" << std::endl;
 
