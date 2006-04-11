@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.12 2006/03/21 13:04:02 lightdruid Exp $
+# $Id: UserInfo.py,v 1.13 2006/04/11 12:00:27 lightdruid Exp $
 #
 
 import sys
@@ -47,7 +47,6 @@ def _conv_country(v):
         return _NA
 
 def _conv_lang(v):
-    print 'LANG:', v
     try:
         return codes.languages[v]
     except:
@@ -71,8 +70,8 @@ class _Pane_auto:
         self.sz.Add(self.FindWindowByName(name), row = self.r, col = self.c + 2)
         self.FindWindowByName(name).SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
 
-        if proc is not None:
-            print proc, name, val
+        #if proc is not None:
+        #    print proc, name, val
 
         if hasattr(self.b, name):
             v = eval('self.b.%s' % name)
@@ -85,7 +84,7 @@ class _Pane_auto:
         elif val is not None:
             self.FindWindowByName(name).SetValue(val)
         else:
-            print 'NOT FOUND', name
+            #print 'NOT FOUND', name
             self.FindWindowByName(name).SetValue(self._NA)
 
         if self.FindWindowByName(name).GetValue() == self._NA:

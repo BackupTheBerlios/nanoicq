@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.92 2006/03/30 14:22:04 lightdruid Exp $
+# $Id: icq.py,v 1.93 2006/04/11 12:00:27 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -908,6 +908,21 @@ class Protocol:
         log().log("Sending (04,04) CLI_ICBM_PARAM_REQ - ICBM service parameters")
         self.sendSNAC(0x04, 0x04, 0, '')
 
+    def sendIdleTime(self, secs = 0):
+        '''
+        SNAC(01,11)     CLI_SETxIDLExTIME  
+
+        Set idle information. If idle_secs field is 0 then the user 
+        isn't idle at all and the server informs all watching clients 
+        to remove idletime-string in their tooltip of my uin-item. 
+        If idle_secs field is greater then 0 then the user has already 
+        been idle for idle_secs number of seconds. The server will 
+        automatically keep incrementing this number, so do not repeatedly 
+        call with new idle times. 
+        '''
+        log().log("Sending (01,11) CLI_SETxIDLExTIME")
+        self.sendSNAC(0x01, 0x11, 0, struct.pack("!L", secs))
+
     def proc_2_19_3(self, data, flag):
         '''
         SNAC(13,03)     SRV_SSI_RIGHTS_REPLY 
@@ -924,8 +939,19 @@ class Protocol:
         contact. After this snac server start send presense notifications 
         for you.
         '''
-        log().log("Sending (13,07) CLI_SSI_ACTIVATE ")
+        log().log("Sending (13,07) CLI_SSI_ACTIVATE")
         self.sendSNAC(0x13, 0x07, 0, '')
+
+        '''
+        SNAC(01,02)     CLI_READY  
+
+        This is the last snac in protocol negotiation sequence. 
+        It tells BOS that we are ready to go online. 
+        Client must send this snac within 30 seconds after signon, or the 
+        connection will be dropped.
+        '''
+        log().log('Sending (01,02) CLI_READY')
+        self.sendClientReady_original()
 
         # Status
         icqStatus = 0x00
@@ -977,16 +1003,10 @@ class Protocol:
         log().log('Sending (01,0E) CLI_REQ_SELFINFO')
         self.sendSNAC(0x01, 0x1e, 0, t)
 
-        '''
-        SNAC(01,02)     CLI_READY  
+        self.sendIdleTime(0)
 
-        This is the last snac in protocol negotiation sequence. 
-        It tells BOS that we are ready to go online. 
-        Client must send this snac within 30 seconds after signon, or the 
-        connection will be dropped.
-        '''
-        log().log('Sending (01,02) CLI_READY  ')
-        self.sendClientReady_original()
+        log().log('Getting offline messages...')
+        self.getOfflineMessages(self._config.get('icq', 'uin'))
 
     def sendClientReady(self):
         '''
@@ -2416,14 +2436,14 @@ class Protocol:
         # FIMXE: wtf?
         log().log("CLI_WHITE_PAGES_SEARCH2")
 
-    def getOfflineMessages(self):
+    def getOfflineMessages(self, uin):
         ''' 
         Client sends this SNAC when wants to retrieve messages 
         that was sent by another user and buffered by server during 
         client was offline. 
         '''
         # FIXME: 15/02 - wrong type for offline message retrieveing
-        tlvs = tlv(0x01, '\x00\x08' + struct.pack("<L", int(username)) + '\x3c\x00\x02\x00')
+        tlvs = tlv(0x01, '\x08\x00' + struct.pack("<L", int(uin)) + '\x3c\x00\x10\x00')
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
     def sendHelloServer(self):
