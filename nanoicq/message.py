@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.14 2006/03/15 15:42:30 lightdruid Exp $
+# $Id: message.py,v 1.15 2006/04/11 14:14:33 lightdruid Exp $
 #
 
 import time
@@ -8,6 +8,13 @@ import types
 
 from utils import *
 from HistoryDirection import Incoming, Outgoing
+
+class MessageQueue(list):
+    def append(self, m):
+        super(MessageQueue, self).append(m)
+
+    def prune(self):
+        del self[0:len(self)]
 
 class Message:
     ICQ_MESSAGE = "icq"
@@ -99,6 +106,18 @@ def _test():
     assert mm2.blocked() == False
     mm2.blocked(True)
     assert mm2.blocked() == True
+
+    mq = MessageQueue()
+    assert len(mq) == 0
+    mq.append(mm)
+    mq.append(mm2)
+    assert len(mq) == 2
+
+    for t in mq:
+        assert isinstance(t, Message)
+
+    mq.prune()
+    assert len(mq) == 0
 
 if __name__ == '__main__':
     _test()

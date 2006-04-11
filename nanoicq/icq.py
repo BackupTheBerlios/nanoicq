@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.93 2006/04/11 12:00:27 lightdruid Exp $
+# $Id: icq.py,v 1.94 2006/04/11 14:14:33 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -16,6 +16,7 @@ import socket
 import types
 import cStringIO
 import traceback
+import datetime
 
 #socket.setdefaulttimeout(1.0)
 
@@ -30,7 +31,7 @@ import HistoryDirection
 
 import caps
 from logger import log, init_log, LogException
-from message import messageFactory
+from message import messageFactory, MessageQueue
 from proxy import *
 
 _default_reject_reason = 'Your authorization request is rejected, reason unknown'
@@ -294,10 +295,6 @@ def readTLVsd(data):
     return (d, out)
 
 
-#2a020d57002a 0001001700000000001700010003000200010003000100150001000400010006000100090001000a0001
-#2A0200010036 0001001700000000000000010003000200010003000100040001000600010008000100090001000A0001000B0001000C000100130003
-#             00010017000000000000
-
 class Protocol:
     _groupsFile = 'groups.nanoicq'
 
@@ -316,7 +313,9 @@ class Protocol:
             self._groups = Group.load(self._groupsFile)
         else:
             self._groups = Group(self._groupsFile)
+
         self._currentUser = None
+        self._offlineMessageQueue = MessageQueue()
 
     def saveState(self):
         # FIXME:
@@ -2070,25 +2069,97 @@ class Protocol:
 
         self.sendSNAC(0x03, 0x04, 0, out)
 
+    def proc_2_21_3_41(self, data, flag):
+        '''
+        SNAC(15,03)/0041    SRV_OFFLINE_MESSAGE  
+
+        This is the server response to cli_offline_msgs_req SNAC(15,02)/003C. 
+        This snac contain single offline message that was sent by another 
+        user and buffered by server when client was offline.         
+        '''
+        log().log('SNAC(15,03)/0041 SRV_OFFLINE_MESSAGE')
+
+        tlvs = readTLVs(data)
+        d = tlvs[1]
+
+        dsize, targetUin, dataType, seqNum = struct.unpack("<HLHH", d[:10])
+        assert dataType == 0x41
+        assert seqNum == 0x02
+
+        d = d[10:]
+        ownerUin = str(int(struct.unpack("<L", d[:4])[0]))
+        year = struct.unpack("<H", d[4:6])[0]
+        month, day, hour, minute, mtype, mflags, mlen = struct.unpack("!ccccccH", d[6:6+8])
+        month, day, hour, minute, mtype, mflags = map(ord, [month, day, hour, minute, mtype, mflags])
+
+        # FIXME: wrong handling of TZ
+        if time.localtime()[-1] != 0:
+            td = datetime.timedelta(hours = abs(time.altzone / 60 / 60) - time.localtime()[-1])
+
+            if time.altzone < 0:
+                dt = datetime.datetime(year, month, day, hour, minute) + td
+            elif time.altzone > 0:
+                dt = datetime.datetime(year, month, day, hour, minute) - td
+        else:
+            dt = datetime.datetime(year, month, day, hour, minute)
+        log().log("Message was send at: " + dt.ctime())
+
+        text = d[8 + 6:-1]
+        log().log("Message text:\n" + ashex(text))
+
+        msg = messageFactory("icq", ownerUin, ownerUin, text, HistoryDirection.Incoming)
+        self._offlineMessageQueue.append(msg)
+
+    def proc_2_21_3_42(self, data, flag):
+        '''
+        SNAC(15,03)/0042    SRV_END_OF_OFFLINE_MSGS  
+
+        This is the last SNAC in server response to cli_offline_msgs_req 
+        SNAC(15,02)/003C. It doesn't contain message - it is only 
+        end_of_sequence marker. 
+        '''
+        log().log('Got SNAC(15,03)/0042 SRV_END_OF_OFFLINE_MSGS')
+
+        tlvs = readTLVs(data)
+        d = tlvs[1]
+
+        dsize, ownerUin, dataType, seqNum = struct.unpack("<HLHH", d[:10])
+        assert dataType == 0x42
+        assert seqNum == 0x02
+
+        self.react('Offline messages', queue = self._offlineMessageQueue)
+
     def proc_2_21_3(self, data, flag):
         '''
         SNAC(15,03)     SRV_META_REPLY  
 
         This is the server response to client meta request SNAC(15,02). 
         '''
-        log().log('Got (15,03)     SRV_META_REPLY')
         tlvs = readTLVs(data)
         d = tlvs[1]
-        #print coldump(d)
 
-        dsize, ownerUin, dataType, seqNum, dataSubType = struct.unpack("<HLHHH", d[:12])
-        #print dsize, ownerUin, dataType, seqNum, dataSubType
+        # First we should distinguish two different types of messsages,
+        # is it SNAC(15,03)/0041 SRV_OFFLINE_MESSAGE or SRV_META_REPLY
+
+        dsize, ownerUin, dataType, seqNum = struct.unpack("<HLHH", d[:10])
+        if dataType == 0x41 and seqNum == 0x02:
+            # Got SRV_OFFLINE_MESSAGE
+            self.proc_2_21_3_41(data, flag)
+            return
+        elif dataType == 0x42 and seqNum == 0x02:
+            # Got SRV_END_OF_OFFLINE_MSGS
+            self.proc_2_21_3_42(data, flag)
+            return
+
+        log().log('Got (15,03) SRV_META_REPLY')
+
+        # Then parse the rest of data
+        dataSubType = struct.unpack("<H", d[10:12])
 
         dataTypeX = "%04X" % dataType
         dataSubTypeX = "%04X" % dataSubType
 
         tmp = "userFound_%s_%s" % (dataTypeX, dataSubTypeX)
-        #print tmp
 
         dump2file(tmp, d[12:])
 
@@ -2443,7 +2514,7 @@ class Protocol:
         client was offline. 
         '''
         # FIXME: 15/02 - wrong type for offline message retrieveing
-        tlvs = tlv(0x01, '\x08\x00' + struct.pack("<L", int(uin)) + '\x3c\x00\x10\x00')
+        tlvs = tlv(0x01, '\x08\x00' + struct.pack("<L", int(uin)) + '\x3c\x00\x02\x00')
         self.sendSNAC(0x15, 0x02, 0, tlvs)
 
     def sendHelloServer(self):

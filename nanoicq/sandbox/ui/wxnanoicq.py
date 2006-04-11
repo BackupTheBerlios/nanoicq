@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.105 2006/03/30 14:22:04 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.106 2006/04/11 14:14:34 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.105 2006/03/30 14:22:04 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.106 2006/04/11 14:14:34 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -437,6 +437,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'going to call ' + fn + '()'
 
         func(kw[1:][0])
+
+    def event_Offline_messages(self, kw):
+        q = kw['queue']
+        print q
+
+        evt = NanoEvent(nanoEVT_OFFLINE_MESSAGES, self.GetId())
+        evt.setVal(q)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
 
     def event_Got_CAPTCHA(self, kw):
         print 'Called event_Got_CAPTCHA'

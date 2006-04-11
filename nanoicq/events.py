@@ -1,9 +1,12 @@
 
 #
-# $Id: events.py,v 1.17 2006/03/30 14:22:04 lightdruid Exp $
+# $Id: events.py,v 1.18 2006/04/11 14:14:33 lightdruid Exp $
 #
 
 import wx
+
+nanoEVT_OFFLINE_MESSAGES = wx.NewEventType()
+EVT_OFFLINE_MESSAGES = wx.PyEventBinder(nanoEVT_OFFLINE_MESSAGES, 1)
 
 nanoEVT_AUTHENTIFICATION_REQUEST = wx.NewEventType()
 EVT_AUTHENTIFICATION_REQUEST = wx.PyEventBinder(nanoEVT_AUTHENTIFICATION_REQUEST, 1)
