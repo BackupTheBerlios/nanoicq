@@ -1,6 +1,6 @@
 
 #
-# $Id: weather.py,v 1.7 2006/03/22 14:34:37 lightdruid Exp $
+# $Id: weather.py,v 1.8 2006/04/12 14:51:47 lightdruid Exp $
 #
 
 import sys
@@ -19,7 +19,7 @@ except ImportError, exc:
 
 
 class Weather(Plugin):
-    _trusted_uin = ['177033621', '158125970', '9992104', '306625983']
+    _trusted_uin = []
 
     def isLoaded(self):
         return _loaded

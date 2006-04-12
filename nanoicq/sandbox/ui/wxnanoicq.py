@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.108 2006/04/12 13:45:58 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.109 2006/04/12 14:51:47 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.108 2006/04/12 13:45:58 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.109 2006/04/12 14:51:47 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -50,7 +50,6 @@ from UserInfo import UserInfoFrame
 
 from TrayIcon import TrayIcon
 
-_BLINK_TIMEOUT = 400
 _ID_ICON_TIMER = wx.NewId()
 
 ID_HELP = wx.NewId()
@@ -158,6 +157,8 @@ class Connector:
 
 
 class TopFrame(wx.Frame, PersistenceMixin):
+    _BLINK_TIMEOUT = 450
+
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title,
             pos=(150, 150), size=(350, 200))
@@ -168,6 +169,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.config = Config()
         self.config.read('sample.config')
+
+        if self.config.has_option('ui', 'icon.blink.timeout'):
+             self._BLINK_TIMEOUT = self.config.getint('ui', 'icon.blink.timeout')
 
         iconSetName = self.config.get('ui', 'iconset')
         self.iconSet = IconSet()
@@ -243,28 +247,47 @@ class TopFrame(wx.Frame, PersistenceMixin):
         # FIXME:
         self._userInfoRequested = False
 
-        class NanoTimer(wx.Timer):
-            def __init__(self, ids, bt):
-                wx.Timer.__init__(self, id = ids)
-                self.Start(bt)
-                self._funcs = []
+        class NanoTimer(wx.FutureCall):
+            def __init__(self, bt, callback, *args, **kwargs):
+                wx.FutureCall.__init__(self, bt, callback, *args, **kwargs)
+
+                self._bt = bt
+                self.callback = callback
 
             def subscribe(self, f):
-                print 'subscribed: ', f
-                self._funcs.append(f)
+                if f not in self.callback:
+                    self.Stop()
+                    self.callback.append(f)
+                    self.Start()
 
             def unsubscribe(self, f):
                 try:
-                    print 'unsubscribed: ', f
-                    self._funcs.remove(f)
+                    self.Stop()
+                    self.callback.remove(f)
                 except ValueError, exc:
                     pass
+                self.Start()
+
+            def restart(self):
+                self.Restart(self._bt)
 
             def Notify(self):
-                for f in self._funcs:
-                    apply(f, ())
+                if self.callback:
+                    self.runCount += 1
+                    self.running = False
+                    for c in self.callback:
+                        self.result = c(*self.args, **self.kwargs)
+                self.hasRun = True
+                if not self.running:
+                    # if it wasn't restarted, then cleanup
+                    wx.CallAfter(self.Stop)
 
-        self._iconTimer = NanoTimer(_ID_ICON_TIMER, _BLINK_TIMEOUT)
+        self._iconTimer = NanoTimer(self._BLINK_TIMEOUT, [])
+        self._iconTimer.Start()
+
+        #self._iconTimer.subscribe(self.blinkIcon)
+
+        #self._iconTimer = NanoTimer(_ID_ICON_TIMER, _BLINK_TIMEOUT)
         #self._iconTimer.subscribe(self.blinkIcon)
         #self._iconTimer.unsubscribe(self.blinkIcon)
 
@@ -273,6 +296,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def blinkIcon(self):
         self.trayIcon.blinkIcon()
+        self._iconTimer.restart()
 
     def onOfflineMessages(self, evt):
         mq = evt.getVal()
