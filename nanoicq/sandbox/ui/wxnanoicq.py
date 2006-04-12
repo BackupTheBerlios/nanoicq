@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.106 2006/04/11 14:14:34 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.107 2006/04/12 10:57:23 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.106 2006/04/11 14:14:34 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.107 2006/04/12 10:57:23 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -219,6 +219,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_REQUEST_USER_INFO, self.onRequestUserInfo)
         self.Bind(EVT_GOT_USER_INFO, self.onGotUserInfo)
         self.Bind(EVT_AUTHENTIFICATION_REQUEST, self.onAuthentificationRequest)
+        self.Bind(EVT_OFFLINE_MESSAGES, self.onOfflineMessages)
 
         self._keepAliveTimer = wx.Timer(self)
         if self.config.has_option('icq', 'keep.alive.interval'):
@@ -241,6 +242,21 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def onOfflineMessages(self, evt):
+        mq = evt.getVal()
+
+        for m in mq:
+            print '@@@', m
+            b = Buddy()
+            b.uin = m.getUIN()
+            b.name = m.getUIN()
+
+            evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
+            evt.setVal((b, m))
+            self.GetEventHandler().AddPendingEvent(evt)
+
+            wx.YieldIfNeeded()
 
     def onAuthentificationRequest(self, evt):
         b = evt.getVal()
@@ -687,9 +703,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.fu.Show(True)
 
     def OnIcqLogin(self, evt):
-        self.connector['icq'].connect()
-        self.connector['icq'].login()
-        self.connector['icq'].Start()
+        try:
+            self.updateStatusBar('Logging in...')
+            self.connector['icq'].connect()
+            self.connector['icq'].login()
+            self.connector['icq'].Start()
+        except Exception, exc:
+            self.updateStatusBar('Disconnected')
+            wx.MessageBox('Error: ' + str(exc), 'Connect error', wx.OK)
 
     def showMessage(self, b, message, hide = False):
         print 'showMessage()'
