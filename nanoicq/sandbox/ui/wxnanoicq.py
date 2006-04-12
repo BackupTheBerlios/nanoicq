@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.107 2006/04/12 10:57:23 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.108 2006/04/12 13:45:58 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.107 2006/04/12 10:57:23 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.108 2006/04/12 13:45:58 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -49,6 +49,9 @@ from UserInfo import UserInfoFrame
 # interface with no functionality
 
 from TrayIcon import TrayIcon
+
+_BLINK_TIMEOUT = 400
+_ID_ICON_TIMER = wx.NewId()
 
 ID_HELP = wx.NewId()
 ID_ABOUT = wx.NewId()
@@ -240,8 +243,36 @@ class TopFrame(wx.Frame, PersistenceMixin):
         # FIXME:
         self._userInfoRequested = False
 
+        class NanoTimer(wx.Timer):
+            def __init__(self, ids, bt):
+                wx.Timer.__init__(self, id = ids)
+                self.Start(bt)
+                self._funcs = []
+
+            def subscribe(self, f):
+                print 'subscribed: ', f
+                self._funcs.append(f)
+
+            def unsubscribe(self, f):
+                try:
+                    print 'unsubscribed: ', f
+                    self._funcs.remove(f)
+                except ValueError, exc:
+                    pass
+
+            def Notify(self):
+                for f in self._funcs:
+                    apply(f, ())
+
+        self._iconTimer = NanoTimer(_ID_ICON_TIMER, _BLINK_TIMEOUT)
+        #self._iconTimer.subscribe(self.blinkIcon)
+        #self._iconTimer.unsubscribe(self.blinkIcon)
+
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def blinkIcon(self):
+        self.trayIcon.blinkIcon()
 
     def onOfflineMessages(self, evt):
         mq = evt.getVal()
@@ -574,9 +605,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 # and there is no message yet
                 d.updateMessage(m)
                 d.addToHistory(m)
-            d.Show(True)
-            d.SetFocus()
-            d.Raise()
+
+            flag = False
+            if self.config.has_option('ui', 'raise.incoming.message'):
+                flag = self.config.getboolean('ui', 'raise.incoming.message')
+
+            if flag:                
+                d.Show(True)
+                d.SetFocus()
+                d.Raise()
+            else:
+                self._iconTimer.subscribe(self.blinkIcon)
         else:
             self.showMessage(b, m)
 
@@ -703,6 +742,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.fu.Show(True)
 
     def OnIcqLogin(self, evt):
+        self._iconTimer.unsubscribe(self.blinkIcon)
         try:
             self.updateStatusBar('Logging in...')
             self.connector['icq'].connect()
@@ -724,12 +764,19 @@ class TopFrame(wx.Frame, PersistenceMixin):
         d.addToHistory(message)
 
         if not hide:
-            d.Show()
-            d.SetFocus()
-            d.Raise()
+
+            flag = False
+            if self.config.has_option('ui', 'raise.incoming.message'):
+                flag = self.config.getboolean('ui', 'raise.incoming.message')
+
+            if flag:                
+                d.Show(True)
+                d.SetFocus()
+                d.Raise()
+            else:
+                self._iconTimer.subscribe(self.blinkIcon)
 
         self._dialogs.append(d)
-        print self._dialogs
 
 class TopPanel(wx.Panel):
     def __init__(self, parent, iconSet):

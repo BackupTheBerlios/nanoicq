@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.13 2006/02/26 21:59:06 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.14 2006/04/12 13:45:58 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -11,6 +11,8 @@ from events import *
 from FindUser import FindUserFrame
 
 class TrayIcon(wx.TaskBarIcon):
+    _timer = None
+
     TBMENU_RESTORE = wx.NewId()
     TBMENU_CLOSE   = wx.NewId()
     TBMENU_CHANGE  = wx.NewId()
@@ -62,10 +64,15 @@ class TrayIcon(wx.TaskBarIcon):
         self.parent = parent
 
         # Set the image
+        self._tmp_icon = None
         self._icon = icon
         self.SetIcon(self._icon, "ICQ offline")
 
         self._iconSet = iconSet
+        self._iconsOn = True
+
+        self._emptyIcon = wx.EmptyIcon()
+        self._emptyIcon.CopyFromBitmap(self._iconSet['empty'])
 
         # bind some events
         self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.onCancelTaskBarActivate)
@@ -76,6 +83,29 @@ class TrayIcon(wx.TaskBarIcon):
         self.Bind(wx.EVT_MENU, self.onCancelTaskBarClose, id = self.TBMENU_CLOSE)
 
         self.Bind(wx.EVT_MENU, self.onFindUser, id = self.TBMENU_MAIN_FIND_CONTACTS)
+
+    def blinkIcon(self):
+
+        if self._iconsOn:
+            self.SetIcon(self._emptyIcon)
+        else:
+            self.SetIcon(self._icon)
+        self._iconsOn = not self._iconsOn
+
+#    def startFlash(self):
+#        if self._timer is None:
+#            self._timer = wx.Timer(self, _ID_ICON_TIMER)
+#            wx.EVT_TIMER(self, _ID_ICON_TIMER, self.blinkIcon)
+#            self._timer.Start(_BLINK_TIMEOUT)
+#        else:
+#            print "Warning: attempt to start one more icon timer"
+
+    def stopFlash(self):
+        if self._timer is not None:
+            self._timer.Stop()
+            self._timer = None
+            if not self._iconsOn:
+                self.SetIcon(self._icon)
 
     def onResultByUin(self, b):
         print 'onResultByUin', b

@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.94 2006/04/11 14:14:33 lightdruid Exp $
+# $Id: icq.py,v 1.95 2006/04/12 13:45:58 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1004,8 +1004,8 @@ class Protocol:
 
         self.sendIdleTime(0)
 
-        log().log('Getting offline messages...')
-        self.getOfflineMessages(self._config.get('icq', 'uin'))
+        log().log('{SKIPPED} Getting offline messages...')
+        #self.getOfflineMessages(self._config.get('icq', 'uin'))
 
     def sendClientReady(self):
         '''
@@ -2576,7 +2576,9 @@ class Protocol:
         log().log(tlvs)
 
         if tlvs.has_key(TLV_ErrorCode):
-            log().log("Error: " + explainError(tlvs[TLV_ErrorCode]))
+            xerror = explainError(tlvs[TLV_ErrorCode])
+            log().log("Error: " + xerror)
+            raise Exception(xerror)
 
         server = ''
         if tlvs.has_key(TLV_Redirect):
