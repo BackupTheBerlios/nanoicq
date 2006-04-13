@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.109 2006/04/12 14:51:47 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.110 2006/04/13 15:26:03 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.109 2006/04/12 14:51:47 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.110 2006/04/13 15:26:03 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -276,7 +276,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
                     self.runCount += 1
                     self.running = False
                     for c in self.callback:
-                        self.result = c(*self.args, **self.kwargs)
+                        #self.result = c(*self.args, **self.kwargs)
+                        if type(c) == type(()):
+                            self.result = c[0](c[1])
+                        else:
+                            self.result = c(*self.args, **self.kwargs)
                 self.hasRun = True
                 if not self.running:
                     # if it wasn't restarted, then cleanup
@@ -285,14 +289,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self._iconTimer = NanoTimer(self._BLINK_TIMEOUT, [])
         self._iconTimer.Start()
 
-        #self._iconTimer.subscribe(self.blinkIcon)
-
-        #self._iconTimer = NanoTimer(_ID_ICON_TIMER, _BLINK_TIMEOUT)
-        #self._iconTimer.subscribe(self.blinkIcon)
-        #self._iconTimer.unsubscribe(self.blinkIcon)
-
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def blinkUserListIcon(self, b):
+        self.topPanel.userList.blinkIcon(b)
 
     def blinkIcon(self):
         self.trayIcon.blinkIcon()
@@ -640,6 +641,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 d.Raise()
             else:
                 self._iconTimer.subscribe(self.blinkIcon)
+                self._iconTimer.subscribe((self.blinkUserListIcon, b))
         else:
             self.showMessage(b, m)
 
@@ -793,12 +795,15 @@ class TopFrame(wx.Frame, PersistenceMixin):
             if self.config.has_option('ui', 'raise.incoming.message'):
                 flag = self.config.getboolean('ui', 'raise.incoming.message')
 
-            if flag:                
+            if flag or message is None:
                 d.Show(True)
                 d.SetFocus()
                 d.Raise()
             else:
-                self._iconTimer.subscribe(self.blinkIcon)
+                if message is not None:
+                    if not d.IsShown():
+                        self._iconTimer.subscribe(self.blinkIcon)
+                        self._iconTimer.subscribe((self.blinkUserListIcon, b))
 
         self._dialogs.append(d)
 

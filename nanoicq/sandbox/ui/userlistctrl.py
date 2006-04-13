@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.19 2006/03/22 23:46:37 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.20 2006/04/13 15:26:03 lightdruid Exp $
 #
 
 import sys
@@ -117,6 +117,12 @@ class UserListCtrl(wx.ListCtrl,
 
         self.il = wx.ImageList(16, 16)
 
+        # for blinnking
+        self._iconsOn = True
+
+        self._emptyIcon = wx.EmptyIcon()
+        self._emptyIcon.CopyFromBitmap(self.iconSet['empty'])
+
         for status in IconSet.FULL_SET:
             self.idx1 = self.il.Add(self.iconSet[status])
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
@@ -134,6 +140,25 @@ class UserListCtrl(wx.ListCtrl,
         else:
             # Works on GTK only, not sure about Mac
             self.Bind(wx.EVT_RIGHT_UP, self.onRightClick)
+
+    def blinkIcon(self, b):
+        print 'userlist - blinkIcon', b
+
+        userName = b.name
+        idx = -1
+
+        while True:
+            idx = self.GetNextItem(idx)
+            if idx == -1:
+                break
+            u = self.getColumnText(idx, 1)
+            if u == userName:
+                if self._iconsOn:
+                    self.SetStringItem(idx, 0, '', IconSet.FULL_SET.index('empty'))
+                else:
+                    self.SetStringItem(idx, 0, '', IconSet.FULL_SET.index(b.status))
+                self._iconsOn = not self._iconsOn
+                break
  
     def createPopUpMenu(self):
         _topMenu = (
