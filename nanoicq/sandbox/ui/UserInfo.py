@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.13 2006/04/11 12:00:27 lightdruid Exp $
+# $Id: UserInfo.py,v 1.14 2006/04/17 12:57:45 lightdruid Exp $
 #
 
 import sys
@@ -18,6 +18,7 @@ from iconset import IconSet
 from utils import *
 import codes
 
+_ID_OK_BUTTON = wx.NewId()
 
 def _safe_to_str(v):
     if v is None: v = str(None)
@@ -469,6 +470,7 @@ class UserInfoPanel(wx.Panel):
     def __init__(self, parent, iconSet, b):
         wx.Panel.__init__(self, parent, -1)
 
+        self._parent = parent
         self.iconSet = iconSet
 
         sz = wx.BoxSizer(wx.VERTICAL)
@@ -489,17 +491,23 @@ class UserInfoPanel(wx.Panel):
 
         hz = wx.BoxSizer(wx.HORIZONTAL)
         self.updateButton = wx.Button(self, -1, 'Update Now')
-        self.okButton = wx.Button(self, -1, 'Ok')
+        self.okButton = wx.Button(self, _ID_OK_BUTTON, 'Ok')
         hz.Add(self.updateButton, 0, wx.ALL, 0)
         hz.Add((1, 1), 1, wx.ALL, 0)
         hz.Add(self.okButton, 0, wx.ALL, 0)
         sz.Add(hz, 1, wx.EXPAND | wx.ALL, 7)
+
+        self.Bind(wx.EVT_BUTTON, self.onButton, id = _ID_OK_BUTTON)
 
         # FIXME:
         self.updateButton.Enable(False)
 
         self.SetSizer(sz)
         self.SetAutoLayout(True)
+
+    def onButton(self, evt):
+        evt.Skip()
+        self._parent.Close()
 
     def makePanel(self, h, b):
         p = eval("Pane_%s(self.nb, b)" % h)

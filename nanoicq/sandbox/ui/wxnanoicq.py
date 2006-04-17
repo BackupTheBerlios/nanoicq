@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.111 2006/04/17 11:39:52 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.112 2006/04/17 12:57:46 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.111 2006/04/17 11:39:52 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.112 2006/04/17 12:57:46 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -16,6 +16,7 @@ if sys.platform == 'win32':
 sys.path.insert(0, '../..')
 
 import thread
+import threading
 import time
 import wx
 import cPickle
@@ -184,6 +185,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.iconSet.setActiveSet(iconSetName)
 
         #---
+        self.lock = threading.RLock()
+
+        #---
         self.createTopMenuBar()
         self.makeStatusbar()
         self.createTopPanel()
@@ -259,11 +263,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 self.callback = callback
 
             def subscribe(self, f):
-                return
 
                 if f not in self.callback:
                     print 'subscribe', f
-                    self.callback.append(f)
+                    wx.CallAfter(self.Stop)
+                    wx.CallAfter(self.callback.append, f)
+                    wx.CallAfter(self.Start)
+
+#                    self.callback.append(f)
 #                    if wx.Thread_IsMain():
 #                        self.Stop()
 #                        self.callback.append(f)
@@ -661,15 +668,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
             if flag or m is None:
                 print 'flag or m is None'
                 wx.YieldIfNeeded()
-                d.Show(True)
-                d.SetFocus()
-                d.Raise()
+                wx.CallAfter(d.Show, True)
+                wx.CallAfter(d.SetFocus)
+                wx.CallAfter(d.Raise)
             else:
                 if not d.IsShown():
                     self._iconTimer.subscribe(self.blinkIcon)
                     self._iconTimer.subscribe((self.blinkUserListIcon, b))
         else:
+            self.lock.acquire()
             self.showMessage(b, m)
+            self.lock.release()
 
     def event_Results(self, kw):
         b = kw['buddy']
@@ -816,23 +825,29 @@ class TopFrame(wx.Frame, PersistenceMixin):
         d.SetIcon(self.mainIcon)
         d.addToHistory(message)
 
+        print 'pass #1'
         if not hide:
 
             flag = False
             if self.config.has_option('ui', 'raise.incoming.message'):
                 flag = self.config.getboolean('ui', 'raise.incoming.message')
 
+            print 'pass #2'
             if flag or message is None:
-                wx.YieldIfNeeded()
+                #wx.YieldIfNeeded()
+                print 'pass #3'
                 d.Show(True)
                 d.SetFocus()
                 d.Raise()
             else:
+                print 'pass #4'
                 if message is not None:
                     if not d.IsShown():
+                        print >> sys.stderr, 'subscribing...'
                         self._iconTimer.subscribe(self.blinkIcon)
                         self._iconTimer.subscribe((self.blinkUserListIcon, b))
 
+        print 'pass #5'
         self._dialogs.append(d)
 
 class TopPanel(wx.Panel):
