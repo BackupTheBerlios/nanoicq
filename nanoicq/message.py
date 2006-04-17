@@ -1,6 +1,6 @@
 
 #
-# $Id: message.py,v 1.15 2006/04/11 14:14:33 lightdruid Exp $
+# $Id: message.py,v 1.16 2006/04/17 11:39:52 lightdruid Exp $
 #
 
 import time
@@ -71,8 +71,8 @@ class ICQMessage(Message):
     def getUIN(self): return self._uin
 
     def __repr__(self):
-        return "Class ICQMessage (type: %s, dest: %s, uin: %s, content: %s, dir: %s)" %\
-            (self._context, str(self._user), self._uin, punicode(str(self._content)), self._decodeDirection(self._direction))
+        return "Class ICQMessage (type: %s, dest: %s, uin: %s, dir: %s)" %\
+            (self._context, str(self._user), self._uin, self._decodeDirection(self._direction))
 
     def __eq__(self, m):
         return self._uin == m._uin and Message.__eq__(self, m)

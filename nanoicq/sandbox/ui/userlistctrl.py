@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.20 2006/04/13 15:26:03 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.21 2006/04/17 11:39:52 lightdruid Exp $
 #
 
 import sys
@@ -141,6 +141,27 @@ class UserListCtrl(wx.ListCtrl,
             # Works on GTK only, not sure about Mac
             self.Bind(wx.EVT_RIGHT_UP, self.onRightClick)
 
+        self._blinking = {}
+        ###
+
+    def setBuddyNick(self, b, nick = None):
+        if nick is None:
+            if hasattr(b, 'nick') and b.nick is not None:
+                nick = b.nick
+            else:
+                return
+
+        idx = -1
+
+        while True:
+            idx = self.GetNextItem(idx)
+            if idx == -1:
+                break
+            uin = str(self.GetItemData(idx))
+            if uin == b.uin:
+                self.SetStringItem(idx, 1, b.nick)
+                break
+
     def blinkIcon(self, b):
         print 'userlist - blinkIcon', b
 
@@ -153,6 +174,8 @@ class UserListCtrl(wx.ListCtrl,
                 break
             u = self.getColumnText(idx, 1)
             if u == userName:
+                self._blinking[userName] = (True, b)
+
                 if self._iconsOn:
                     self.SetStringItem(idx, 0, '', IconSet.FULL_SET.index('empty'))
                 else:
@@ -272,6 +295,15 @@ class UserListCtrl(wx.ListCtrl,
             return
 
         userName = self.getColumnText(self.currentItem, 1)
+
+        try:
+            if self._blinking[userName][0] == True:
+                del self._blinking[userName]
+
+                # Just restore icon
+                self.changeStatus(b)
+        except KeyError, exc:
+            pass
 
         evt = NanoEvent(nanoEVT_MESSAGE_PREPARE, self.GetId())
         evt.setVal((self.currentItem, userName))

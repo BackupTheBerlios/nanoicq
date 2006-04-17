@@ -1,6 +1,6 @@
 
 #
-# $Id: group.py,v 1.16 2006/03/30 14:22:04 lightdruid Exp $
+# $Id: group.py,v 1.17 2006/04/17 11:39:51 lightdruid Exp $
 #
 
 import os
@@ -39,6 +39,16 @@ class Group:
         print 'Deleting ', b, self._b.keys()
         del self._b[b.name]
 
+    def setBuddyNick(self, buddy, nick):
+        for b in self._b.keys():
+            #print '%%%', type(b), type(self._b[b])
+            if self._b[b].uin == buddy.uin:
+                tmp = self._b[b]
+                tmp.nick = buddy.nick
+                self._b[tmp.nick] = tmp
+                break
+        print 'Unable to find buddy ', buddy.nick, buddy.uin
+
     def getBuddies(self, gid = None, status = None):
         if gid is None and status == None:
             return self._b.values()
@@ -51,6 +61,8 @@ class Group:
             return [self._b[x] for x in self._b if self._b[x].status == status]
 
     def getBuddy(self, name):
+        print 'going to find', name
+        print 'in', self._b.keys()
         return self._b[name]
 
     def getBuddyByUin(self, uin):

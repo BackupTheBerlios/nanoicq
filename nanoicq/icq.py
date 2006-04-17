@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.95 2006/04/12 13:45:58 lightdruid Exp $
+# $Id: icq.py,v 1.96 2006/04/17 11:39:51 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1657,6 +1657,16 @@ class Protocol:
         b = self._groups.getBuddyByUin(uin)
 
         self.react("Buddy status changed", buddy = b)
+
+    def setBuddyNick(self, b, nick = None):
+        assert isinstance(b, Buddy)
+
+        if nick is None:
+            if hasattr(b, 'nick') and b.nick is not None:
+                nick = b.nick
+            else:
+                return
+        self._groups.setBuddyNick(b, nick)
 
     def decodeOnlineStatus(self, status):
         '''

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.110 2006/04/13 15:26:03 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.111 2006/04/17 11:39:52 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.110 2006/04/13 15:26:03 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.111 2006/04/17 11:39:52 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -96,6 +96,9 @@ class ICQThreaded(icq.Protocol):
     def IsRunning(self):
         return self.running
 
+    def _innerLoop(self, func, snac, flag):
+        wx.CallAfter(func, snac, flag)
+
     def Run(self):
         while self.keepGoing:
 
@@ -121,7 +124,8 @@ class ICQThreaded(icq.Protocol):
                 tmp = "proc_%d_%d_%d" % (ch, snac[0], snac[1])
                 func = getattr(self, tmp)
 
-                func(snac[5], flag2)
+                #func(snac[5], flag2)
+                self._innerLoop(func, snac[5], flag2)
             except:
                 typ, value, tb = sys.exc_info()
                 list = traceback.format_tb(tb, None) + \
@@ -255,18 +259,34 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 self.callback = callback
 
             def subscribe(self, f):
+                return
+
                 if f not in self.callback:
-                    self.Stop()
+                    print 'subscribe', f
                     self.callback.append(f)
-                    self.Start()
+#                    if wx.Thread_IsMain():
+#                        self.Stop()
+#                        self.callback.append(f)
+#                        self.Start()
+#                    else:
+#                        wx.CallAfter(self.Stop)
+#                        self.callback.append(f)
+#                        wx.CallAfter(self.Start)
 
             def unsubscribe(self, f):
+                return
+
                 try:
-                    self.Stop()
                     self.callback.remove(f)
+                    print 'unsubscribe', f
                 except ValueError, exc:
                     pass
-                self.Start()
+#                try:
+#                    self.Stop()
+#                    self.callback.remove(f)
+#                except ValueError, exc:
+#                    pass
+#                self.Start()
 
             def restart(self):
                 self.Restart(self._bt)
@@ -483,6 +503,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         else:
             currentItem, userName = v
             b = self.connector['icq'].getBuddy(userName)
+            print 'We must unsubscribe: ', b
 
         message = None
         self._showMessageDialog(message, b)
@@ -568,9 +589,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.GetEventHandler().AddPendingEvent(evt)
 
     def onGotUserInfo(self, evt):
-        #evt.Skip()
 
         b = evt.getVal()
+        if hasattr(b, 'nick') and b.nick is not None:
+            self.connector['icq'].setBuddyNick(b)
+            self.topPanel.userList.setBuddyNick(b)
 
         if self._userInfoRequested:
             _userInfoFrame = UserInfoFrame(None, -1, self.iconSet, b)
@@ -635,13 +658,16 @@ class TopFrame(wx.Frame, PersistenceMixin):
             if self.config.has_option('ui', 'raise.incoming.message'):
                 flag = self.config.getboolean('ui', 'raise.incoming.message')
 
-            if flag:                
+            if flag or m is None:
+                print 'flag or m is None'
+                wx.YieldIfNeeded()
                 d.Show(True)
                 d.SetFocus()
                 d.Raise()
             else:
-                self._iconTimer.subscribe(self.blinkIcon)
-                self._iconTimer.subscribe((self.blinkUserListIcon, b))
+                if not d.IsShown():
+                    self._iconTimer.subscribe(self.blinkIcon)
+                    self._iconTimer.subscribe((self.blinkUserListIcon, b))
         else:
             self.showMessage(b, m)
 
@@ -775,6 +801,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             self.connector['icq'].login()
             self.connector['icq'].Start()
         except Exception, exc:
+        #except:
             self.updateStatusBar('Disconnected')
             wx.MessageBox('Error: ' + str(exc), 'Connect error', wx.OK)
 
@@ -796,6 +823,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 flag = self.config.getboolean('ui', 'raise.incoming.message')
 
             if flag or message is None:
+                wx.YieldIfNeeded()
                 d.Show(True)
                 d.SetFocus()
                 d.Raise()
