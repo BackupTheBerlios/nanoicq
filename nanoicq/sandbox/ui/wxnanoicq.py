@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.112 2006/04/17 12:57:46 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.113 2006/05/08 12:41:38 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.112 2006/04/17 12:57:46 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.113 2006/05/08 12:41:38 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -254,6 +254,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         # FIXME:
         self._userInfoRequested = False
+
+        #self.ShowFullScreen(True)
 
         class NanoTimer(wx.FutureCall):
             def __init__(self, bt, callback, *args, **kwargs):

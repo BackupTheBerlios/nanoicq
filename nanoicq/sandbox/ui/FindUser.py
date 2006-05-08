@@ -1,11 +1,12 @@
 
 #
-# $Id: FindUser.py,v 1.19 2006/03/21 14:47:38 lightdruid Exp $
+# $Id: FindUser.py,v 1.20 2006/05/08 12:41:38 lightdruid Exp $
 #
 
 import sys
 import traceback
 import string
+from gettext import gettext as _
 
 import wx
 import wx.lib.rcsizer as rcs
@@ -25,8 +26,6 @@ class SearchStatusBar(wx.StatusBar):
         wx.StatusBar.__init__(self, parent, -1)
         self.SetFieldsCount(2)
         self.SetStatusWidths([-2, -1])
-
-        #self.Reposition()
 
     def setFileName(self, fn):
         path, fileName = os.path.split(fn)
@@ -123,16 +122,12 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
         self.SetColumnWidth(0, 22)
 
-        headers = ("Nick", "First Name", "Last Name", "E-mail", "User ID")
+        headers = (_("Nick"), _("First Name"), _("Last Name"), _("E-mail"), _("User ID"))
         ii = 1
         for t in headers:
             info.m_text = t
             self.InsertColumnInfo(ii, info)
             ii += 1
-
-#        for ii in range(len(headers)):
-#            self.SetColumnWidth(ii, wx.LIST_AUTOSIZE)
-#            pass
 
         self.il = wx.ImageList(16, 16)
 
@@ -167,10 +162,10 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
     def createPopUpMenu(self):
         _topMenu = (
-            (self.ID_ADD_TO_LIST, "Add to list", "self.onAddToContactList"),
+            (self.ID_ADD_TO_LIST, _("Add to list"), "self.onAddToContactList"),
             (),
-            (self.ID_USER_DETAILS, "User details", "self.onUserDetails"),
-            (self.ID_SEND_MESSAGE, "Send message", "self.onSendMessage"),
+            (self.ID_USER_DETAILS, _("User details"), "self.onUserDetails"),
+            (self.ID_SEND_MESSAGE, _("Send message"), "self.onSendMessage"),
         )
 
         #if self.currentItem == -1: return
@@ -509,7 +504,7 @@ class FindUserPanel(wx.Panel):
             (self.last.GetId(), self.nameRadio.GetId()),
         ]
 
-        self.Bind(wx.EVT_RADIOBUTTON, self.onUserIDSelect)
+        self.Bind(wx.EVT_RADIOBUTTON, self.onRadioButton)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.onToggle, self.advancedButton)
         self.Bind(wx.EVT_TEXT, self.onText)
         self.Bind(wx.EVT_TEXT_ENTER, self.onTextEnter)
@@ -548,6 +543,7 @@ class FindUserPanel(wx.Panel):
     def _searchByAdvanced(self):
         d = self.advanced.prepareDict()
         print d
+        rc = wx.MessageBox("Advanced search is not implemented yet", '', wx.OK)
 
     def _searchByUin(self):
         if self._checkFilled(ID_userIDRadio):
@@ -595,8 +591,11 @@ class FindUserPanel(wx.Panel):
 
     def onToggle(self, evt):
         evt.Skip()
-        self.advancedRadio.SetValue(True)
-        if evt.GetInt() != 0:
+        self._toggleAdvanced(evt.GetInt())
+
+    def _toggleAdvanced(self, flag, toggleRadio = True):
+        self.advancedRadio.SetValue(toggleRadio)
+        if flag != 0:
             self.resultsSizer.Detach(self.results)
             self.results.Hide()
             self.resultsSizer.Add(self.advanced, 1, wx.ALL | wx.GROW | wx.EXPAND, 8)
@@ -617,12 +616,20 @@ class FindUserPanel(wx.Panel):
             self.Layout()
             self.Refresh()
 
-    def onUserIDSelect(self, evt):
+    def onRadioButton(self, evt):
         evt.Skip()
 
         for id1, id2 in self._binds:
             if evt.GetId() == id2:
                 self.FindWindowById(id1).SetFocus()
+
+                # FIXME: need to hide advanced panel after user switched to
+                # different type of search
+
+                #if self.advancedRadio.GetId() != id1:
+                #    if self.advanced.IsShown():
+                #        self._toggleAdvanced(0, False)
+
                 break
 
     def setDefaults(self):
