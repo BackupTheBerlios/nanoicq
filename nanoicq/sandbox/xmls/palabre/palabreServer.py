@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # Palabre - palabreServer.py
@@ -28,7 +29,7 @@ import signal
 import sys
 import os
 import sys
-#import MySQLdb as M
+import MySQLdb as DB
 from datetime import datetime
 from palabre import logging, version
 from palabreClient import PalabreClient
@@ -46,7 +47,6 @@ class PalabreServer(asyncore.dispatcher):
 
     # Class to instanciate upon connection
     channel_class = PalabreClient
-
 
     def __init__(self, HOST='', PORT=2468, rootPassword=''):
         """ Constructor of the server
@@ -73,9 +73,9 @@ class PalabreServer(asyncore.dispatcher):
         self.allNickNames = {}
         self.allRooms = {}
 
+        # DB connection flag
+        self.dbOk = False
 
-
-        # Vive asyncore
         try:
             asyncore.dispatcher.__init__(self)
 
@@ -96,18 +96,43 @@ class PalabreServer(asyncore.dispatcher):
         logging.info("Running on: %s" % showHost)
         logging.info("Port: %s" % self.PORT)
 
-        # Si la connexion s'est bien passée on se connecte à la BDD
-        self.connectToBdd()
+        self.db = self.connectToDb()
 
-    def connectToBdd(self):
-        """
-            Pour l'instant c'est mysql
-            à voir avec psychotruc
-        """
-        # Connexion BDD
-        #self.db=M.connect("localhost","root","lasergun","test")
-        logging.debug("Connection to BDD skipped")
+    def checkDbStatus(self, db):
+        checkTables = ['user']
 
+        c = db.cursor()
+        for t in checkTables:
+            c.execute("select * from %s where 1=2" % t)
+
+        self.dbOk = True
+        return True       
+
+    def connectToDb(self):
+        """
+        """
+        # FIXME:
+        # set-variable=max_connections=500
+        # set-variable=wait_timeout=200
+
+        logging.debug("Connecting to database...")
+        db = None
+
+        try:
+            db = DB.connect(
+                host = "10.3.13.7",
+                port = 3306,
+                user = "postnuke", 
+                passwd = "postnuke", 
+                db = "test")
+
+            self.checkDbStatus(db)
+
+            logging.debug("Connected")
+        except DB.DatabaseError, exc:
+            logging.error("DB connection: " + str(exc))
+
+        return db
 
     def handle_accept(self):
         """Handle incoming connections
@@ -115,7 +140,6 @@ class PalabreServer(asyncore.dispatcher):
         """
         conn, addr = self.accept()
         self.channel_class(self,conn,addr)
-
 
     def handle_close(self):
         """When shuting down the server
@@ -423,3 +447,11 @@ class PalabreServer(asyncore.dispatcher):
                 c.execute("DELETE FROM t_connexions WHERE connexion_code LIKE '"+nickName+"'")
         """
         return True
+
+def _test():
+    p = PalabreServer()
+
+if __name__ == '__main__':
+    _test()
+
+# ---

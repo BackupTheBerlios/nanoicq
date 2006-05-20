@@ -218,7 +218,45 @@ class PalabreRoom :
     def delRoom(self, sesId, roomId, pvtPassword):
         pass
 
-    def 
+    @staticmethod
+    def createRoom(self, rid, name, title, client, server,
+            creatorId, operatorId, allowedUsersGroup, languageId = 0, 
+            temporary = 0, passwordProtected = 0, moderationAllowed = 0,
+            roomManagementLevel = 0, userManagementlevel = 0,
+            numberOfUsers = 0, numberOfSpectators = 0, parentR=''):
+
+        return PalabreRoom(rid, name, title, client, server,
+            creatorId, operatorId, allowedUsersGroup, languageId,
+            temporary, passwordProtected, moderationAllowed,
+            roomManagementLevel, userManagementlevel,
+            numberOfUsers, numberOfSpectators, parentR)
+
+    def joinRoom(self, sesId, roomId, publicPassword = None):
+        pass
+
+    def joinAsSpectator(self, sesId, roomId):
+        pass
+
+    def listUsers(self, sesId, roomId, publicPassword):
+        pass
+
+    def leaveRoom(self, sesId, roomId):
+        pass
+
+    def locateUser(self, sesId, userId):
+        pass
+
+    def listBlockedUsers(self, sesId, roomId, pvtPassword):
+        pass
+
+    def silentUser(self, sesId, userId, period):
+        pass
+
+    def blockUser(self, sesId, userId, period):
+        pass
+
+    def redirectUser(self, sesId, userId, targetRoomId):
+        pass
   
     def isClientInRoom(self, nickName):
         """Method to check if a client is connected to this room
