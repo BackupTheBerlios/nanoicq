@@ -139,7 +139,7 @@ class PalabreServer(asyncore.dispatcher):
         Defines class variable channel_class
         """
         conn, addr = self.accept()
-        self.channel_class(self,conn,addr)
+        self.channel_class(self, conn, addr, self.connectToDb())
 
     def handle_close(self):
         """When shuting down the server
@@ -365,7 +365,25 @@ class PalabreServer(asyncore.dispatcher):
             self.allRooms[room].roomAddClient(client=client)
         else:
             # On demande à la room de se créer avec comme opérateur ce client
-            self.allRooms[room] = PalabreRoom(name=room, title='', client=client, server=self, parentR=parentR)
+            self.allRooms[room] = \
+                PalabreRoom(
+                    rid = 0,
+                    name = room, 
+                    title = '', 
+                    client = client, 
+                    server = self, 
+                    creatorId = 0, 
+                    operatorId = 0, 
+                    allowedUsersGroup = None, 
+                    languageId = 0, 
+                    temporary = 0, 
+                    passwordProtected = 0, 
+                    moderationAllowed = 0,
+                    roomManagementLevel = 0, 
+                    userManagementlevel = 0,
+                    numberOfUsers = 0, 
+                    numberOfSpectators = 0,
+                    parentR = parentR)
 
         # On retourne l'instance room au client
         return self.allRooms[room]

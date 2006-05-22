@@ -31,7 +31,7 @@ from palabre import logging
 
 class PalabreClient(asynchat.async_chat):
 
-    def __init__(self,server, conn, addr):
+    def __init__(self,server, conn, addr, db):
         """Class Constructor
 
         @nickName   Nickname to identify the user.
@@ -63,6 +63,9 @@ class PalabreClient(asynchat.async_chat):
 
         # Pour que le client retrouve sa connexion
         self.conn = conn
+
+        # Database connection
+        self.db = db
 
         # Adresse Ip ?
         self.addr = addr[0]
