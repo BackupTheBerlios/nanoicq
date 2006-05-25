@@ -405,54 +405,51 @@ class PalabreClient(asynchat.async_chat):
 
         ## A t'il un nickName ? C'est indispensable ##
         # Needs a nickname
-        if attrs.has_key('nickname'):
-
-            nickName = attrs['nickname']
-
-            rootpass = ''
-
-            # Root password ?
-            if attrs.has_key('rootpass'):
-                rootpass = attrs['rootpass']
-
-            # On vérifie si le serveur valide ce nickName
-            # Server Must validate the nickName
-            if self.server.isNickOk(nickName):
-
-                # Est-ce qu'on l'autorise à se connecter
-                # Is he authorized anyway ?
-                if self.server.isAuthorized(nickName, attrs):
-
-                    ## Est-il root ? ##
-                    # Is he root ?
-                    if self.server.isRootPass(rootpass):
-                        self.isRoot = 1
-
-
-                    # Whoooo everything went smoothly ...
-                    self.loggedIn = 1
-                    self.nickName = nickName
-                    self.server.serverAddClient(self)
-
-                    # Notifying client
-                    self.clientSendMessage("<connect isok='1' msg='Your nickname is now : %s'/>" % nickName)
-
-                    if self.isRoot:
-                        logging.warning("Admin connected: %s(%s)" % (self.nickName, self.addr))
-                    else:
-                        logging.info("Client connected: %s(%s)" % (self.nickName, self.addr))
-                else:
-                    # Wrong code
-                    # Code should be used for database (of imap of anything) identification !
-                    # Some sort of non-root password
-                    #
-                    self.clientSendErrorMessage(msg="Wrong code: " % str(res))
-            else:
-                # Not a good nickname
-                self.clientSendErrorMessage(msg="Nickname empty or already taken")
-        else:
-            # not even a nickname
+        if not attrs.has_key('nickname'):
             self.clientSendErrorMessage(msg="No NickName Attribute")
+            return
+
+        nickName = attrs['nickname']
+
+        rootpass = ''
+
+        # Root password ?
+        if attrs.has_key('rootpass'):
+            rootpass = attrs['rootpass']
+
+        # On vérifie si le serveur valide ce nickName
+        # Server Must validate the nickName
+        if self.server.isNickOk(nickName):
+            # Not a good nickname
+            self.clientSendErrorMessage(msg="Nickname empty or already taken")
+            return
+
+        # Est-ce qu'on l'autorise à se connecter
+        # Is he authorized anyway ?
+        if self.server.isAuthorized(nickName, attrs):
+
+            # Is he root ?
+            if self.server.isRootPass(rootpass):
+                self.isRoot = 1
+
+            # Whoooo everything went smoothly ...
+            self.loggedIn = 1
+            self.nickName = nickName
+            self.server.serverAddClient(self)
+
+            # Notifying client
+            self.clientSendMessage("<connect isok='1' msg='Your nickname is now : %s'/>" % nickName)
+
+            if self.isRoot:
+                logging.warning("Admin connected: %s(%s)" % (self.nickName, self.addr))
+            else:
+                logging.info("Client connected: %s(%s)" % (self.nickName, self.addr))
+        else:
+            # Wrong code
+            # Code should be used for database (of imap of anything) identification !
+            # Some sort of non-root password
+            #
+            self.clientSendErrorMessage(msg="Wrong code: " % str(res))
 
     def clientJoinRoom(self,attrs):
         """

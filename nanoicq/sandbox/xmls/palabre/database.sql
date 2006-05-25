@@ -1,5 +1,9 @@
 
--- $Id: database.sql,v 1.1 2006/05/20 23:19:43 lightdruid Exp $
+-- $Id: database.sql,v 1.2 2006/05/25 13:29:19 lightdruid Exp $
+
+-- create database test;
+-- create user postnuke identified by 'postnuke';
+-- grant all on test.* to 'postnuke'@'%' identified by 'postnuke';
 
 create table user (
     name char(100),

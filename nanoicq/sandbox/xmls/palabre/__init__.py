@@ -26,7 +26,7 @@ import ConfigParser, logging, os
 # version
 version = "0.4"
 
-if os.name == "posix":
+if os.name in ["posix", "nt"]:
     # config file setup
     config = ConfigParser.SafeConfigParser()
     config.readfp(open('/etc/palabre.conf'))
@@ -59,7 +59,7 @@ if os.name == "posix":
         #formatter = logging.Formatter("%(asctime)s %(levelname)-8s %(message)s")
         #formatter = logging.Formatter("%(asctime)s - [%(filename)-24s %(lineno)-4d]: %(process)-5d %(levelname)-8s %(message)s")
 
-        formatter = logging.Formatter("%(asctime)s [%(filename)s %(lineno)-4d]: %(levelname)-8s %(message)s")
+        formatter = logging.Formatter("%(asctime)s : %(levelname)-8s %(message)s")
  
         # tell the handler to use this format
         console.setFormatter(formatter)

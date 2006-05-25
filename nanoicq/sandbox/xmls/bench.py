@@ -29,8 +29,7 @@ class Client(Thread):
         self.running = 1
 
     def xml_connect(self):
-        #self.sock.send('<connect nickname="test_1" ></connect>')
-        self.sock.xsend('<connect nickname="test_' + str(self.ids) + '" ></connect>')
+        self.sock.xsend('<connect nickname="test_' + str(self.ids) + '" password="' + str(self.ids) + '" ></connect>')
         print 'connect request has been sent'
 
     def run(self):
@@ -61,6 +60,7 @@ class Client(Thread):
 
     def genAction(self):
         next_one = randrange(4)
+        return
 
         print "From test_%d" % self.ids
         if next_one == 0:
