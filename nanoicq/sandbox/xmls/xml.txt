@@ -1,8 +1,10 @@
-# vim: set enc=utf8 noet
-# $Id: xml.txt,v 1.1 2006/05/25 20:23:25 lightdruid Exp $
+# vim: set enc=utf8 et
+# $Id: xml.txt,v 1.2 2006/05/25 20:58:33 lightdruid Exp $
 #
 
-Each chunk of well-formed XML message must be separated by "\0"
+Each chunk of well-formed XML message must be separated by '\0'.
+Everything is case sensitive, xml tags and attributes/properties data.
+Session ID is omitted, for sake of simplicity, but it's used in each of chunk.
 
 C = client
 S = server
@@ -12,8 +14,11 @@ S = server
 
 C: <connect nickname='<CDATA>' password='<CDATA>'/>\0
 S: 
-    connection successful - <connect isok='1' msg='Your nickname is <CDATA>'/>
-    connection not successful - <connect isok='0' msg='<CDATA> (reason)'/>
+    connection successful:
+        <connect isok='1' msg='Your nickname is <CDATA>'/>\0
+
+    connection not successful:
+        <connect isok='0' msg='<CDATA> (reason)'/>\0
 
     reasons: 
         * DB is down
@@ -76,14 +81,29 @@ S:
     * roomManagementLevel
     * userManagementLevel
     * numberOfSpectators
-  
+
+
+* Set room properties
+
+C: 
+    <setroomproperties room='<CDATA>'>
+        <param name='<CDATA>' value='<CDATA>'/>
+        ...
+    </setroomproperties>
+
+S:  * Successful:
+    <setroomproperties room='<CDATA>' isok='1'/>
+
+    * Not successful:
+    <setroomproperties room='<CDATA>' isok='0' msg='<CDATA> (reason)'/>
+   
 
 * Join room
 
-C: <join room='<CDATA>'> or <join room='<CDATA>' password='<CDATA>'>
+C: <join room='<CDATA>' /> or <join room='<CDATA>' password='<CDATA>' />
 S:
 
-    Successful, 4 chunks of data must be sent:
+    * Successful, 4 chunks of data must be sent:
 
     <joined room='<CDATA>' />\0
 
@@ -99,7 +119,7 @@ S:
         ...
     </clients>\0
 
-    Not successful
+    * Not successful
     
     <error><CDATA> (reason)</error>\0
 
@@ -108,6 +128,174 @@ S:
         then password would be silently ignored)
         * 'You are already in this room'
         * 'DB is down'
+
+
+* Add new allowed user
+
+C: <addnewalloweduser room='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
+S:  * Successful:
+    <addnewalloweduser room='<CDATA>' nickname='<CDATA>' isok='1' /> 
+
+    * Not successful:
+    <addnewalloweduser room='<CDATA>' nickname='<CDATA>' 
+        isok='0' msg='<CDATA> (reason)' /> 
+
+
+* Remove allowed user
+
+C: <removealloweduser room='<CDATA>' nickname='<CDATA>'/>
+
+S:  * Successful:
+    <removealloweduser room='<CDATA>' nickname='<CDATA>' isok='1' /> 
+
+    * Not successful:
+    <removealloweduser room='<CDATA>' nickname='<CDATA>' 
+        isok='0' msg='<CDATA> (reason)' /> 
+ 
+
+* Invite user to room, FIXME: why we need a password here?
+
+C: <inviteuser room='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
+
+S:  * Successful:
+    <inviteuser room='<CDATA>' nickname='<CDATA>' isok='1' /> 
+
+    * Not successful:
+    <inviteuser room='<CDATA>' nickname='<CDATA>' 
+        isok='0' msg='<CDATA> (reason)' /> 
+ 
+
+* Delete room, FIXME: why we need a password here? 
+
+C: <delroom room='<CDATA>' password='<CDATA>'>
+
+S: 
+    * Successful:
+    <delroom room='<CDATA>' isok='1' /> 
+
+    * Not successful:
+    <delroom room='<CDATA>' isok='0' msg='<CDATA> (reason)' /> 
+
+
+* Create room
+
+C:  <createroom room='<CDATA>'>
+        <param name='<CDATA>' value='<CDATA>' />
+        ...
+    </createroom>\0
+
+S: 
+    * Successful:
+    <createroom room='<CDATA>' isok='1' /> 
+
+    * Not successful:
+    <createroom room='<CDATA>' isok='0' msg='<CDATA>' /> 
+        
+
+* Join room as spectator
+
+C: <joinasspectator room='<CDATA>'/>
+S:
+
+    * Successful
+
+    <joined room='<CDATA>' />\0
+
+    <childrooms name='<CDATA>'>
+    </childrooms>\0
+
+    <room name='<CDATA>' clients='<CDATA>' >
+        <param name='title' value='<CDATA>' />
+    </room>\0
+
+    <clients room='<CDATA>' nb='<CDATA>'>
+        <client name='<CDATA>' />
+        ...
+    </clients>\0
+ 
+    * Not successful:
+    <joinasspectator room='<CDATA>' isok='0' msg='<CDATA>' /> 
+
+
+* List users in room
+
+C: <listusers room='<CDATA>' />
+
+S: 
+    * Successful:
+
+    <clients isok='1' room='<CDATA>'>
+        <client name='<CDATA>' />
+        ...
+    </clients>\0
+  
+
+    * Not successful:
+
+    <clients isok='0' room='<CDATA>' msg='<CDATA> (reason)' />
+
+
+* Leave room
+
+C: <leave room='<CDATA>' />
+
+S: 
+    * Successful:
+    <leave room='<CDATA>' isok='1' /> 
+
+    * Not successful:
+    <leave room='<CDATA>' isok='0' msg='<CDATA> (reason)' /> 
+
+
+* Locate user - FIXME, not implemented, what's this?
+
+
+* List blocked users - FIXME, not implemented, what's this? 
+
+
+* Silent user
+
+C: <silent nickname='<CDATA>' period='<CDATA>' />
+
+S: 
+    * Successful:
+    <silent nickname='<CDATA>' isok='1' />
+
+    * Not successful:
+    <silent nickname='<CDATA>' isok='0' msg='<CDATA> (reason)' />
+
+
+* Block user - FIXME, not implemented, what's this? What is the difference 
+  from silent user?
+
+
+* Redirect user
+
+C: <redirect nickname='<CDATA>' room='<CDATA> (target room)' />
+S: 
+    * Successful:
+    <redirect nickname='<CDATA>' isok='1' />
+
+    * Not successful:
+    <redirect nickname='<CDATA>' isok='0' msg='<CDATA> (reason)' />
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ---
