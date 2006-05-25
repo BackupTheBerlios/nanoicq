@@ -1,0 +1,114 @@
+# vim: set enc=utf8 noet
+# $Id: xml.txt,v 1.1 2006/05/25 20:23:25 lightdruid Exp $
+#
+
+Each chunk of well-formed XML message must be separated by "\0"
+
+C = client
+S = server
+
+
+* Connection
+
+C: <connect nickname='<CDATA>' password='<CDATA>'/>\0
+S: 
+    connection successful - <connect isok='1' msg='Your nickname is <CDATA>'/>
+    connection not successful - <connect isok='0' msg='<CDATA> (reason)'/>
+
+    reasons: 
+        * DB is down
+        * wrong password
+
+
+* Ping
+
+C: <ping/>
+S: <pong/>
+
+
+* Get room list
+
+C: <getrooms/>
+S:
+    <rooms nb='<CDATA> (number of rooms)'>
+        <room name='<CDATA>' clients='<CDATA> (number of clients in room)' >
+            <param name='<CDATA>' value='<CDATA>' />
+        </room>
+        ...
+    </rooms>\0
+
+    Parameters (number of clients stored as attribute in '<room>' node):
+
+    * roomId
+    * roomName,
+    * creator (ID)
+    * operator (ID)
+    * FIXME: allowedUsers?
+    * languageId (ID, optional)
+    * isTemp - 0/1
+    * isPasswordProtected - 0/1
+    * moderationAllowed - 0/1
+    * roomManagementLevel
+    * userManagementLevel
+    * numberOfSpectators
+
+
+* Get room properties
+
+C: <getroomproperties room='<CDATA>'/>\0
+S:
+    
+    <room name='<CDATA>' clients='<CDATA> (number of clients in room)' >
+        <param name='<CDATA>' value='<CDATA>' />
+    </room>
+
+    Parameters (number of clients stored as attribute in '<room>' node):
+
+    * roomId
+    * roomName,
+    * creator (ID)
+    * operator (ID)
+    * FIXME: allowedUsers?
+    * languageId (ID, optional)
+    * isTemp - 0/1
+    * isPasswordProtected - 0/1
+    * moderationAllowed - 0/1
+    * roomManagementLevel
+    * userManagementLevel
+    * numberOfSpectators
+  
+
+* Join room
+
+C: <join room='<CDATA>'> or <join room='<CDATA>' password='<CDATA>'>
+S:
+
+    Successful, 4 chunks of data must be sent:
+
+    <joined room='<CDATA>' />\0
+
+    <childrooms name='<CDATA>'>
+    </childrooms>\0
+
+    <room name='<CDATA>' clients='<CDATA>' >
+        <param name='title' value='<CDATA>' />
+    </room>\0
+
+    <clients room='<CDATA>' nb='<CDATA>'>
+        <client name='<CDATA>' />
+        ...
+    </clients>\0
+
+    Not successful
+    
+    <error><CDATA> (reason)</error>\0
+
+    Reasons:
+        * 'Bad or missing password' (if room is password protected, if it's not,
+        then password would be silently ignored)
+        * 'You are already in this room'
+        * 'DB is down'
+
+
+# ---
+
