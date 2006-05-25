@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.2 2006/05/25 20:58:33 lightdruid Exp $
+# $Id: xml.txt,v 1.3 2006/05/25 21:39:50 lightdruid Exp $
 #
 
 Each chunk of well-formed XML message must be separated by '\0'.
@@ -9,6 +9,9 @@ Session ID is omitted, for sake of simplicity, but it's used in each of chunk.
 C = client
 S = server
 
+=====================================
+Chat
+=====================================
 
 * Connection
 
@@ -280,23 +283,153 @@ S:
     <redirect nickname='<CDATA>' isok='0' msg='<CDATA> (reason)' />
    
 
+=====================================
+Groups
+=====================================
+ 
+
+* Group lookup - FIXME, not implemented, what's this?
 
 
+* List groups
+
+C: <listgroups />
+
+S: 
+    * Successful
+    <groups isok='1'>
+        <group id='<CDATA>' name='<CDATA>' moderationLevel='<CDATA>' />
+        ...
+    </groups>
+
+    * Not successful
+    <groups isok='0' msg='<CDATA> (reason)' />
+ 
+
+* Create group
+
+C: <creategroup name='<CDATA>' moderationLevel='<CDATA>' />
+
+S:
+    * Successful
+    <creategroup name='<CDATA>' isok='1' />
+
+    * Not successful
+    <creategroup name='<CDATA>' isok='0' msg='<CDATA> (reason)' />
 
 
+* Retrieve group properties
+
+C: <getgroupproperties id='<CDATA>' />
+ 
+S:
+    * Successful
+    <getgroupproperties id='<CDATA>' isok='1' name='<CDATA>' 
+        moderationLevel='<CDATA>'>
+
+    * Not successful
+    <getgroupproperties id='<CDATA>' isok='0' msg='<CDATA>' 
+  
+
+* Set group properties
+
+C: <setgroupproperties id='<CDATA>' name='<CDATA>' moderationLevel='<CDATA>' />
+
+S:
+    * Successful
+    <setgroupproperties id='<CDATA>' isok='1' />
+
+    * Not successful
+    <setgroupproperties id='<CDATA>' isok='0' msg='<CDATA>' 
+ 
+
+* List group members
+
+C: <listmembers id='<CDATA>' />
+
+S: 
+    * Successful
+    <listmembers id='<CDATA>' isok='1' >
+        <client name='<CDATA>' id='<CDATA>' name='<CDATA>'
+            moderationLevel='<CDATA>' roomManagementLevel='<CDATA>'
+            isSpectator='<CDATA>' groupUserManagementLevel='<CDATA>'
+            moderationLevel='<CDATA>' >
+        ...
+    </listmembers>
+
+    * Not successful
+    <listmembers id='<CDATA>' isok='0' msg='<CDATA>' 
+ 
+
+=====================================
+Users
+=====================================
+
+FIXME: how we can create/delete users?
+ 
+* Retrieve user properties, FIXME: how to get/set last IP?
+
+C: <getclientproperties id='<CDATA>' />
+
+S:
+    * Successful
+    <getclientproperties id='<CDATA>' isok='1'
+        gid='<CDATA>' languageId='<CDATA>' isBlocked='<CDATA>'
+        moderationLevel='<CDATA>' roomManagementLevel='<CDATA>'
+        groupUserManagementLevel='<CDATA>' lastIP='<CDATA>'
+        moderationLevel='<CDATA>' >
+    </getclientproperties>
+ 
+    * Not successful
+    <getclientproperties id='<CDATA>' isok='0' msg='<CDATA>' />
+ 
+
+* Set user properties, for list of allowed properties take a look at
+  <getclientproperties>.
+
+C:  <setuserproperty id='<CDATA>'>
+        <property name='<CDATA>' value='<CDATA>'>
+        ...
+    </setuserproperty>
+
+S:
+    * Successful
+    <setclientproperty id='<CDATA>' isok='1' />
+ 
+    * Not successful
+    <setclientproperties id='<CDATA>' isok='0' msg='<CDATA>' />
 
 
+* Block/unblock user - FIXME, not implemented, what's this?
 
 
+=====================================
+Messaging
+=====================================
+
+* Send message
+
+Message types are coded using number, here is mapping:
+
+personal            0
+private             1 -- FIXME: what's difference from personal?
+public              2
+broadcast           3
+get records list    4 -- FIXME: what's this?
+get record          5 -- FIXME: what's this? 
+custom              6
+store record        7 -- FIXME: what's this? 
+
+C:  <message type='<CDATA>'>
+        <recipients>
+            <client id='<CDATA>' />
+            ...
+        </recipients>
+        <text>'<CDATA>'</text>
+    </message>
 
 
-
-
-
-
-
-
-
-
+* OnData - FIXME: what's this?
+  
 # ---
 
