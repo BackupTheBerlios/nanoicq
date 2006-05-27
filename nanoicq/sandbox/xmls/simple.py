@@ -90,8 +90,10 @@ class Client(Thread):
                     #self.sock.xsend("<listgroups />")
                     #self.sock.xsend("<creategroup name='abcd' moderationLevel='1' />")
                     #self.sock.xsend("<getgroupproperties id='45' />")
-                    self.sock.xsend("<setgroupproperties id='13' name='first one' />")
-   
+                    #self.sock.xsend("<setgroupproperties id='13' name='first one' />")
+                    #self.sock.xsend("<listmembers id='0' />")
+                    self.sock.xsend("<getuserproperties id='0' />")
+       
                 for a in node.attributes.items():
                     #attrs[p[0]] = p[1].encode("utf-8")
                     print a
@@ -132,7 +134,7 @@ class Bench:
         for c in self.clients:
             c.start()
 
-        SEC = 1
+        SEC = 10
         print "Waiting for %d sec" % SEC
         time.sleep(SEC)
         for c in self.clients:

@@ -33,7 +33,7 @@ import MySQLdb as DB
 
 
 def Q(v):
-    print dir(SAX)
+    """ Shortcut for saxutils.quoteattr """
     return SAX.quoteattr(v)
 
 
@@ -172,14 +172,59 @@ class PalabreClient(asynchat.async_chat):
                 s += " mlevel = %d " % int(moderationLevel)
             s += ' where id = %d' % int(gid)
 
-            print s 
             c.execute(s)
 
-            out = "<setgroupproperties isOk='1' id='%d' />" % gid
+            out = "<setgroupproperties isOk='1' id='%d' />" % int(gid)
             self.clientSendMessage(out)
         except Exception, exc:
             self.clientSendMessage( out % Q(str(exc)) )
-   
+
+    def listMembers(self, sesId = None, gid = None):
+        print 'retrieving group members...', gid
+
+        try:
+            c = self.db.cursor()
+            s = 'select u.id, u.name from users u where gid = %d' % int(gid)
+            c.execute(s)
+
+            out = ["<listmembers isOk='1' id='%d' >" % int(gid)]
+
+            rs = c.fetchall()
+            for r in rs:
+                out.append("<client id='%d' name=%s />" %\
+                    (r[0], Q(r[1])) )
+
+            out.append("</listmembers>");
+ 
+            self.clientSendMessage("\n".join(out))
+        except Exception, exc:
+            raise
+            out = "<listmembers isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def getUserProperties(self, sesId = None, uid = None):
+        print 'retrieving user properties...', uid
+
+        try:
+            c = self.db.cursor()
+            s = 'select u.id, u.name, u.mlevel, u.languageid from users u where id = %d' % int(uid)
+            c.execute(s)
+
+            out = ["<getuserproperties isOk='1' id='%d' >" % int(gid)]
+
+            rs = c.fetchall()
+            for r in rs:
+                out.append("<client id='%d' name=%s />" %\
+                    (r[0], Q(r[1])) )
+
+            out.append("</listmembers>");
+ 
+            self.clientSendMessage("\n".join(out))
+        except Exception, exc:
+            raise
+            out = "<listmembers isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+     
     def handle_expt():
         """
             Tried to add this because there is sometimes a strange error in the logs
@@ -334,6 +379,10 @@ class PalabreClient(asynchat.async_chat):
                         gid = attrs["id"], name = g_name, 
                         moderationLevel = g_moderationLevel)
    
+                # get group members
+                elif node == "listmembers":
+                    self.listMembers(gid = attrs["id"])
+
                 # sending a ping ... getting a pong
                 elif node == "ping":
                     self.clientSendPong()
@@ -406,6 +455,12 @@ class PalabreClient(asynchat.async_chat):
 
         # Pour débuguer
         logging.info("Connection lost for %s(%s)" % (self.nickName, self.addr))
+
+        # Log off from DB
+        try:
+            self.db.close()
+        except Exception, exc:
+            logging.error("Error while disconnecting from DB: %s" % ( str(exc) ))
 
         # On tue l'instance client
         self.close()
