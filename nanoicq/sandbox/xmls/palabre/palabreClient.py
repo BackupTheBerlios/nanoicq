@@ -24,9 +24,17 @@
 import socket
 import asynchat
 import xml.dom.minidom as xmldom
+import xml.sax.saxutils as SAX
 import string
 
 from palabre import logging
+
+import MySQLdb as DB
+
+
+def Q(v):
+    print dir(SAX)
+    return SAX.quoteattr(v)
 
 
 class PalabreClient(asynchat.async_chat):
@@ -94,7 +102,84 @@ class PalabreClient(asynchat.async_chat):
 
         logging.info("Connection initialized for %s" % self.addr)
 
+    def listGroups(self, sesId = None):
+        print 'listing groups...'
+        out = ["<groups>"]
+        try:
+            c = self.db.cursor()
+            c.execute("select id, name, mlevel from groups order by name")
+            rs = c.fetchall()
+            for r in rs:
+                print r
+                out.append("<group id=%d name=%s moderationLevel=%d />" %\
+                    (Q(r[0]), Q(r[1]), Q(r[2])))
+        except:
+            raise
 
+        out.append("</groups>")
+        self.clientSendMessage("\n".join(out))
+
+    def createGroup(self, sesId = None, name = None, moderationLevel = None):
+        print 'creating group...', name, moderationLevel
+
+        out = "<creategroup isOk='0' msg=%s />"
+        try:
+            c = self.db.cursor()
+            c.execute("insert into groups (name, mlevel) values ('%s', %d)" %\
+                (DB.escape_string(name), int(moderationLevel)))
+            c.execute("select id, name, mlevel from groups where name = '%s' and mlevel='%d'" %\
+                (DB.escape_string(name), int(moderationLevel)))
+
+            r = c.fetchone()
+
+            out = ["<creategroup isOk='1'>"] 
+            out.append("<group id='%d' name='%s' moderationLevel='%d' />" %\
+                    (r[0], DB.escape_string(r[1]), r[2]))
+            out.append("</creategroup>")
+            self.clientSendMessage("\n".join(out))
+        except Exception, exc:
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def getGroupProperties(self, sesId = None, gid = None):
+        print 'retrieving group properties...', gid
+
+        out = "<getgroupproperties isOk='0' msg=%s />"
+        try:
+            c = self.db.cursor()
+            c.execute("select id, name, mlevel from groups where id='%d'" % int(gid))
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find group with id='%d'" % int(gid))
+
+            out = "<getgroupproperties isOk='1' id='%d' name='%s' moderationLevel='%d' />" %\
+                (r[0], DB.escape_string(r[1]), r[2])
+            self.clientSendMessage(out)
+        except Exception, exc:
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def setGroupProperties(self, sesId = None, gid = None, name = None, moderationLevel = None):
+        print 'retrieving group properties...', gid
+
+        out = "<setgroupproperties isOk='0' msg=%s />"
+        try:
+            c = self.db.cursor()
+
+            s = 'update groups set '
+            if name is not None:
+                s += " name = '%s' " % DB.escape_string(name)
+            if moderationLevel is not None:
+                s += " mlevel = %d " % int(moderationLevel)
+            s += ' where id = %d' % int(gid)
+
+            print s 
+            c.execute(s)
+
+            out = "<setgroupproperties isOk='1' id='%d' />" % gid
+            self.clientSendMessage(out)
+        except Exception, exc:
+            self.clientSendMessage( out % Q(str(exc)) )
+   
     def handle_expt():
         """
             Tried to add this because there is sometimes a strange error in the logs
@@ -159,16 +244,11 @@ class PalabreClient(asynchat.async_chat):
 
         # Si parseString s'est bien passé, on interprète le XML
 
-
         if self.doParse:
             # really parsing Data
             self.parseData (data=self.doc)
             # On supprime le doc ...
             self.doc.unlink()
-
-
-
-
 
     def parseData(self,data):
         """
@@ -222,30 +302,51 @@ class PalabreClient(asynchat.async_chat):
             #
             elif self.loggedIn:
 
-                ## Si il envoi un message ##
                 # He is sending a message
                 if node == "msg" or node == "m":
                     self.clientHandleMessage(attrs,texte)
 
+                # list groups
+                elif node == "listgroups":
+                    self.listGroups()
 
-                # Si il ping on pong
+                # create group
+                elif node == "creategroup":
+                    self.createGroup(name = attrs["name"], moderationLevel = attrs["moderationLevel"])
+
+                # get group properties
+                elif node == "getgroupproperties":
+                    self.getGroupProperties(gid = attrs["id"])
+
+                # set group properties
+                elif node == "setgroupproperties":
+                    if attrs.has_key("name"):
+                        g_name = attrs["name"]
+                    else:
+                        g_name = None
+
+                    if attrs.has_key("moderationLevel"):
+                        g_moderationLevel = attrs["moderationLevel"]
+                    else:
+                        g_moderationLevel = None
+
+                    self.setGroupProperties(
+                        gid = attrs["id"], name = g_name, 
+                        moderationLevel = g_moderationLevel)
+   
                 # sending a ping ... getting a pong
                 elif node == "ping":
                     self.clientSendPong()
 
-                # Si il veut la liste des salles
                 # Asking for room list
                 elif node == "getrooms":
                     # Sending this request to the server
                     self.server.serverSendRoomsToClient(self)
 
-                # Si il veut joindre une salle
                 # Asking to join a room
                 elif node == "join":
                     self.clientJoinRoom(attrs)
 
-
-                # Si il veut quitter une salle
                 # Leaving a room
                 elif node == "leave":
                     self.clientLeaveRoom(attrs)
@@ -411,25 +512,24 @@ class PalabreClient(asynchat.async_chat):
 
         nickName = attrs['nickname']
 
-        rootpass = ''
+        password = ''
 
-        # Root password ?
-        if attrs.has_key('rootpass'):
-            rootpass = attrs['rootpass']
+        # password ?
+        if attrs.has_key('password'):
+            password = attrs['password']
 
         # On vérifie si le serveur valide ce nickName
         # Server Must validate the nickName
-        if self.server.isNickOk(nickName):
-            # Not a good nickname
-            self.clientSendErrorMessage(msg="Nickname empty or already taken")
+        rc = self.server.isNickOk(nickName, password)
+        if rc != True:
+            self.clientSendErrorMessage(msg = rc[1])
             return
 
-        # Est-ce qu'on l'autorise à se connecter
         # Is he authorized anyway ?
-        if self.server.isAuthorized(nickName, attrs):
+        if self.server.isAuthorized(nickName, password):
 
             # Is he root ?
-            if self.server.isRootPass(rootpass):
+            if self.server.isRootPass(password):
                 self.isRoot = 1
 
             # Whoooo everything went smoothly ...
@@ -449,7 +549,7 @@ class PalabreClient(asynchat.async_chat):
             # Code should be used for database (of imap of anything) identification !
             # Some sort of non-root password
             #
-            self.clientSendErrorMessage(msg="Wrong code: " % str(res))
+            self.clientSendErrorMessage(msg = "Client not authorized or bad password")
 
     def clientJoinRoom(self,attrs):
         """

@@ -330,21 +330,36 @@ class PalabreServer(asyncore.dispatcher):
             else:
                 return "<error>No room by that name</error>"
 
-
-    def isNickOk(self, nickName):
+    def checkPassword(self, nickName, password):
+        rc = True
+        try:
+            c = self.db.cursor()
+            c.execute("select count(*) from users where name = '%s' and password = '%s'" %\
+                (DB.escape_string(nickName), DB.escape_string(password)))
+            rs = c.fetchone()
+            if rs is None or rs[0] == 0:
+                rc = False
+        except:
+            raise
+        return rc
+  
+    def isNickOk(self, nickName, password):
         """ Before accepting a nickname checking if it acceptable (non empty and non existant)
          @nickName Nickname requested
 
         return boolean
         """
-        # Si il est pas vide et pas déjà prit
-        if nickName != "" and not self.allNickNames.has_key(nickName):
-            return True
-        else:
-            return False
 
+        if nickName == "":
+            return (False, 'Nickname is empty')
+        if self.allNickNames.has_key(nickName):
+            return (False, 'Nickname already taken')
 
+        # Password check moved to isAuthorized()
+        #if not self.checkPassword(nickName, password):
+        #    return (False, "Bad password for user '%s'" % nickName)
 
+        return True
 
     def serverAddClientToRoom(self, client, room='', parentR=''):
         """A client is trying to join a rooms
@@ -426,7 +441,6 @@ class PalabreServer(asyncore.dispatcher):
         listeR += "\n</rooms>"
         client.clientSendMessage(msg=listeR)
 
-
     def serverRemoveRoom(self, room):
         """When a room is empty it is automaticaly destroyed
 
@@ -435,8 +449,6 @@ class PalabreServer(asyncore.dispatcher):
 
         if self.allRooms.has_key(room):
             del self.allRooms[room]
-
-
 
     def isRootPass(self, password):
         """Checking Root Password
@@ -451,20 +463,10 @@ class PalabreServer(asyncore.dispatcher):
         else:
             return False
 
-
-
-    def isAuthorized(self, nickName, attrs):
-        """TODO !!!  Method for authentification
-        Example for MYSQL :
-            Méthode à modifier pour paramétrer l'authentification
-
-            if attrs.has_key('code') and attrs.has_key('password'):
-                c = self.db.cursor()
-                res = c.execute("SELECT * FROM t_connexions WHERE connexion_code LIKE '"+nickName+"'")
-
-                c.execute("DELETE FROM t_connexions WHERE connexion_code LIKE '"+nickName+"'")
+    def isAuthorized(self, nickName, password):
+        """  Method for authentification
         """
-        return True
+        return self.checkPassword(nickName, password)
 
 def _test():
     p = PalabreServer()

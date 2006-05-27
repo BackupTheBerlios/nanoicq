@@ -1,5 +1,5 @@
 
--- $Id: database.sql,v 1.3 2006/05/26 20:32:18 lightdruid Exp $
+-- $Id: database.sql,v 1.4 2006/05/27 00:03:23 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -19,7 +19,9 @@ create table sessions (
 create table groups (
     id mediumint not null auto_increment,
     name char(255),
-    primary key (id) 
+    mlevel int,
+    primary key (id),
+    unique name(name)
 );
   
 create table users (
@@ -27,10 +29,17 @@ create table users (
     name char(100),
     password char(100),
     role int,
-    primary key (id)
+    primary key (id),
+    unique name(name)
 );
 
+insert into groups (name, mlevel) values ('group 0', 0);
+insert into groups (name, mlevel) values ('group 1', 1);
+insert into groups (name, mlevel) values ('group 2', 2);
+ 
 insert into users (name, password, role) values ('as', 'as', 0);
 insert into users (name, password, role) values ('ab', 'ab', 1);
 insert into users (name, password, role) values ('zz', 'zz', 1);
- 
+insert into users (name, password, role) values ('test_0', 'pass_0', 0);
+
+--
