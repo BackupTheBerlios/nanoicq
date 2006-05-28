@@ -44,6 +44,49 @@ def safeClose(c):
         print str(exc)
         pass
 
+_roomTemplate = '''
+                <room id='%d' 
+                        name=%s 
+
+                        creatorid='%d',
+                        operatorid='%d',
+
+                        allowedUsers='%d',
+                        languageid='%d',
+                        temporary='%d',
+                        passwordProtected='%d',
+
+                        moderationAllowed='%d',
+                        roomManagementLevel='%d',
+                        userManagementlevel='%d',
+
+                        numberOfUsers='%d',
+                        numberOfSpectators='%d'
+                />
+'''
+
+_roomQuery = '''
+            select
+                id,
+                name,
+
+                creatorid,
+                operatorid,
+
+                allowedUsers,
+                languageid,
+                temporary,
+                passwordProtected,
+
+                moderationAllowed,
+                roomManagementLevel,
+                userManagementlevel,
+
+                numberOfUsers,
+                numberOfSpectators
+
+            from rooms %s order by name 
+'''
 
 class PalabreClient(asynchat.async_chat):
 
@@ -274,26 +317,60 @@ class PalabreClient(asynchat.async_chat):
         c = None
         try:
             c = self.db.cursor()
-            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked
-                from users u where id = %d ''' % int(uid)
+
+            # Pass empty parameter
+            s = _roomQuery % ""
+
             c.execute(s)
 
-            out = ["<getuserproperties isOk='1' id='%d' >" % int(uid)]
+            out = ["<getroomlist isOk='1' >"]
 
             rs = c.fetchall()
             for r in rs:
-                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' />" %\
-                    (r[0], Q(r[1]), r[2], r[3], r[4])
+                out.append(_roomTemplate %\
+                    (r[0], Q(r[1]), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
                 )
 
-            out.append("</getuserproperties>");
+            out.append("</getroomlist>");
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
             raise
-            out = "<getuserproperties isOk='0' msg=%s />" 
+            out = "<getroomlist isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def getRoomProperties(self, sesId = None, rid = None):
+        print 'retrieving room properties...'
+
+        rid = int(rid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+
+            # Pass where clause
+            s = _roomQuery % ("where id = %d" % rid)
+
+            c.execute(s)
+
+            out = ["<getroomproperties isOk='1' >"]
+
+            rs = c.fetchall()
+            for r in rs:
+                out.append(_roomTemplate %\
+                    (r[0], Q(r[1]), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
+                )
+
+            out.append("</getroomproperties>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            raise
+            out = "<getroomproperties isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
        
     def handle_expt():
@@ -442,6 +519,10 @@ class PalabreClient(asynchat.async_chat):
                 # get room list
                 elif node == "getroomlist":
                     self.getRoomList()
+
+                # get room properties
+                elif node == "getroomproperties":
+                    self.getRoomProperties(rid = attrs['id'])
    
                 # sending a ping ... getting a pong
                 elif node == "ping":
