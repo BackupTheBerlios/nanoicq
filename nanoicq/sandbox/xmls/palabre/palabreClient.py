@@ -36,6 +36,14 @@ def Q(v):
     """ Shortcut for saxutils.quoteattr """
     return SAX.quoteattr(v)
 
+def safeClose(c):
+    """ Close cursor, safely, quietly """
+    try:
+        c.close()
+    except Exception, exc:
+        print str(exc)
+        pass
+
 
 class PalabreClient(asynchat.async_chat):
 
@@ -203,35 +211,94 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage( out % Q(str(exc)) )
 
     def getUserProperties(self, sesId = None, uid = None):
-        print 'retrieving user properties...', uid
+        print 'retrieving user properties... %d' % int(uid)
 
         try:
             c = self.db.cursor()
-            s = 'select u.id, u.name, u.mlevel, u.languageid from users u where id = %d' % int(uid)
+            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked
+                from users u where id = %d ''' % int(uid)
             c.execute(s)
 
-            out = ["<getuserproperties isOk='1' id='%d' >" % int(gid)]
+            out = ["<getuserproperties isOk='1' id='%d' >" % int(uid)]
 
             rs = c.fetchall()
             for r in rs:
-                out.append("<client id='%d' name=%s />" %\
-                    (r[0], Q(r[1])) )
+                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' />" %\
+                    (r[0], Q(r[1]), r[2], r[3], r[4])
+                )
 
-            out.append("</listmembers>");
+            out.append("</getuserproperties>");
  
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
             raise
-            out = "<listmembers isOk='0' msg=%s />" 
+            out = "<getuserproperties isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
-     
+
+    def setUserProperties(self, sesId = None, attrs = {}):
+        uid = int(attrs['id'])
+        del attrs['id']
+
+        print 'setting user properties... %d' % int(uid)
+
+        c = None
+        try:
+            c = self.db.cursor()
+            s = 'update users set '
+
+            if attrs.has_key('name'):
+                s += " name = %s " % DB.escape_string(attrs['name'])
+            if attrs.has_key('languageid'):
+                s += " languageid = '%d' " % int(attrs['languageid'])
+            if attrs.has_key('password'):
+                s += " password = %s " % DB.escape_string(attrs['password'])
+            if attrs.has_key('groupid'):
+                s += " gid = '%d' " % int(attrs['groupid'])
+            if attrs.has_key('isblocked'):
+                s += " isblocked = '%d' " % int(attrs['isblocked'])
+   
+            s += ' where id = %d' % int(uid)
+            c.execute(s)
+
+            out = "<setuserproperties isOk='1' id='%d' />" % int(uid)
+            self.clientSendMessage(out)
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<setuserproperties isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def getRoomList(self, sesId = None):
+        print 'retrieving room list...'
+
+        c = None
+        try:
+            c = self.db.cursor()
+            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked
+                from users u where id = %d ''' % int(uid)
+            c.execute(s)
+
+            out = ["<getuserproperties isOk='1' id='%d' >" % int(uid)]
+
+            rs = c.fetchall()
+            for r in rs:
+                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' />" %\
+                    (r[0], Q(r[1]), r[2], r[3], r[4])
+                )
+
+            out.append("</getuserproperties>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            raise
+            out = "<getuserproperties isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+       
     def handle_expt():
         """
             Tried to add this because there is sometimes a strange error in the logs
-
-
-            Pour essayer de deviner d'où vient une erreur qui apparait parfois
-            Pour l'instant cette fonction n'est jamais appellée
         """
         logging.debug("****PalabreClient.handle_expt: %s" % repr(self))
 
@@ -239,7 +306,6 @@ class PalabreClient(asynchat.async_chat):
         """
             Everytime we collect data we add the data to the string self.data
             (Untill we encounter a terminator (\0)
-            A chaque caractère recu on concatène
         """
         self.data = self.data + data #.decode("utf-8")
 
@@ -249,19 +315,14 @@ class PalabreClient(asynchat.async_chat):
             Terminator Character has been found !
             So the Xml string should be ok, we start parsing datas
 
-            On vient de trouver le caractère terminator
-            On va donc essayer de parser le tout
         """
 
-        # Ligne complète de données
         # The complete XML string
         line = self.data
 
-        # On réinitialise 'data' pour recevoir d'autres informations
         # Reseting data for more data to come ...
         self.data = ''
 
-        # par défaut on essai de parser ca en XML
         # Trying to parse
         self.doParse = 1
 
@@ -272,38 +333,25 @@ class PalabreClient(asynchat.async_chat):
         #line = unicode(line,'utf-8') #.encode('utf-8')
         #print line
 
-
         try:
-            # Si parseString plante .... c'est que c'était pas du XML
             # Trying to parse data
             self.doc = xmldom.parseString(line)
         except:
-            # Donc on envoi un message d'erreur
-            # Faut pas abuser non plus ...
-            #
             # Sending error message to inform user
             self.clientSendErrorMessage(msg="This is not a valid XML string")
-            # Et donc on ne fait rien avec ce string
+
             #Stop parsing
             self.doParse = 0
 
-        # Si parseString s'est bien passé, on interprète le XML
-
         if self.doParse:
             # really parsing Data
-            self.parseData (data=self.doc)
-            # On supprime le doc ...
+            self.parseData (data = self.doc)
             self.doc.unlink()
 
     def parseData(self,data):
         """
             OK terminator was found, and @data is parsed XML !
             We look for the node name and dispatch information to other methods
-
-            Fonction appellée lors de la réception d'un message
-            Cette fonction est appellée par l'instance client via FoundTerminator
-
-            Elle appelle d'autres méthodes pour faire les vérifications nécessaires
         """
 
         # Data must have child nodes
@@ -383,6 +431,18 @@ class PalabreClient(asynchat.async_chat):
                 elif node == "listmembers":
                     self.listMembers(gid = attrs["id"])
 
+                # get user properties
+                elif node == "getuserproperties":
+                    self.getUserProperties(uid = attrs["id"])
+
+                # set user properties
+                elif node == "setuserproperties":
+                    self.setUserProperties(attrs = attrs)
+
+                # get room list
+                elif node == "getroomlist":
+                    self.getRoomList()
+   
                 # sending a ping ... getting a pong
                 elif node == "ping":
                     self.clientSendPong()
@@ -486,8 +546,6 @@ class PalabreClient(asynchat.async_chat):
         else:
             return False
 
-
-
     def clientAddChildRoom(self,attrs):
         """Adding a Child Room (sub-room)
 
@@ -512,13 +570,9 @@ class PalabreClient(asynchat.async_chat):
                 #
                 self.allMyRooms[thisRoom].roomAddChildRoom(childR=self.allMyRooms[thisChild])
 
-
-
     def clientUnsetRoomParam(self,attrs):
         """Removing a room parameter
 
-            Permet à un client +o dans une room de changer des paramètres
-            La vérification du +o se passe dans la room
         """
 
         # Xml node must have a room and a name of param to remove
@@ -559,21 +613,18 @@ class PalabreClient(asynchat.async_chat):
 
         """
 
-        ## A t'il un nickName ? C'est indispensable ##
         # Needs a nickname
         if not attrs.has_key('nickname'):
             self.clientSendErrorMessage(msg="No NickName Attribute")
             return
 
         nickName = attrs['nickname']
-
         password = ''
 
         # password ?
         if attrs.has_key('password'):
             password = attrs['password']
 
-        # On vérifie si le serveur valide ce nickName
         # Server Must validate the nickName
         rc = self.server.isNickOk(nickName, password)
         if rc != True:
@@ -723,7 +774,6 @@ class PalabreClient(asynchat.async_chat):
             # Booooooo
             self.clientSendErrorMessage(msg="No room by that name")
 
-
     def close (self):
         """Client Left the server
             Quand le client vient de se déconnecter
@@ -746,26 +796,18 @@ class PalabreClient(asynchat.async_chat):
         # Ca on est déjà censé l'avoir fait ...
         asynchat.async_chat.close (self)
 
-
-
-
     def clientSendMessage (self, msg):
         """Method to send an XML message to this client
             Méthode d'envoi d'un message au client
             le message doit déjà être formaté en XML
         """
 
-        # On concatène le terminator
         msg = "%s%s" % (msg, self.terminator)
 
-        # On essai de lui envoyer le message
         try:
-            # On envoit ....
             self.push(msg)
         except:
-            # Sinon il n'est peut etre plus là ????
             logging.debug("Failed to send message to %s(%s)" % (self.nickName, self.addr))
-
 
     def clientSendErrorMessage(self, msg):
         """Error message

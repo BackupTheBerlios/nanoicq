@@ -403,24 +403,37 @@ class PalabreServer(asyncore.dispatcher):
         # On retourne l'instance room au client
         return self.allRooms[room]
 
-
     def serverAddClient(self,client):
         """When a client connects
-
         After identification (nickname) we add this client to self.allNickNames[]
-
         @client ; client Instance
 
         """
 
         self.allNickNames[client.nickName] = client
 
+    def serverSendRoomsToClient(self, sesId = None):
+        """A client ask for the list of all rooms (<getrooms />)
 
+        We send him the list in XML :
+            <rooms nb="NUMBER_OF_ROOMS">
+                <room name="NAME">
+                    <param name="PARAM">VALUE</param>
+                </room>
+            </rooms>
 
+        For room name and params we call the Room Instance.roomShowParams();
 
+        @client : Client Instance
+        """
+        try:
+            c = self.db.cursor()
+            c.execute("select ")
 
-
-    def serverSendRoomsToClient(self, client):
+        except Exception, exc:
+            raise
+ 
+    def serverSendRoomsToClient_OLD(self, client):
         """A client ask for the list of all rooms (<getrooms />)
 
         We send him the list in XML :
