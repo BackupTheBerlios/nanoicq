@@ -98,8 +98,10 @@ class Client(Thread):
                     #self.sock.xsend("<setuserproperties id='3' languageid='10' />")
                     #self.sock.xsend("<getroomlist />")
                     #self.sock.xsend("<getroomproperties id='1' />")
-                    self.sock.xsend("<setroomproperties id='1' userManagementlevel3='2' />")
-           
+                    #self.sock.xsend("<setroomproperties id='1' userManagementlevel3='2' />")
+                    #self.sock.xsend("<createroom name='some new room' />")
+                    #self.sock.xsend("<delroom id='2' />")
+             
                 for a in node.attributes.items():
                     #attrs[p[0]] = p[1].encode("utf-8")
                     print a

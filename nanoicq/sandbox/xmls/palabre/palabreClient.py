@@ -387,8 +387,6 @@ class PalabreClient(asynchat.async_chat):
                 s += " moderationAllowed = '%d' " % int(attrs['moderationAllowed'])
             if attrs.has_key('roomManagementLevel'):
                 s += " roomManagementLevel = '%d' " % int(attrs['roomManagementLevel'])
-            if attrs.has_key('roomManagementLevel'):
-                s += " roomManagementLevel = '%d' " % int(attrs['roomManagementLevel'])
             if attrs.has_key('userManagementlevel'):
                 s += " userManagementlevel = '%d' " % int(attrs['userManagementlevel'])
       
@@ -406,7 +404,186 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c)
             out = "<setroomproperties isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
-        
+
+    def removeAllowedUser(self, sesId = None, rid = None, uid = None):
+        print 'removing allowed user'
+
+        rid = int(rid)
+        uid = int(uid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+            s = ''
+
+            raise Exception("Not implemented yet")
+            print s
+ 
+            c.execute(s)
+
+            out = ["<removealloweduser isOk='1' >"]
+            out.append("</removealloweduser>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<removealloweduser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+ 
+    def appendNewAllowedUser(self, sesId = None, rid = None, uid = None):
+        print 'adding new allowed user'
+
+        rid = int(rid)
+        uid = int(uid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+            s = ''
+
+            raise Exception("Not implemented yet")
+            print s
+ 
+            c.execute(s)
+
+            out = ["<addnewalloweduser isOk='1' >"]
+            out.append("</addnewalloweduser>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<addnewalloweduser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def inviteUser(self, sesId = None, rid = None, uid = None):
+        print 'inviting user'
+
+        rid = int(rid)
+        uid = int(uid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+            s = ''
+
+            raise Exception("Not implemented yet")
+            print s
+ 
+            c.execute(s)
+
+            out = ["<inviteuser isOk='1' >"]
+            out.append("</inviteuser>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<inviteuser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def createRoom(self, sesId = None, attrs = {}):
+        print 'creating new room'
+
+        c = None
+
+        try:
+            c = self.db.cursor()
+            s = "select id from rooms where name = '%s'" % DB.escape_string(attrs['name'])
+
+            print s
+ 
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is not None:
+                raise Exception("Room with name '%s' already exists" % attrs['name'])
+
+            #
+
+            keys = []
+            s = []
+
+            if attrs.has_key('name'):
+                s.append( " '%s' " % DB.escape_string(attrs['name']))
+                keys.append("name")
+
+            if attrs.has_key('languageid'):
+                s.append(" '%d' " % int(attrs['languageid']))
+                keys.append("languageid")
+
+            if attrs.has_key('pvtPassword'):
+                s.append( " '%s' " % DB.escape_string(attrs['pvtPassword']))
+                keys.append("pvtPassword")
+
+            if attrs.has_key('publicPassword'):
+                s.append( " '%s' " % DB.escape_string(attrs['publicPassword']))
+                keys.append("publicPassword")
+ 
+            if attrs.has_key('temporary'):
+                s.append(" '%d' " % int(attrs['temporary']))
+                keys.append("temporary")
+
+            if attrs.has_key('allowedUsers'):
+                s.append(" '%d' " % int(attrs['allowedUsers']))
+                keys.append("allowedUsers")
+
+            if attrs.has_key('passwordProtected'):
+                s.append(" '%d' " % int(attrs['passwordProtected']))
+                keys.append("passwordProtected")
+
+            if attrs.has_key('moderationAllowed'):
+                s.append(" '%d' " % int(attrs['moderationAllowed']))
+                keys.append("moderationAllowed")
+
+            if attrs.has_key('roomManagementLevel'):
+                s.append(" '%d' " % int(attrs['roomManagementLevel']))
+                keys.append("roomManagementLevel")
+
+            if attrs.has_key('userManagementlevel'):
+                s.append(" '%d' " % int(attrs['userManagementlevel']))
+                keys.append("userManagementlevel")
+
+            s = "insert into rooms (%s) values (%s)" %\
+                (",".join(keys), ",".join(s))
+
+            print s
+            c.execute(s)
+
+            out = ["<createroom isOk='1' name=%s >" % Q(attrs['name'])]
+            out.append("</createroom>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<createroom isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def delRoom(self, sesId = None, rid = None):
+        print 'delete room'
+
+        rid = int(rid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+            s = 'delete from rooms where id = %d' % rid
+
+            print s
+ 
+            c.execute(s)
+
+            out = ["<delroom isOk='1' id='%d' >" % rid]
+            out.append("</delroom>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<delroom isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+                    
     def handle_expt():
         """
             Tried to add this because there is sometimes a strange error in the logs
@@ -561,7 +738,15 @@ class PalabreClient(asynchat.async_chat):
                     rid = attrs['id']
                     del attrs['id']
                     self.setRoomProperties(rid = rid, attrs = attrs)
-    
+
+                # create room
+                elif node == "createroom":
+                    self.createRoom(attrs = attrs)
+
+                # delete room
+                elif node == "delroom":
+                    self.delRoom(rid = attrs['id'])
+      
                 # sending a ping ... getting a pong
                 elif node == "ping":
                     self.clientSendPong()
