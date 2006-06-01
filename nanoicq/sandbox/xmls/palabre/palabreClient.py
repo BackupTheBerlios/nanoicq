@@ -46,21 +46,21 @@ def safeClose(c):
 
 _roomTemplate = '''
                 <room id='%d' 
-                        name=%s 
+                        name=%s
 
-                        creatorid='%d',
-                        operatorid='%d',
+                        creatorid='%d'
+                        operatorid='%d'
 
-                        allowedUsers='%d',
-                        languageid='%d',
-                        temporary='%d',
-                        passwordProtected='%d',
+                        allowedUsers='%d'
+                        languageid='%d'
+                        temporary='%d'
+                        passwordProtected='%d'
 
-                        moderationAllowed='%d',
-                        roomManagementLevel='%d',
-                        userManagementlevel='%d',
+                        moderationAllowed='%d'
+                        roomManagementLevel='%d'
+                        userManagementlevel='%d'
 
-                        numberOfUsers='%d',
+                        numberOfUsers='%d'
                         numberOfSpectators='%d'
                 />
 '''
@@ -107,20 +107,11 @@ class PalabreClient(asynchat.async_chat):
 
 
         """
-        """
-            Constructeur du client
-            Définition des variable, du 'terminator'
-            etc ...
-        """
 
-        # Asynchat initialise son client
         # Asynchat initialisation ... (main class for sending and receiving messages */
         asynchat.async_chat.__init__ (self, conn)
 
-        # Pour que le client retrouve le serveur
         self.server = server
-
-        # Pour que le client retrouve sa connexion
         self.conn = conn
 
         # Database connection
@@ -129,12 +120,11 @@ class PalabreClient(asynchat.async_chat):
         # Adresse Ip ?
         self.addr = addr[0]
 
-        # Quel caractère détermine la fin de l'envoi d'un message ?
         # Null character
         self.carTerm = "\0"
 
         # Inherited from asynchat ..
-        self.set_terminator (self.carTerm) # Ici c'est un caractère null (Flash default)
+        self.set_terminator (self.carTerm)
 
         # String de réception des données
         self.data = ""
@@ -249,7 +239,6 @@ class PalabreClient(asynchat.async_chat):
  
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            raise
             out = "<listmembers isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
@@ -274,7 +263,6 @@ class PalabreClient(asynchat.async_chat):
  
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            raise
             out = "<getuserproperties isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
@@ -337,7 +325,6 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            raise
             out = "<getroomlist isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
@@ -369,10 +356,57 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            raise
             out = "<getroomproperties isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
-       
+
+    def setRoomProperties(self, sesId = None, rid = None, attrs = {}):
+        print 'setting room properties...'
+
+        rid = int(rid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+            s = 'update rooms set '
+
+            if attrs.has_key('name'):
+                s += " name = %s " % DB.escape_string(attrs['name'])
+            if attrs.has_key('languageid'):
+                s += " languageid = '%d' " % int(attrs['languageid'])
+            if attrs.has_key('pvtPassword'):
+                s += " pvtpassword = %s " % DB.escape_string(attrs['pvtPassword'])
+            if attrs.has_key('publicPassword'):
+                s += " publicpassword = %s " % DB.escape_string(attrs['publicPassword'])
+            if attrs.has_key('temporary'):
+                s += " temporary = '%d' " % int(attrs['temporary'])
+            if attrs.has_key('allowedUsers'):
+                s += " allowedUsers = '%d' " % int(attrs['allowedUsers'])
+            if attrs.has_key('passwordProtected'):
+                s += " passwordProtected = '%d' " % int(attrs['passwordProtected'])
+            if attrs.has_key('moderationAllowed'):
+                s += " moderationAllowed = '%d' " % int(attrs['moderationAllowed'])
+            if attrs.has_key('roomManagementLevel'):
+                s += " roomManagementLevel = '%d' " % int(attrs['roomManagementLevel'])
+            if attrs.has_key('roomManagementLevel'):
+                s += " roomManagementLevel = '%d' " % int(attrs['roomManagementLevel'])
+            if attrs.has_key('userManagementlevel'):
+                s += " userManagementlevel = '%d' " % int(attrs['userManagementlevel'])
+      
+            s += ' where id = %d' % int(rid)
+            print s
+ 
+            c.execute(s)
+
+            out = ["<setroomproperties isOk='1' >"]
+            out.append("</setroomproperties>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<setroomproperties isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+        
     def handle_expt():
         """
             Tried to add this because there is sometimes a strange error in the logs
@@ -466,10 +500,8 @@ class PalabreClient(asynchat.async_chat):
             elif node == "quit":
                 self.clientQuit()
 
-            # Le client doit être logué pour faire la majorité des actions
-            #
             # Client must be identified
-            #
+
             elif self.loggedIn:
 
                 # He is sending a message
@@ -523,7 +555,13 @@ class PalabreClient(asynchat.async_chat):
                 # get room properties
                 elif node == "getroomproperties":
                     self.getRoomProperties(rid = attrs['id'])
-   
+
+                # set room properties
+                elif node == "setroomproperties":
+                    rid = attrs['id']
+                    del attrs['id']
+                    self.setRoomProperties(rid = rid, attrs = attrs)
+    
                 # sending a ping ... getting a pong
                 elif node == "ping":
                     self.clientSendPong()
