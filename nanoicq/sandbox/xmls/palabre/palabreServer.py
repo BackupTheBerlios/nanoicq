@@ -97,6 +97,8 @@ class PalabreServer(asyncore.dispatcher):
         logging.info("Port: %s" % self.PORT)
 
         self.db = self.connectToDb()
+        if self.db is None:
+            self.serverShutDown()
 
     def checkDbStatus(self, db):
         checkTables = ['user']
@@ -128,7 +130,7 @@ class PalabreServer(asyncore.dispatcher):
 
             self.checkDbStatus(db)
 
-            logging.debug("Connected")
+            logging.debug("Connected to database")
         except DB.DatabaseError, exc:
             logging.error("DB connection: " + str(exc))
 
@@ -149,19 +151,10 @@ class PalabreServer(asyncore.dispatcher):
         self.logFile.close()
         self.serverShutDown()
 
-
-
-
     def writable(self):
-        """
-            ...
-        """
         return 0
 
-
-
-
-    def serverShutDown(self):
+    def serverShutDown(self, reason = ''):
         """When asked to shutdown the server by root
         """
 
@@ -169,8 +162,12 @@ class PalabreServer(asyncore.dispatcher):
 
         """ On envoit un message à tous les clients """
 
+        if reason != '':
+            reason = "(%s) " % reason
+
         for p in self.allNickNames.values():
-            p.clientSendErrorMessage(msg="### Server is now going down ... ###")
+            p.clientSendErrorMessage(
+                msg = "### Server is now going down %s... ###" % reason)
             p.close()
 
         self.close()
@@ -181,8 +178,7 @@ class PalabreServer(asyncore.dispatcher):
         # the previous comment and its poor english was graciously 
         # brougth to you by lekma
         # indeed (i am so f***ing tired and it's only 20:13)
-        #os._exit(0)
-
+        os._exit(0)
 
     def serverClientExists(self, nickName):
         """Method to know if a user exists and is connected
@@ -194,8 +190,6 @@ class PalabreServer(asyncore.dispatcher):
                 return True
 
         return False
-
-
 
     def serverRmClient(self, nickName, rootUser):
         """Method to handle a kick off
@@ -231,8 +225,6 @@ class PalabreServer(asyncore.dispatcher):
         for p in self.allRooms.values():
             p.roomRemoveClient(nickName)
 
-
-
     def serverSendToClientByName(self, nickName, msg, type):
         """ Method to send a message to ONE specific clients
 
@@ -253,8 +245,6 @@ class PalabreServer(asyncore.dispatcher):
             else:
                 self.allNickNames[nickName].clientSendMessage(msg)
 
-
-
     def serverSendMessageToClient(self, data, sender, dest):
         """ Method to send a message from a client to another (private message)
         @data : Body of the message to send
@@ -270,9 +260,6 @@ class PalabreServer(asyncore.dispatcher):
         if self.allNickNames.has_key(sender) and self.allNickNames.has_key(dest):
             self.allNickNames[dest].clientSendMessage(msg = "<m f='%s'>%s</m>" % (sender, data))
 
-
-
-
     def serverSendToAllClients(self, data, sender):
         """ Method to broadcast a message to everyone
          @data : Message to broadcast
@@ -287,9 +274,6 @@ class PalabreServer(asyncore.dispatcher):
         for p in self.allNickNames.values():
             p.clientSendMessage(msg=data)
 
-
-
-
     def serverSendAdminMessage(self, msg):
         """ Broadcast a technical Message
          @msg Message to send
@@ -298,8 +282,6 @@ class PalabreServer(asyncore.dispatcher):
         # Admin rulez ... Broadcast everything
         for p in self.allNickNames.values():
             p.clientSendMessage(msg=data)
-
-
 
     def serverSendToRoom(self, data, sender, room, back):
         """ Method to send a message from a client to a specific room
@@ -330,18 +312,24 @@ class PalabreServer(asyncore.dispatcher):
             else:
                 return "<error>No room by that name</error>"
 
-    def checkPassword(self, nickName, password):
+    def checkPassword(self, nickName, password, sesId):
         rc = True
         try:
             c = self.db.cursor()
-            c.execute("select count(*) from users where name = '%s' and password = '%s'" %\
+            c.execute("select id from users where name = '%s' and password = '%s'" %\
                 (DB.escape_string(nickName), DB.escape_string(password)))
             rs = c.fetchone()
-            if rs is None or rs[0] == 0:
+            if rs is None:
                 rc = False
+                ids = -1
+            else:
+                ids = rs[0]
+                s = "insert into sessions (sesid, userid) values ('%s', %d)" %\
+                    (sesId, ids)
+                c.execute(s)
         except:
             raise
-        return rc
+        return (rc, ids)
   
     def isNickOk(self, nickName, password):
         """ Before accepting a nickname checking if it acceptable (non empty and non existant)
@@ -476,10 +464,10 @@ class PalabreServer(asyncore.dispatcher):
         else:
             return False
 
-    def isAuthorized(self, nickName, password):
+    def isAuthorized(self, nickName, password, sesId):
         """  Method for authentification
         """
-        return self.checkPassword(nickName, password)
+        return self.checkPassword(nickName, password, sesId)
 
 def _test():
     p = PalabreServer()

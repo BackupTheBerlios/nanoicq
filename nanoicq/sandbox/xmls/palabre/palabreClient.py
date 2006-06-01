@@ -583,7 +583,29 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c)
             out = "<delroom isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
-                    
+
+    def joinRoom(self, sesId = None, rid = None, publicPassword = None):
+        print 'joining room'
+
+        rid = int(rid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+
+            print s
+ 
+            c.execute(s)
+
+            out = "<joinroom isOk='1' id='%d' />" % rid
+ 
+            self.clientSendMessage(out)
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<joinroom isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+                     
     def handle_expt():
         """
             Tried to add this because there is sometimes a strange error in the logs
@@ -746,7 +768,14 @@ class PalabreClient(asynchat.async_chat):
                 # delete room
                 elif node == "delroom":
                     self.delRoom(rid = attrs['id'])
-      
+
+                # join room
+                elif node == "joinroom":
+                    publicPassword = None
+                    if attrs.has_key('publicPassword'):
+                        publicPassword = attrs['publicPassword']
+                    self.joinRoom(rid = attrs['id'], publicPassword = publicPassword)
+       
                 # sending a ping ... getting a pong
                 elif node == "ping":
                     self.clientSendPong()
@@ -814,14 +843,14 @@ class PalabreClient(asynchat.async_chat):
             Le client vient de se déconnecter ... 'ala' goret surement
         """
 
-        # asynchat vire le client ... il est plus là
         asynchat.async_chat.close (self)
-
-        # Pour débuguer
         logging.info("Connection lost for %s(%s)" % (self.nickName, self.addr))
 
         # Log off from DB
         try:
+            c = self.db.cursor()
+            c.execute("delete from sessions where sesId = '%s'" % self.sesId)
+            c.close()
             self.db.close()
         except Exception, exc:
             logging.error("Error while disconnecting from DB: %s" % ( str(exc) ))
@@ -919,10 +948,15 @@ class PalabreClient(asynchat.async_chat):
 
         # Needs a nickname
         if not attrs.has_key('nickname'):
-            self.clientSendErrorMessage(msg="No NickName Attribute")
+            self.clientSendErrorMessage(msg = "No NickName Attribute")
             return
-
+        # Needs a session Id
+        if not attrs.has_key('sesId'):
+            self.clientSendErrorMessage(msg = "No Session Id Attribute")
+            return
+ 
         nickName = attrs['nickname']
+        self.sesId = attrs['sesId']
         password = ''
 
         # password ?
@@ -936,7 +970,12 @@ class PalabreClient(asynchat.async_chat):
             return
 
         # Is he authorized anyway ?
-        if self.server.isAuthorized(nickName, password):
+        rc, ids = self.server.isAuthorized(nickName, password, self.sesId)
+        if rc:
+
+            # Store our own id
+            self.ids = int(ids)
+            print "Our id=%d" % self.ids
 
             # Is he root ?
             if self.server.isRootPass(password):

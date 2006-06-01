@@ -1,5 +1,5 @@
 
--- $Id: database.sql,v 1.6 2006/05/28 09:20:34 lightdruid Exp $
+-- $Id: database.sql,v 1.7 2006/06/01 20:15:04 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -14,6 +14,7 @@ create table sessions (
     id mediumint not null auto_increment,
     sesid char(255),
     created timestamp not null,
+    userid mediumint not null,
     primary key (id) 
 );
 
