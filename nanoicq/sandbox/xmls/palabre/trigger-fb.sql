@@ -1,5 +1,5 @@
 
--- $Id: trigger-fb.sql,v 1.1 2006/06/27 20:23:13 lightdruid Exp $
+-- $Id: trigger-fb.sql,v 1.2 2006/06/27 21:45:58 lightdruid Exp $
 
 drop trigger sessions_tr;
 drop trigger groups_tr;
@@ -14,6 +14,8 @@ as
 begin
     if (new.id is null) then
         new.id = gen_id(gen_sessions_id, 1);
+    if (new.created is null) then
+        new.created = CURRENT_TIMESTAMP;
 end
 !!
 

@@ -1,5 +1,5 @@
 
--- $Id: database-fb.sql,v 1.1 2006/06/27 20:23:13 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.2 2006/06/27 21:45:58 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -158,9 +158,9 @@ insert into rooms (
     );
  
   
-insert into users (name, upassword, role, gid, languageid, isblocked) values ('as', 'as', 0, 0, 0, 0);
-insert into users (name, upassword, role, gid, languageid, isblocked) values ('ab', 'ab', 1, 1, 1, 0);
-insert into users (name, upassword, role, gid, languageid, isblocked) values ('zz', 'zz', 1, 2, 1, 0);
-insert into users (name, upassword, role, gid, languageid, isblocked) values ('test_0', 'pass_0', 0, 2, 1, 0);
+insert into users (name, upassword, urole, gid, languageid, isblocked) values ('as', 'as', 0, 0, 0, 0);
+insert into users (name, upassword, urole, gid, languageid, isblocked) values ('ab', 'ab', 1, 1, 1, 0);
+insert into users (name, upassword, urole, gid, languageid, isblocked) values ('zz', 'zz', 1, 2, 1, 0);
+insert into users (name, upassword, urole, gid, languageid, isblocked) values ('test_0', 'pass_0', 0, 2, 1, 0);
 
 --

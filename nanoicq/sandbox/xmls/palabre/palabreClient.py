@@ -1,36 +1,20 @@
 # -*- coding: utf-8 -*-
 
-# Palabre - palabreClient.py
-#
-# Copyright 2003-2005 Célio Conort
-#
-# This file is part of Palabre.
-#
-# Palabre is free software; you can redistribute it
-# and/or modify it under the terms of the GNU General Public
-# License as published by the Free Software Foundation; either
-# version 2, or (at your option) any later version.
-#
-# Palabre is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-# PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public
-# License along with program; see the file COPYING. If not,
-# write to the Free Software Foundation, Inc., 59 Temple Place
-# - Suite 330, Boston, MA 02111-1307, USA.
-
 import socket
 import asynchat
 import xml.dom.minidom as xmldom
 import xml.sax.saxutils as SAX
 import string
 
-from palabre import logging
+from palabre import config, logging, version, escape_string
 
-import MySQLdb as DB
-
+if config.get("database", "type") == "mysql":
+    import MySQLdb as DB
+elif config.get("database", "type") == "firebird":
+    import kinterbasdb as DB
+else:
+    raise Exception("Unknown database type in config")
+ 
 
 def Q(v):
     """ Shortcut for saxutils.quoteattr """
@@ -167,15 +151,15 @@ class PalabreClient(asynchat.async_chat):
         try:
             c = self.db.cursor()
             c.execute("insert into groups (name, mlevel) values ('%s', %d)" %\
-                (DB.escape_string(name), int(moderationLevel)))
+                (escape_string(name), int(moderationLevel)))
             c.execute("select id, name, mlevel from groups where name = '%s' and mlevel='%d'" %\
-                (DB.escape_string(name), int(moderationLevel)))
+                (escape_string(name), int(moderationLevel)))
 
             r = c.fetchone()
 
             out = ["<creategroup isOk='1'>"] 
             out.append("<group id='%d' name='%s' moderationLevel='%d' />" %\
-                    (r[0], DB.escape_string(r[1]), r[2]))
+                    (r[0], escape_string(r[1]), r[2]))
             out.append("</creategroup>")
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
@@ -194,7 +178,7 @@ class PalabreClient(asynchat.async_chat):
                 raise Exception("Can't find group with id='%d'" % int(gid))
 
             out = "<getgroupproperties isOk='1' id='%d' name='%s' moderationLevel='%d' />" %\
-                (r[0], DB.escape_string(r[1]), r[2])
+                (r[0], escape_string(r[1]), r[2])
             self.clientSendMessage(out)
         except Exception, exc:
             self.clientSendMessage( out % Q(str(exc)) )
@@ -208,7 +192,7 @@ class PalabreClient(asynchat.async_chat):
 
             s = 'update groups set '
             if name is not None:
-                s += " name = '%s' " % DB.escape_string(name)
+                s += " name = '%s' " % escape_string(name)
             if moderationLevel is not None:
                 s += " mlevel = %d " % int(moderationLevel)
             s += ' where id = %d' % int(gid)
@@ -278,11 +262,11 @@ class PalabreClient(asynchat.async_chat):
             s = 'update users set '
 
             if attrs.has_key('name'):
-                s += " name = %s " % DB.escape_string(attrs['name'])
+                s += " name = %s " % escape_string(attrs['name'])
             if attrs.has_key('languageid'):
                 s += " languageid = '%d' " % int(attrs['languageid'])
             if attrs.has_key('password'):
-                s += " password = %s " % DB.escape_string(attrs['password'])
+                s += " password = %s " % escape_string(attrs['password'])
             if attrs.has_key('groupid'):
                 s += " gid = '%d' " % int(attrs['groupid'])
             if attrs.has_key('isblocked'):
@@ -370,13 +354,13 @@ class PalabreClient(asynchat.async_chat):
             s = 'update rooms set '
 
             if attrs.has_key('name'):
-                s += " name = %s " % DB.escape_string(attrs['name'])
+                s += " name = %s " % escape_string(attrs['name'])
             if attrs.has_key('languageid'):
                 s += " languageid = '%d' " % int(attrs['languageid'])
             if attrs.has_key('pvtPassword'):
-                s += " pvtpassword = %s " % DB.escape_string(attrs['pvtPassword'])
+                s += " pvtpassword = %s " % escape_string(attrs['pvtPassword'])
             if attrs.has_key('publicPassword'):
-                s += " publicpassword = %s " % DB.escape_string(attrs['publicPassword'])
+                s += " publicpassword = %s " % escape_string(attrs['publicPassword'])
             if attrs.has_key('temporary'):
                 s += " temporary = '%d' " % int(attrs['temporary'])
             if attrs.has_key('allowedUsers'):
@@ -490,7 +474,7 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
-            s = "select id from rooms where name = '%s'" % DB.escape_string(attrs['name'])
+            s = "select id from rooms where name = '%s'" % escape_string(attrs['name'])
 
             print s
  
@@ -505,7 +489,7 @@ class PalabreClient(asynchat.async_chat):
             s = []
 
             if attrs.has_key('name'):
-                s.append( " '%s' " % DB.escape_string(attrs['name']))
+                s.append( " '%s' " % escape_string(attrs['name']))
                 keys.append("name")
 
             if attrs.has_key('languageid'):
@@ -513,11 +497,11 @@ class PalabreClient(asynchat.async_chat):
                 keys.append("languageid")
 
             if attrs.has_key('pvtPassword'):
-                s.append( " '%s' " % DB.escape_string(attrs['pvtPassword']))
+                s.append( " '%s' " % escape_string(attrs['pvtPassword']))
                 keys.append("pvtPassword")
 
             if attrs.has_key('publicPassword'):
-                s.append( " '%s' " % DB.escape_string(attrs['publicPassword']))
+                s.append( " '%s' " % escape_string(attrs['publicPassword']))
                 keys.append("publicPassword")
  
             if attrs.has_key('temporary'):

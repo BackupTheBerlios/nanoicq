@@ -29,8 +29,8 @@ class Client(Thread):
         self.running = 1
 
     def xml_connect(self):
-        self.sock.xsend('<connect nickname="test_' + str(self.ids) + '" password="' + str(self.ids) + '" ></connect>')
-        print 'connect request has been sent'
+        self.sock.xsend('<connect sesId="abcdefgh" nickname="test_' + str(self.ids) + '" password="pass_' + str(self.ids) + '" ></connect>')
+        print 'connect request has been sent', self.ids
 
     def run(self):
         seed(self.ids)

@@ -1,27 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Palabre - palabreServer.py
-#
-# Copyright 2003-2005 Célio Conort
-#
-# This file is part of Palabre.
-#
-# Palabre is free software; you can redistribute it
-# and/or modify it under the terms of the GNU General Public
-# License as published by the Free Software Foundation; either
-# version 2, or (at your option) any later version.
-#
-# Palabre is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-# PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public
-# License along with program; see the file COPYING. If not,
-# write to the Free Software Foundation, Inc., 59 Temple Place
-# - Suite 330, Boston, MA 02111-1307, USA.
-
 import socket
 import asyncore
 import string
@@ -29,9 +8,24 @@ import signal
 import sys
 import os
 import sys
-import MySQLdb as DB
+
+from palabre import config, logging, version, escape_string
+
+DB_MYSQL    = 0
+DB_FIRE     = 1
+dbtype = -1
+
+if config.get("database", "type") == "mysql":
+    import MySQLdb as DB
+    dbtype = DB_MYSQL
+elif config.get("database", "type") == "firebird":
+    import kinterbasdb as DB
+    dbtype = DB_FIRE
+else:
+    raise Exception("Unknown database type in config")
+
 from datetime import datetime
-from palabre import logging, version
+
 from palabreClient import PalabreClient
 from palabreRoom import PalabreRoom
 
@@ -101,7 +95,7 @@ class PalabreServer(asyncore.dispatcher):
             self.serverShutDown()
 
     def checkDbStatus(self, db):
-        checkTables = ['user']
+        checkTables = ['users']
 
         c = db.cursor()
         for t in checkTables:
@@ -121,13 +115,22 @@ class PalabreServer(asyncore.dispatcher):
         db = None
 
         try:
-            db = DB.connect(
-                host = "10.3.13.7",
-                port = 3306,
-                user = "postnuke", 
-                passwd = "postnuke", 
-                db = "test")
-
+            if config.get("database", "type") == "mysql":
+                logging.debug("Using MySQL driver")
+                db = DB.connect(
+                    host = config.get("database", "host"),
+                    port = config.getint("database", "port"), 
+                    user = config.get("database", "user"), 
+                    passwd = config.get("database", "password"), 
+                    db = config.get("database", "database") )
+            else:
+                logging.debug("Using Firebird driver")
+                db = DB.connect(
+                    host = config.get("database", "host"),
+                    user = config.get("database", "user"), 
+                    password = config.get("database", "password"), 
+                    database = config.get("database", "database") )
+ 
             self.checkDbStatus(db)
 
             logging.debug("Connected to database")
@@ -316,8 +319,8 @@ class PalabreServer(asyncore.dispatcher):
         rc = True
         try:
             c = self.db.cursor()
-            c.execute("select id from users where name = '%s' and password = '%s'" %\
-                (DB.escape_string(nickName), DB.escape_string(password)))
+            c.execute("select id from users where name = '%s' and upassword = '%s'" %\
+                (escape_string(nickName), escape_string(password)))
             rs = c.fetchone()
             if rs is None:
                 rc = False
