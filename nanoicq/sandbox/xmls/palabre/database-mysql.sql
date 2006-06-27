@@ -1,5 +1,5 @@
 
--- $Id: database.sql,v 1.7 2006/06/01 20:15:04 lightdruid Exp $
+-- $Id: database-mysql.sql,v 1.1 2006/06/27 20:23:13 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -20,7 +20,7 @@ create table sessions (
 
 create table groups (
     id mediumint not null auto_increment,
-    name char(255),
+    name char(250),
     mlevel int,
     primary key (id),
     unique name(name)
