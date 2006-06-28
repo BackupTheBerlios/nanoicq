@@ -1,5 +1,5 @@
 
--- $Id: trigger-fb.sql,v 1.2 2006/06/27 21:45:58 lightdruid Exp $
+-- $Id: trigger-fb.sql,v 1.3 2006/06/28 11:02:50 lightdruid Exp $
 
 drop trigger sessions_tr;
 drop trigger groups_tr;
@@ -24,7 +24,7 @@ active before insert position 0
 as
 begin
     if (new.id is null) then
-        new.id = gen_id(gen_sessions_id, 1);
+        new.id = gen_id(gen_groups_id, 1);
 end
 !!
 
@@ -33,7 +33,7 @@ before insert
 as
 begin
     if (new.id is null) then
-        new.id = gen_id(gen_sessions_id, 1);
+        new.id = gen_id(gen_rooms_id, 1);
 end
 !!
  
@@ -42,7 +42,7 @@ active before insert position 0
 as
 begin
     if (new.id is null) then
-        new.id = gen_id(gen_sessions_id, 1);
+        new.id = gen_id(gen_users_id, 1);
 end
 !!
 

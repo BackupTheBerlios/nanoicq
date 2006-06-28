@@ -88,19 +88,20 @@ class Client(Thread):
                 print 'node:', node.nodeName
                 if node.nodeName == "connect":
                     #self.sock.xsend("<listgroups />")
+                    #self.sock.xsend("<creategroup name='abcd0000000000000000000000000000000000000000abcd0000000000000000000000000000000000000000abcd0000000000000000000000000000000000000000abcd0000000000000000000000000000000000000000abcd0000000000000000000000000000000000000000abcd0000000000000000000000000000000000000000abcd0000000000000000000000000000000000000000abcd0000000000000000000000000000000000000000' moderationLevel='1' />")
                     #self.sock.xsend("<creategroup name='abcd' moderationLevel='1' />")
-                    #self.sock.xsend("<getgroupproperties id='45' />")
-                    #self.sock.xsend("<setgroupproperties id='13' name='first one' />")
-                    #self.sock.xsend("<listmembers id='0' />")
+                    #self.sock.xsend("<getgroupproperties id='1' />")
+                    #self.sock.xsend("<setgroupproperties id='2' name='first one' />")
+                    #self.sock.xsend("<listmembers id='550' />")
                     #self.sock.xsend("<getuserproperties id='1' />")
-                    #self.sock.xsend("<getuserproperties id='2' />")
+                    #self.sock.xsend("<getuserproperties id='234' />")
                     #self.sock.xsend("<getuserproperties id='3' />")
                     #self.sock.xsend("<setuserproperties id='3' languageid='10' />")
                     #self.sock.xsend("<getroomlist />")
                     #self.sock.xsend("<getroomproperties id='1' />")
-                    #self.sock.xsend("<setroomproperties id='1' userManagementlevel3='2' />")
-                    #self.sock.xsend("<createroom name='some new room' />")
-                    #self.sock.xsend("<delroom id='2' />")
+                    #self.sock.xsend("<setroomproperties id='1' userManagementlevel='2' />")
+                    #self.sock.xsend("<createroom name='qwertyz' temporary='1' />")
+                    #self.sock.xsend("<delroom id='39' />")
                     self.sock.xsend("<joinroom id='2' />")
               
                 for a in node.attributes.items():

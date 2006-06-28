@@ -6,6 +6,8 @@ import xml.dom.minidom as xmldom
 import xml.sax.saxutils as SAX
 import string
 
+from traceback import *
+
 from palabre import config, logging, version, escape_string
 
 if config.get("database", "type") == "mysql":
@@ -129,20 +131,22 @@ class PalabreClient(asynchat.async_chat):
 
     def listGroups(self, sesId = None):
         print 'listing groups...'
-        out = ["<groups>"]
+        out = "<groups isOk='0' msg=%s />"
         try:
             c = self.db.cursor()
             c.execute("select id, name, mlevel from groups order by name")
             rs = c.fetchall()
+
+            out = ["<groups isOk='1'>"]
             for r in rs:
                 print r
-                out.append("<group id=%d name=%s moderationLevel=%d />" %\
-                    (Q(r[0]), Q(r[1]), Q(r[2])))
-        except:
-            raise
-
-        out.append("</groups>")
-        self.clientSendMessage("\n".join(out))
+                out.append("<group id='%d' name=%s moderationLevel='%d' />" %\
+                    (r[0], Q(string.strip(r[1])), r[2]))
+                print out
+            out.append("</groups>")
+            self.clientSendMessage("\n".join(out))
+        except Exception, exc:
+            self.clientSendMessage( out % Q(str(exc)) )
 
     def createGroup(self, sesId = None, name = None, moderationLevel = None):
         print 'creating group...', name, moderationLevel
@@ -159,7 +163,7 @@ class PalabreClient(asynchat.async_chat):
 
             out = ["<creategroup isOk='1'>"] 
             out.append("<group id='%d' name='%s' moderationLevel='%d' />" %\
-                    (r[0], escape_string(r[1]), r[2]))
+                    (r[0], escape_string(string.strip(r[1])), r[2]))
             out.append("</creategroup>")
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
@@ -168,7 +172,6 @@ class PalabreClient(asynchat.async_chat):
     def getGroupProperties(self, sesId = None, gid = None):
         print 'retrieving group properties...', gid
 
-        out = "<getgroupproperties isOk='0' msg=%s />"
         try:
             c = self.db.cursor()
             c.execute("select id, name, mlevel from groups where id='%d'" % int(gid))
@@ -178,10 +181,11 @@ class PalabreClient(asynchat.async_chat):
                 raise Exception("Can't find group with id='%d'" % int(gid))
 
             out = "<getgroupproperties isOk='1' id='%d' name='%s' moderationLevel='%d' />" %\
-                (r[0], escape_string(r[1]), r[2])
+                (r[0], escape_string(string.strip(r[1])), r[2])
             self.clientSendMessage(out)
         except Exception, exc:
-            self.clientSendMessage( out % Q(str(exc)) )
+            out = "<getgroupproperties isOk='0' id='%d' msg=%s />"
+            self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
 
     def setGroupProperties(self, sesId = None, gid = None, name = None, moderationLevel = None):
         print 'retrieving group properties...', gid
@@ -189,6 +193,12 @@ class PalabreClient(asynchat.async_chat):
         out = "<setgroupproperties isOk='0' msg=%s />"
         try:
             c = self.db.cursor()
+
+            c.execute("select id, name, mlevel from groups where id='%d'" % int(gid))
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find group with id='%d'" % int(gid))
 
             s = 'update groups set '
             if name is not None:
@@ -217,7 +227,7 @@ class PalabreClient(asynchat.async_chat):
             rs = c.fetchall()
             for r in rs:
                 out.append("<client id='%d' name=%s />" %\
-                    (r[0], Q(r[1])) )
+                    (r[0], Q(string.strip(r[1]))) )
 
             out.append("</listmembers>");
  
@@ -238,17 +248,20 @@ class PalabreClient(asynchat.async_chat):
             out = ["<getuserproperties isOk='1' id='%d' >" % int(uid)]
 
             rs = c.fetchall()
+            if len(rs) == 0:
+                raise Exception("Can't find client with id='%d'" % int(uid))
+
             for r in rs:
                 out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' />" %\
-                    (r[0], Q(r[1]), r[2], r[3], r[4])
+                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4])
                 )
 
             out.append("</getuserproperties>");
  
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            out = "<getuserproperties isOk='0' msg=%s />" 
-            self.clientSendMessage( out % Q(str(exc)) )
+            out = "<getuserproperties isOk='0' id='%d' msg=%s />" 
+            self.clientSendMessage( out % ( int(uid), Q(str(exc)) ) )
 
     def setUserProperties(self, sesId = None, attrs = {}):
         uid = int(attrs['id'])
@@ -259,6 +272,13 @@ class PalabreClient(asynchat.async_chat):
         c = None
         try:
             c = self.db.cursor()
+
+            c.execute("select id from users where id='%d'" % int(uid))
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find user with id='%d'" % int(uid))
+
             s = 'update users set '
 
             if attrs.has_key('name'):
@@ -300,7 +320,7 @@ class PalabreClient(asynchat.async_chat):
             rs = c.fetchall()
             for r in rs:
                 out.append(_roomTemplate %\
-                    (r[0], Q(r[1]), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
+                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
                 )
 
             out.append("</getroomlist>");
@@ -323,6 +343,7 @@ class PalabreClient(asynchat.async_chat):
 
             # Pass where clause
             s = _roomQuery % ("where id = %d" % rid)
+            print s
 
             c.execute(s)
 
@@ -331,7 +352,7 @@ class PalabreClient(asynchat.async_chat):
             rs = c.fetchall()
             for r in rs:
                 out.append(_roomTemplate %\
-                    (r[0], Q(r[1]), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
+                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
                 )
 
             out.append("</getroomproperties>");
@@ -350,7 +371,15 @@ class PalabreClient(asynchat.async_chat):
         c = None
 
         try:
+            print attrs
             c = self.db.cursor()
+
+            c.execute("select id from rooms where id='%d'" % int(rid))
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % int(rid))
+
             s = 'update rooms set '
 
             if attrs.has_key('name'):
@@ -474,14 +503,22 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
-            s = "select id from rooms where name = '%s'" % escape_string(attrs['name'])
+            #s = "select id from rooms where rooms.name like '%s'" % escape_string(attrs['name'])
+            #s = "select id, name from rooms where name like 's%%'" % escape_string(attrs['name'])
+            s = "select id, name from rooms order by name, id"
 
             print s
  
             c.execute(s)
-            rs = c.fetchone()
-            if rs is not None:
-                raise Exception("Room with name '%s' already exists" % attrs['name'])
+            rs = c.fetchall()
+
+            for r in rs:
+                print r[0], r[1]
+                i_id = int(r[0])
+                i_name = string.strip(r[1])
+                print i_id, i_name
+                if i_name == escape_string(attrs['name']):
+                    raise Exception("Room with name '%s' already exists" % attrs['name'])
 
             #
 
@@ -531,8 +568,13 @@ class PalabreClient(asynchat.async_chat):
             s = "insert into rooms (%s) values (%s)" %\
                 (",".join(keys), ",".join(s))
 
+            self.db.commit()
+
             print s
-            c.execute(s)
+            self.db.begin()
+            self.db.execute_immediate(s)
+            self.db.commit()
+            print 'executed'
 
             out = ["<createroom isOk='1' name=%s >" % Q(attrs['name'])]
             out.append("</createroom>");
@@ -552,6 +594,13 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
+
+            c.execute("select id from rooms where id='%d'" % int(rid))
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % int(rid))
+
             s = 'delete from rooms where id = %d' % rid
 
             print s
