@@ -1,46 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Palabre - palabreDaemon.py
-#
-# Copyright 2003-2005 Célio Conort
-#
-# This file is part of Palabre.
-#
-# Palabre is free software; you can redistribute it
-# and/or modify it under the terms of the GNU General Public
-# License as published by the Free Software Foundation; either
-# version 2, or (at your option) any later version.
-#
-# Palabre is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-# PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public
-# License along with program; see the file COPYING. If not,
-# write to the Free Software Foundation, Inc., 59 Temple Place
-# - Suite 330, Boston, MA 02111-1307, USA.
-
-# This module is used to fork the current process into a daemon.
-# Almost none of this is necessary (or advisable) if your daemon 
-# is being started by inetd. In that case, stdin, stdout and stderr are 
-# all set up for you to refer to the network connection, and the fork()s 
-# and session manipulation should not be done (to avoid confusing inetd). 
-# Only the chdir() and umask() steps remain as useful.
-# References:
-#     UNIX Programming FAQ
-#         1.7 How do I get my program to act like a daemon?
-#             http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
-#     Advanced Programming in the Unix Environment
-#         W. Richard Stevens, 1992, Addison-Wesley, ISBN 0-201-56317-7.
-#
-# History:
-#     2001/07/10 by Jürgen Hermann
-#     2002/08/28 by Noah Spurrier
-#     2003/02/24 by Clark Evans
-#
-#     http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
-
 import sys, os, signal, time, threading, traceback, asyncore
 from signal import SIGTERM, SIGINT
 
@@ -144,7 +103,9 @@ class palabreDaemon:
     def start(self):
 
         logging.info("Starting Palabre...")
-        if os.path.exists(self.pidfile):
+
+        if not __debug__ and os.path.exists(self.pidfile):
+
             if self.daemon:
                 sys.stderr.write("Could not start, Palabre is already running (pid file '%s' exists).\n" % self.pidfile)
             logging.warning("Could not start, Palabre is already running (pid file '%s' exists)." % self.pidfile)

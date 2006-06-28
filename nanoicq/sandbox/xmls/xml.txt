@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.5 2006/06/28 11:02:50 lightdruid Exp $
+# $Id: xml.txt,v 1.6 2006/06/28 12:29:29 lightdruid Exp $
 #
 
 
@@ -140,29 +140,19 @@ S:  * Successful:
 
 * Join room
 
-C: <join room='<CDATA>' /> or <join room='<CDATA>' password='<CDATA>' />
+C: <join id='<CDATA>' /> or <join id='<CDATA>' password='<CDATA>' />
 S:
 
     * Successful, 4 chunks of data must be sent:
 
-    <joined room='<CDATA>' />\0
+    uid = user ID, rid = room ID
 
-    <childrooms name='<CDATA>'>
-    </childrooms>\0
-
-    <room name='<CDATA>' clients='<CDATA>' >
-        <param name='title' value='<CDATA>' />
-    </room>\0
-
-    <clients room='<CDATA>' nb='<CDATA>'>
-        <client name='<CDATA>' />
-        ...
-    </clients>\0
+    <joinroom isOk='1' uid='4' rid='5' />
 
     * Not successful
-    
-    <error><CDATA> (reason)</error>\0
 
+    <joinroom isOk='1' rid='5' msg='Bad or missing password' />
+    
     Reasons:
         * 'Bad or missing password' (if room is password protected, if it's not,
         then password would be silently ignored)
@@ -172,54 +162,54 @@ S:
 
 * Add new allowed user
 
-C: <addnewalloweduser room='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
+C: <addnewalloweduser id='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
 S:  * Successful:
-    <addnewalloweduser room='<CDATA>' nickname='<CDATA>' isOk='1' /> 
+    <addnewalloweduser id='<CDATA>' nickname='<CDATA>' isOk='1' /> 
 
     * Not successful:
-    <addnewalloweduser room='<CDATA>' nickname='<CDATA>' 
+    <addnewalloweduser id='<CDATA>' nickname='<CDATA>' 
         isOk='0' msg='<CDATA> (reason)' /> 
 
 
 * Remove allowed user
 
-C: <removealloweduser room='<CDATA>' nickname='<CDATA>'/>
+C: <removealloweduser id='<CDATA>' nickname='<CDATA>'/>
 
 S:  * Successful:
-    <removealloweduser room='<CDATA>' nickname='<CDATA>' isOk='1' /> 
+    <removealloweduser id='<CDATA>' nickname='<CDATA>' isOk='1' /> 
 
     * Not successful:
-    <removealloweduser room='<CDATA>' nickname='<CDATA>' 
+    <removealloweduser id='<CDATA>' nickname='<CDATA>' 
         isOk='0' msg='<CDATA> (reason)' /> 
  
 
 * Invite user to room, FIXME: why we need a password here?
 
-C: <inviteuser room='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
+C: <inviteuser id='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
 
 S:  * Successful:
-    <inviteuser room='<CDATA>' nickname='<CDATA>' isOk='1' /> 
+    <inviteuser id='<CDATA>' nickname='<CDATA>' isOk='1' /> 
 
     * Not successful:
-    <inviteuser room='<CDATA>' nickname='<CDATA>' 
+    <inviteuser id='<CDATA>' nickname='<CDATA>' 
         isOk='0' msg='<CDATA> (reason)' /> 
  
 
 * Delete room, FIXME: why we need a password here? 
 
-C: <delroom room='<CDATA>' [password='<CDATA>'] >
+C: <delroom id='<CDATA>' [password='<CDATA>'] >
 
 S: 
     * Successful:
-    <delroom room='<CDATA>' isOk='1' id='123' /> 
+    <delroom id='<CDATA>' isOk='1' /> 
 
     * Not successful:
-    <delroom room='<CDATA>' isOk='0' msg='<CDATA> (reason)' /> 
+    <delroom id='<CDATA>' isOk='0' msg='<CDATA> (reason)' /> 
 
 
 * Create room
 
-C:  <createroom room='<CDATA>' param='value' />
+C:  <createroom param='value' ... />
 
 S: 
     * Successful:
@@ -258,32 +248,32 @@ S:
 
 * List users in room
 
-C: <listusers room='<CDATA>' />
+C: <listusers id='<CDATA>' />
 
 S: 
     * Successful:
 
-    <clients isOk='1' room='<CDATA>'>
-        <client name='<CDATA>' />
+    <listusers isOk='1' rid='<CDATA>'>
+        <client id='<CDATA>' name='<CDATA>' />
         ...
-    </clients>\0
+    </listusers>\0
   
 
     * Not successful:
 
-    <clients isOk='0' room='<CDATA>' msg='<CDATA> (reason)' />
+    <listusers isOk='0' id='<CDATA>' msg='<CDATA> (reason)' />
 
 
 * Leave room
 
-C: <leave room='<CDATA>' />
+C: <leaveroom id='<CDATA>' />
 
 S: 
     * Successful:
-    <leave room='<CDATA>' isOk='1' /> 
+    <leaveroom id='<CDATA>' rid='<CDATA>' isOk='1' /> 
 
     * Not successful:
-    <leave room='<CDATA>' isOk='0' msg='<CDATA> (reason)' /> 
+    <leaveroom rid='<CDATA>' isOk='0' msg='<CDATA> (reason)' /> 
 
 
 * Locate user - FIXME, not implemented, what's this?

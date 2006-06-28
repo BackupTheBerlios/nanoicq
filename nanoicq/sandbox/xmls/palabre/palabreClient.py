@@ -626,11 +626,32 @@ class PalabreClient(asynchat.async_chat):
         try:
             c = self.db.cursor()
 
+            print 'Client #%d attepting to join room #%d' % (self.ids, rid)
+
+            #s = "update users_rooms"
+            s = "select name from rooms where id = %d" % rid
             print s
- 
+            c.execute(s)
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % int(rid))
+
+            s = "select rooms_id from users_rooms where users_id = %d" % self.ids
+            print s
             c.execute(s)
 
-            out = "<joinroom isOk='1' id='%d' />" % rid
+            rs = c.fetchall()
+            for r in rs:
+                print 'Client #%d now in room #%d' % (self.ids, int(r[0]))
+                if int(r[0]) == rid:
+                    raise Exception('Client #%d already in room #%d' % (self.ids, rid))
+
+            self.db.commit()
+            self.db.begin()
+            self.db.execute_immediate("insert into users_rooms (users_id, rooms_id) values (%d, %d)" % (self.ids, rid))
+            self.db.commit()
+ 
+            out = "<joinroom isOk='1' uid='%d' rid='%d' />" % (self.ids, rid)
  
             self.clientSendMessage(out)
             safeClose(c) 
@@ -638,6 +659,93 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c)
             out = "<joinroom isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
+                     
+    def leaveRoom(self, sesId = None, rid = None, attrs = None):
+        print 'leaving room'
+
+        rid = int(rid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+
+            print 'Client #%d attepting to leave room #%d' % (self.ids, rid)
+
+            #s = "update users_rooms"
+            s = "select name from rooms where id = %d" % rid
+            print s
+            c.execute(s)
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % int(rid))
+
+            s = "select rooms_id from users_rooms where users_id = %d" % self.ids
+            print s
+            c.execute(s)
+
+            client_in_room = False
+            rs = c.fetchall()
+            for r in rs:
+                print 'Client #%d now in room #%d' % (self.ids, int(r[0]))
+                if int(r[0]) == rid:
+                    client_in_room = True
+                    break
+
+            if not client_in_room:
+                raise Exception("Client #%d not in room #%d" % (self.ids, int(rid)))
+
+            self.db.commit()
+            self.db.begin()
+            self.db.execute_immediate("delete from users_rooms where users_id = %d and rooms_id = %d" % (self.ids, rid))
+            self.db.commit()
+ 
+            out = "<leaveroom isOk='1' uid='%d' rid='%d' />" % (self.ids, rid)
+ 
+            self.clientSendMessage(out)
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<leaveroom isOk='0' rid='%d' msg=%s />" 
+            self.clientSendMessage( out % (rid, Q(str(exc))) )
+
+    def listUsers(self, sesId = None, rid = None, attrs = None):
+        print 'list room users...'
+
+        rid = int(rid)
+        c = None
+
+        try:
+            c = self.db.cursor()
+
+            s = "select name from rooms where id = %d" % rid
+            print s
+            c.execute(s)
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % int(rid))
+
+            s = "select id, name from users where id in (select users_id from users_rooms where rooms_id = %d)" % rid
+            print s
+
+            c.execute(s)
+
+            out = ["<listusers isOk='1' >"]
+
+            rs = c.fetchall()
+            for r in rs:
+                out.append("<client id='%d' name='%s' />" %\
+                    (r[0], escape_string(string.strip(r[1])))
+                )
+
+            out.append("</listusers>");
+ 
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<listusers isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
                      
     def handle_expt():
         """
@@ -808,6 +916,14 @@ class PalabreClient(asynchat.async_chat):
                     if attrs.has_key('publicPassword'):
                         publicPassword = attrs['publicPassword']
                     self.joinRoom(rid = attrs['id'], publicPassword = publicPassword)
+
+                # leave room
+                elif node == "leaveroom":
+                    self.leaveRoom(rid = attrs['id'], attrs = attrs)
+
+                # list users in room
+                elif node == "listusers":
+                    self.listUsers(rid = attrs['id'], attrs = attrs)
        
                 # sending a ping ... getting a pong
                 elif node == "ping":
