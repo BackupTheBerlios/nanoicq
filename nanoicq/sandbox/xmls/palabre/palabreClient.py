@@ -77,22 +77,6 @@ _roomQuery = '''
 class PalabreClient(asynchat.async_chat):
 
     def __init__(self,server, conn, addr, db):
-        """Class Constructor
-
-        @nickName   Nickname to identify the user.
-        @server     PalabreServer Instance to which we are connected
-        @conn       Connection instance
-        @addr       Client IP Addr
-        @carTerm    Flash sends 'null character' to end a request : \0
-        @data       String to increment until "carTerm"
-        @loggedIn   Has he supplied a correct nickName ?
-        @isRoot     Is Client Root (supplied Root Password)
-
-        @allMyRooms[ ]  Dictionnaries of all rooms this client has joined
-
-
-
-        """
 
         # Asynchat initialisation ... (main class for sending and receiving messages */
         asynchat.async_chat.__init__ (self, conn)
@@ -1271,14 +1255,11 @@ class PalabreClient(asynchat.async_chat):
             Quand le client vient de se déconnecter
         """
 
-        # Pour info de débug ...
         # Debug information
-        logging.info("Disconnection requested by %s(%s)" % (self.nickName, self.addr))
+        logging.info("Disconnect requested by %s(%s)" % (self.nickName, self.addr))
 
-        # On informe l'instance serveur
-        # Elle peut donc le supprimer des rooms et de sa liste
         # Notifying Server
-        self.server.serverClientQuit(nickName=self.nickName)
+        self.server.serverClientQuit(nickName = self.nickName, uid = self.ids)
 
         # En fait non on le fait là ... c'est bizarre ?
         # .... hum ....

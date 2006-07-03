@@ -58,6 +58,13 @@ class Client(Thread):
                 data = ''
         self.sock.close()
 
+    def joinLeave(self):
+        self.sock.xsend("<listusers id='3' />")
+        self.sock.xsend("<joinroom id='3' />")
+        self.sock.xsend("<listusers id='3' />")
+        self.sock.xsend("<leaveroom id='3' />")
+        self.sock.xsend("<listusers id='3' />")
+
  
     def parseData(self, data):
         #data = string.replace(data, "\0", "")
@@ -102,9 +109,10 @@ class Client(Thread):
                     #self.sock.xsend("<setroomproperties id='1' userManagementlevel='2' />")
                     #self.sock.xsend("<createroom name='qwertyz' temporary='1' />")
                     #self.sock.xsend("<delroom id='39' />")
-                    #self.sock.xsend("<joinroom id='5' />")
+                    #self.sock.xsend("<joinroom id='3' />")
                     #self.sock.xsend("<leaveroom id='5' />")
-                    self.sock.xsend("<listusers id='5' />")
+                    self.sock.xsend("<listusers id='3' />")
+                    #self.joinLeave()
               
                 for a in node.attributes.items():
                     #attrs[p[0]] = p[1].encode("utf-8")
@@ -146,7 +154,7 @@ class Bench:
         for c in self.clients:
             c.start()
 
-        SEC = 5
+        SEC = 3
         print "Waiting for %d sec" % SEC
         time.sleep(SEC)
         for c in self.clients:

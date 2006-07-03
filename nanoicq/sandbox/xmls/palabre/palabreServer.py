@@ -209,12 +209,14 @@ class PalabreServer(asyncore.dispatcher):
             rootUser.clientSendErrorMessage("No user connected with nickname: %s" % nickName);
 
 
-    def serverClientQuit(self, nickName):
+    def serverClientQuit(self, nickName, uid = None):
         """Method to handle a client deconnection
-
         @nickName : Nickname of the client to disconnect.
-
         <Returns nothing"""
+
+        if uid is not None:
+            self._clientLeft(uid)
+
         logging.info("Client left: %s" % nickName)
 
         # Check if it really exists
@@ -227,6 +229,43 @@ class PalabreServer(asyncore.dispatcher):
         # So we lost all informations ....
         for p in self.allRooms.values():
             p.roomRemoveClient(nickName)
+
+    def _showSessions(self):
+        c = self.db.cursor()
+
+        print "="*40
+        s = "select id, sesid from sessions order by id"
+        c.execute(s)
+
+        rs = c.fetchall()
+        if rs is not None:
+            for r in rs:
+                print r
+
+        self.db.commit()
+
+    def _clientLeft(self, uid):
+        self.db.commit()
+
+        self._showSessions()
+
+        self.db.begin()
+        c = self.db.cursor()
+        s = "select id, sesid from sessions where userid = %d" % uid
+        c.execute(s)
+
+        rs = c.fetchone()
+        if rs is None:
+            logging.error("Disconnect was requested by user which does not have associated session (id='%d', sesId='%s')" % (uid, rc[1]))
+            return
+
+        s = "delete from sessions where id = %d" % int(rs[0])
+        c.execute(s)
+        self.db.commit()
+
+        self._showSessions()
+
+        logging.info("User #%d successfully logged off" % uid)
 
     def serverSendToClientByName(self, nickName, msg, type):
         """ Method to send a message to ONE specific clients
@@ -329,7 +368,9 @@ class PalabreServer(asyncore.dispatcher):
                 ids = rs[0]
                 s = "insert into sessions (sesid, userid) values ('%s', %d)" %\
                     (sesId, ids)
+                print "Executing: ", s
                 c.execute(s)
+                self.db.commit();
         except:
             raise
         return (rc, ids)
