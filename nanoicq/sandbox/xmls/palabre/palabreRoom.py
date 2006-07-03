@@ -161,7 +161,7 @@ class PalabreRoom :
     def _isTemporary(self, flag = None):
         """ Check/Set room is temporary flag
         """
-        if flag is not NOne:
+        if flag is not None:
             assert type(flag) == type(True)
             self.temporary = flag
         return self.temporary

@@ -30,6 +30,7 @@ class Client(Thread):
 
     def xml_connect(self):
         req = '<connect sesId="ABCD" nickname="test_' + str(self.ids) + '" password="pass_' + str(self.ids) + '" ></connect>'
+        #req = '<connect sesId="ABCD" nickname="ab" password="ab" ></connect>'
         print req
         self.sock.xsend(req)
  
@@ -104,14 +105,15 @@ class Client(Thread):
                     #self.sock.xsend("<getuserproperties id='234' />")
                     #self.sock.xsend("<getuserproperties id='3' />")
                     #self.sock.xsend("<setuserproperties id='3' languageid='10' />")
+                    #self.sock.xsend("<setuserproperties id='8' isblocked='0' />")
                     #self.sock.xsend("<getroomlist />")
                     #self.sock.xsend("<getroomproperties id='1' />")
                     #self.sock.xsend("<setroomproperties id='1' userManagementlevel='2' />")
                     #self.sock.xsend("<createroom name='qwertyz' temporary='1' />")
-                    #self.sock.xsend("<delroom id='39' />")
+                    self.sock.xsend("<delroom id='3' />")
                     #self.sock.xsend("<joinroom id='3' />")
                     #self.sock.xsend("<leaveroom id='5' />")
-                    self.sock.xsend("<listusers id='3' />")
+                    #self.sock.xsend("<listusers id='3' />")
                     #self.joinLeave()
               
                 for a in node.attributes.items():

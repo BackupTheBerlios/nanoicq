@@ -257,7 +257,7 @@ class PalabreClient(asynchat.async_chat):
         try:
             c = self.db.cursor()
 
-            c.execute("select id from users where id='%d'" % int(uid))
+            c.execute("select id from users where id=%d" % int(uid))
 
             r = c.fetchone()
             if r is None:
@@ -277,7 +277,9 @@ class PalabreClient(asynchat.async_chat):
                 s += " isblocked = '%d' " % int(attrs['isblocked'])
    
             s += ' where id = %d' % int(uid)
+            print s
             c.execute(s)
+            self.db.commit()
 
             out = "<setuserproperties isOk='1' id='%d' />" % int(uid)
             self.clientSendMessage(out)
@@ -585,11 +587,21 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find room with id='%d'" % int(rid))
 
+            # FIMXE
+            c.execute("select users.id, users.name from users where users.id in (select users_id from users_rooms where rooms_id = %d)" % int(rid))
+            rs = c.fetchall()
+            users = []
+            if rs is not None:
+                for r in rs:
+                    users.append("#%d (%s)" % (int(r[0]), string.strip(r[1])))
+                raise Exception("Unable to delete room with id='%d' following users are in room: %s" % (int(rid), ", ".join(users)))
+
             s = 'delete from rooms where id = %d' % rid
 
             print s
  
             c.execute(s)
+            self.db.commit()
 
             out = ["<delroom isOk='1' id='%d' >" % rid]
             out.append("</delroom>");
@@ -1073,10 +1085,6 @@ class PalabreClient(asynchat.async_chat):
 
             <connect nickname='STR1' password='STR2'  />
 
-            Le client envoit une node 'connect'
-            On vérifie s'il a un password, un code ...
-            On appelle la fonction de vérification éventuellement
-
         """
 
         # Needs a nickname
@@ -1109,6 +1117,10 @@ class PalabreClient(asynchat.async_chat):
             # Store our own id
             self.ids = int(ids)
             print "Our id=%d" % self.ids
+
+            if self.server.isBlocked(ids):
+                self.clientSendErrorMessage(msg = "Client #%d is blocked" % ids)
+                return
 
             # Is he root ?
             if self.server.isRootPass(password):

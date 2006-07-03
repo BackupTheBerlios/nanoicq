@@ -374,6 +374,29 @@ class PalabreServer(asyncore.dispatcher):
         except:
             raise
         return (rc, ids)
+
+    def isBlocked(self, uid):
+        rc = True
+        try:
+            c = self.db.cursor()
+            c.execute("select isblocked from users where id = %d" % uid)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("isBlocked: Can't find user #%d" % uid)
+            else:
+                try:
+                    if int(rs[0]) == 0:
+                        rc = False
+                    elif int(rs[0]) == 1:
+                        rc = True
+                    else:
+                        raise Exception("Wrong value for isblocked, must be 0 or 1")
+                    
+                except Exception, msg:
+                    logging.error("Wrong value for isblocked = '%s'" % str(rs[0]))
+        except:
+            raise
+        return rc
   
     def isNickOk(self, nickName, password):
         """ Before accepting a nickname checking if it acceptable (non empty and non existant)
