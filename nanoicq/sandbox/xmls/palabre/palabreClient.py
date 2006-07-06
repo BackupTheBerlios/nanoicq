@@ -5,6 +5,8 @@ import asynchat
 import xml.dom.minidom as xmldom
 import xml.sax.saxutils as SAX
 import string
+import md5, random
+from util import generateSessionId
 
 from traceback import *
 
@@ -16,11 +18,15 @@ elif config.get("database", "type") == "firebird":
     import kinterbasdb as DB
 else:
     raise Exception("Unknown database type in config")
- 
 
 def Q(v):
     """ Shortcut for saxutils.quoteattr """
     return SAX.quoteattr(v)
+
+def NUL(v):
+    if v is None:
+        return 0
+    return v
 
 def safeClose(c):
     """ Close cursor, safely, quietly """
@@ -299,16 +305,21 @@ class PalabreClient(asynchat.async_chat):
             # Pass empty parameter
             s = _roomQuery % ""
 
+            print 'pass #1'
             c.execute(s)
 
             out = ["<getroomlist isOk='1' >"]
+            print 'pass #2'
 
             rs = c.fetchall()
             for r in rs:
+                print 'pass #3'
+                print r
                 out.append(_roomTemplate %\
-                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
+                    (r[0], Q(string.strip(r[1])), NUL(r[2]), NUL(r[3]), NUL(r[4]), NUL(r[5]), NUL(r[6]), NUL(r[7]), NUL(r[8]), NUL(r[9]), NUL(r[10]), NUL(r[11]), NUL(r[12]))
                 )
 
+            print 'pass #4'
             out.append("</getroomlist>");
  
             self.clientSendMessage("\n".join(out))
@@ -317,6 +328,7 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c)
             out = "<getroomlist isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
+            raise exc
 
     def getRoomProperties(self, sesId = None, rid = None):
         print 'retrieving room properties...'
@@ -1087,17 +1099,22 @@ class PalabreClient(asynchat.async_chat):
 
         """
 
+        self.ids = None
+
         # Needs a nickname
         if not attrs.has_key('nickname'):
             self.clientSendErrorMessage(msg = "No NickName Attribute")
             return
+
         # Needs a session Id
-        if not attrs.has_key('sesId'):
-            self.clientSendErrorMessage(msg = "No Session Id Attribute")
-            return
+        #if not attrs.has_key('sesId'):
+        #    self.clientSendErrorMessage(msg = "No Session Id Attribute")
+        #    return
  
         nickName = attrs['nickname']
-        self.sesId = attrs['sesId']
+
+        #self.sesId = attrs['sesId']
+        self.sesId = generateSessionId()
         password = ''
 
         # password ?
@@ -1132,7 +1149,7 @@ class PalabreClient(asynchat.async_chat):
             self.server.serverAddClient(self)
 
             # Notifying client
-            self.clientSendMessage("<connect isok='1' msg='Your nickname is now : %s'/>" % nickName)
+            self.clientSendMessage("<connect isok='1' sesId='%s' msg='Your nickname is now : %s'/>" % (self.sesId, nickName))
 
             if self.isRoot:
                 logging.warning("Admin connected: %s(%s)" % (self.nickName, self.addr))
