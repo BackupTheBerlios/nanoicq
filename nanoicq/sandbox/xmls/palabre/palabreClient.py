@@ -28,6 +28,13 @@ def NUL(v):
         return 0
     return v
 
+def NEGNUL(v):
+    if v is None:
+        return -1
+    if type(v) != type(1):
+        raise Exception("Value of type " + str(type(v)) + " passed to NEGNULL, must be integer")
+    return v
+
 def safeClose(c):
     """ Close cursor, safely, quietly """
     try:
@@ -144,8 +151,12 @@ class PalabreClient(asynchat.async_chat):
         out = "<creategroup isOk='0' msg=%s />"
         try:
             c = self.db.cursor()
-            c.execute("insert into groups (name, mlevel) values ('%s', %d)" %\
-                (escape_string(name), int(moderationLevel)))
+            s = "insert into groups (name, mlevel) values ('%s', %d)" %\
+                (escape_string(name), int(moderationLevel))
+            print s
+            c.execute(s)
+            self.db.commit()
+
             c.execute("select id, name, mlevel from groups where name = '%s' and mlevel='%d'" %\
                 (escape_string(name), int(moderationLevel)))
 
@@ -156,8 +167,16 @@ class PalabreClient(asynchat.async_chat):
                     (r[0], escape_string(string.strip(r[1])), r[2]))
             out.append("</creategroup>")
             self.clientSendMessage("\n".join(out))
+            print "creategroup done"
         except Exception, exc:
-            self.clientSendMessage( out % Q(str(exc)) )
+            sexc = str(exc)
+            if sexc.find("-802") >= 0:
+                errorMessage = "Unable to create group, name is too long, must be less than 250 characters"
+            elif sexc.find("-803") >= 0:
+                errorMessage = "Unable to create group with duplicate name"
+            else:
+                errorMessage = sexc
+            self.clientSendMessage( out % Q(errorMessage) )
 
     def getGroupProperties(self, sesId = None, gid = None):
         print 'retrieving group properties...', gid
@@ -175,6 +194,58 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage(out)
         except Exception, exc:
             out = "<getgroupproperties isOk='0' id='%d' msg=%s />"
+            self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
+
+    def deleteGroup(self, sesId = None, gid = None):
+        print 'delete group...', gid
+
+        gid = int(gid)
+
+        try:
+            c = self.db.cursor()
+            c.execute("select id, name, mlevel from groups where id='%d'" % gid)
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find group with id='%d'" % int(gid))
+
+            moderationLevel = int(r[2])
+            s = "select moderationLevel from users where id = %d" % self.ids
+
+            try:
+                print s
+                c.execute(s)
+                r = c.fetchone()
+                if r is None or len(r) <= 0:
+                    raise Exception("Can't find information about current user id=%d in users database" % self.ids)
+                print r
+                mlevel = int(r[0])
+                if mlevel < moderationLevel:
+                    raise Exception("User id=%d has too low moderation level (%d) to delete group, must be equal or greater than %d"\
+                        % (self.ids, mlevel, moderationLevel))
+            except:
+                raise
+
+            self.db.commit()
+            self.db.begin()
+            try:
+                s = "delete from groups where id = %d" % gid
+                print s
+                c.execute(s)
+
+                s = "update users set gid = null where gid = %d" % gid
+                print s
+                c.execute(s)
+
+                self.db.commit()
+            except:
+                self.sb.rollback()
+                raise
+
+            out = "<deletegroup isOk='1' id='%d' />" % gid
+            self.clientSendMessage(out)
+        except Exception, exc:
+            out = "<deletegroup isOk='0' id='%d' msg=%s />"
             self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
 
     def setGroupProperties(self, sesId = None, gid = None, name = None, moderationLevel = None):
@@ -231,7 +302,7 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
-            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked
+            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked, u.moderationlevel, u.roommanagementlevel, u.usermanagementlevel
                 from users u where id = %d ''' % int(uid)
             c.execute(s)
 
@@ -242,8 +313,8 @@ class PalabreClient(asynchat.async_chat):
                 raise Exception("Can't find client with id='%d'" % int(uid))
 
             for r in rs:
-                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' />" %\
-                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4])
+                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' moderationlevel='%d' roommanagementlevel='%d' usermanagementlevel='%d' />" %\
+                    (r[0], Q(string.strip(r[1])), NEGNUL(r[2]), r[3], r[4], r[5], r[6], r[7])
                 )
 
             out.append("</getuserproperties>");
@@ -269,16 +340,31 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find user with id='%d'" % int(uid))
 
+
             s = 'update users set '
 
             if attrs.has_key('name'):
                 s += " name = %s " % escape_string(attrs['name'])
             if attrs.has_key('languageid'):
-                s += " languageid = '%d' " % int(attrs['languageid'])
+                s += " languageid = %d " % int(attrs['languageid'])
+            if attrs.has_key('roommanagementlevel'):
+                s += " roommanagementlevel = %d " % int(attrs['roommanagementlevel'])
+            if attrs.has_key('usermanagementlevel'):
+                s += " usermanagementlevel = %d " % int(attrs['usermanagementlevel'])
+            if attrs.has_key('moderationlevel'):
+                s += " moderationlevel = %d " % int(attrs['moderationlevel'])
             if attrs.has_key('password'):
                 s += " password = %s " % escape_string(attrs['password'])
             if attrs.has_key('groupid'):
-                s += " gid = '%d' " % int(attrs['groupid'])
+                gid = int(attrs['groupid'])
+                s += " gid = '%d' " % gid
+
+                # Check group existance
+                c.execute("select id from groups where id=%d" % gid)
+                r = c.fetchone()
+                if r is None:
+                    raise Exception("Can't find group with id='%d'" % gid)
+
             if attrs.has_key('isblocked'):
                 s += " isblocked = '%d' " % int(attrs['isblocked'])
    
@@ -603,8 +689,9 @@ class PalabreClient(asynchat.async_chat):
             c.execute("select users.id, users.name from users where users.id in (select users_id from users_rooms where rooms_id = %d)" % int(rid))
             rs = c.fetchall()
             users = []
-            if rs is not None:
+            if rs is not None and len(rs) > 0:
                 for r in rs:
+                    print r
                     users.append("#%d (%s)" % (int(r[0]), string.strip(r[1])))
                 raise Exception("Unable to delete room with id='%d' following users are in room: %s" % (int(rid), ", ".join(users)))
 
@@ -867,6 +954,10 @@ class PalabreClient(asynchat.async_chat):
                 # get group properties
                 elif node == "getgroupproperties":
                     self.getGroupProperties(gid = attrs["id"])
+
+                # delete group
+                elif node == "deletegroup":
+                    self.deleteGroup(gid = attrs["id"])
 
                 # set group properties
                 elif node == "setgroupproperties":
