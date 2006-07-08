@@ -90,6 +90,8 @@ _roomQuery = '''
 class PalabreClient(asynchat.async_chat):
 
     def __init__(self,server, conn, addr, db):
+        self.ids = None
+
 
         # Asynchat initialisation ... (main class for sending and receiving messages */
         asynchat.async_chat.__init__ (self, conn)
@@ -1189,8 +1191,6 @@ class PalabreClient(asynchat.async_chat):
             <connect nickname='STR1' password='STR2'  />
 
         """
-
-        self.ids = None
 
         # Needs a nickname
         if not attrs.has_key('nickname'):
