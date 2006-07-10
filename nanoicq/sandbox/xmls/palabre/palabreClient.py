@@ -263,14 +263,20 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find group with id='%d'" % int(gid))
 
+            sl = []
             s = 'update groups set '
             if name is not None:
-                s += " name = '%s' " % escape_string(name)
+                sl.append(" name = '%s' " % escape_string(name))
             if moderationLevel is not None:
-                s += " mlevel = %d " % int(moderationLevel)
+                sl.append(" mlevel = %d " % int(moderationLevel))
+            s += ", ".join(sl)
             s += ' where id = %d' % int(gid)
 
+            print s
+            self.db.commit()
+            self.db.begin()
             c.execute(s)
+            self.db.commit()            
 
             out = "<setgroupproperties isOk='1' id='%d' />" % int(gid)
             self.clientSendMessage(out)
@@ -343,23 +349,24 @@ class PalabreClient(asynchat.async_chat):
                 raise Exception("Can't find user with id='%d'" % int(uid))
 
 
+            sl = []
             s = 'update users set '
 
             if attrs.has_key('name'):
-                s += " name = %s " % escape_string(attrs['name'])
+                sl.append(" name = %s " % escape_string(attrs['name']))
             if attrs.has_key('languageid'):
-                s += " languageid = %d " % int(attrs['languageid'])
+                sl.append(" languageid = %d " % int(attrs['languageid']))
             if attrs.has_key('roommanagementlevel'):
-                s += " roommanagementlevel = %d " % int(attrs['roommanagementlevel'])
+                sl.append(" roommanagementlevel = %d " % int(attrs['roommanagementlevel']))
             if attrs.has_key('usermanagementlevel'):
-                s += " usermanagementlevel = %d " % int(attrs['usermanagementlevel'])
+                sl.append(" usermanagementlevel = %d " % int(attrs['usermanagementlevel']))
             if attrs.has_key('moderationlevel'):
-                s += " moderationlevel = %d " % int(attrs['moderationlevel'])
+                sl.append(" moderationlevel = %d " % int(attrs['moderationlevel']))
             if attrs.has_key('password'):
-                s += " password = %s " % escape_string(attrs['password'])
+                sl.append(" password = %s " % escape_string(attrs['password']))
             if attrs.has_key('groupid'):
                 gid = int(attrs['groupid'])
-                s += " gid = '%d' " % gid
+                sl.append(" gid = '%d' " % gid)
 
                 # Check group existance
                 c.execute("select id from groups where id=%d" % gid)
@@ -368,7 +375,9 @@ class PalabreClient(asynchat.async_chat):
                     raise Exception("Can't find group with id='%d'" % gid)
 
             if attrs.has_key('isblocked'):
-                s += " isblocked = '%d' " % int(attrs['isblocked'])
+                sl.append(" isblocked = '%d' " % int(attrs['isblocked']))
+
+            s += ",".join(sl)
    
             s += ' where id = %d' % int(uid)
             print s
@@ -466,29 +475,31 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find room with id='%d'" % int(rid))
 
+            sl = []
             s = 'update rooms set '
 
             if attrs.has_key('name'):
-                s += " name = %s " % escape_string(attrs['name'])
+                sl.append(" name = '%s' " % escape_string(attrs['name']))
             if attrs.has_key('languageid'):
-                s += " languageid = '%d' " % int(attrs['languageid'])
+                sl.append(" languageid = %d " % int(attrs['languageid']))
             if attrs.has_key('pvtPassword'):
-                s += " pvtpassword = %s " % escape_string(attrs['pvtPassword'])
+                sl.append(" pvtpassword = '%s' " % escape_string(attrs['pvtPassword']))
             if attrs.has_key('publicPassword'):
-                s += " publicpassword = %s " % escape_string(attrs['publicPassword'])
+                sl.append(" publicpassword = '%s' " % escape_string(attrs['publicPassword']))
             if attrs.has_key('temporary'):
-                s += " temporary = '%d' " % int(attrs['temporary'])
+                sl.append(" temporary = %d " % int(attrs['temporary']))
             if attrs.has_key('allowedUsers'):
-                s += " allowedUsers = '%d' " % int(attrs['allowedUsers'])
+                sl.append(" allowedUsers = %d " % int(attrs['allowedUsers']))
             if attrs.has_key('passwordProtected'):
-                s += " passwordProtected = '%d' " % int(attrs['passwordProtected'])
+                sl.append(" passwordProtected = %d " % int(attrs['passwordProtected']))
             if attrs.has_key('moderationAllowed'):
-                s += " moderationAllowed = '%d' " % int(attrs['moderationAllowed'])
+                sl.append(" moderationAllowed = %d " % int(attrs['moderationAllowed']))
             if attrs.has_key('roomManagementLevel'):
-                s += " roomManagementLevel = '%d' " % int(attrs['roomManagementLevel'])
+                sl.append(" roomManagementLevel = %d " % int(attrs['roomManagementLevel']))
             if attrs.has_key('userManagementlevel'):
-                s += " userManagementlevel = '%d' " % int(attrs['userManagementlevel'])
-      
+                sl.append(" userManagementlevel = %d " % int(attrs['userManagementlevel']))
+
+            s += ", ".join(sl)      
             s += ' where id = %d' % int(rid)
             print s
  
