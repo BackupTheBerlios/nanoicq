@@ -112,7 +112,12 @@ class Client(Thread):
                     #self.sock.xsend("<getroomproperties id='1' />")
                     #self.sock.xsend("<setroomproperties id='1' userManagementlevel='123' name='room 123' languageid='777' />")
                     #self.sock.xsend("<createroom name='qwertyz' temporary='0' />")
-                    self.sock.xsend("<getroomlist />")
+                    #self.sock.xsend("<getroomlist />")
+
+                    self.sock.xsend("<getuserproperties id='3' />")
+                    self.sock.xsend('''<setuserproperties isblocked="0" languageid="1" groupid="2" id="3" />''')
+                    self.sock.xsend("<getuserproperties id='3' />")
+
                     #self.sock.xsend("<delroom id='39' />")
                     #self.sock.xsend("<joinroom id='3' />")
                     #self.sock.xsend("<leaveroom id='5' />")

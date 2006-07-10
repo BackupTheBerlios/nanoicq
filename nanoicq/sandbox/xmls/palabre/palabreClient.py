@@ -185,7 +185,7 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
-            c.execute("select id, name, mlevel from groups where id='%d'" % int(gid))
+            c.execute("select id, name, mlevel from groups where id=%d" % int(gid))
 
             r = c.fetchone()
             if r is None:
@@ -205,7 +205,7 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
-            c.execute("select id, name, mlevel from groups where id='%d'" % gid)
+            c.execute("select id, name, mlevel from groups where id=%d" % gid)
 
             r = c.fetchone()
             if r is None:
@@ -257,7 +257,7 @@ class PalabreClient(asynchat.async_chat):
         try:
             c = self.db.cursor()
 
-            c.execute("select id, name, mlevel from groups where id='%d'" % int(gid))
+            c.execute("select id, name, mlevel from groups where id=%d" % int(gid))
 
             r = c.fetchone()
             if r is None:
@@ -366,7 +366,7 @@ class PalabreClient(asynchat.async_chat):
                 sl.append(" password = %s " % escape_string(attrs['password']))
             if attrs.has_key('groupid'):
                 gid = int(attrs['groupid'])
-                sl.append(" gid = '%d' " % gid)
+                sl.append(" gid = %d " % gid)
 
                 # Check group existance
                 c.execute("select id from groups where id=%d" % gid)
@@ -375,7 +375,7 @@ class PalabreClient(asynchat.async_chat):
                     raise Exception("Can't find group with id='%d'" % gid)
 
             if attrs.has_key('isblocked'):
-                sl.append(" isblocked = '%d' " % int(attrs['isblocked']))
+                sl.append(" isblocked = %d " % int(attrs['isblocked']))
 
             s += ",".join(sl)
    
@@ -472,7 +472,7 @@ class PalabreClient(asynchat.async_chat):
             print attrs
             c = self.db.cursor()
 
-            c.execute("select id from rooms where id='%d'" % int(rid))
+            c.execute("select id from rooms where id=%d" % int(rid))
 
             r = c.fetchone()
             if r is None:
@@ -633,7 +633,7 @@ class PalabreClient(asynchat.async_chat):
                 keys.append("name")
 
             if attrs.has_key('languageid'):
-                s.append(" '%d' " % int(attrs['languageid']))
+                s.append(" %d " % int(attrs['languageid']))
                 keys.append("languageid")
 
             if attrs.has_key('pvtPassword'):
@@ -645,27 +645,27 @@ class PalabreClient(asynchat.async_chat):
                 keys.append("publicPassword")
  
             if attrs.has_key('temporary'):
-                s.append(" '%d' " % int(attrs['temporary']))
+                s.append(" %d " % int(attrs['temporary']))
                 keys.append("temporary")
 
             if attrs.has_key('allowedUsers'):
-                s.append(" '%d' " % int(attrs['allowedUsers']))
+                s.append(" %d " % int(attrs['allowedUsers']))
                 keys.append("allowedUsers")
 
             if attrs.has_key('passwordProtected'):
-                s.append(" '%d' " % int(attrs['passwordProtected']))
+                s.append(" %d " % int(attrs['passwordProtected']))
                 keys.append("passwordProtected")
 
             if attrs.has_key('moderationAllowed'):
-                s.append(" '%d' " % int(attrs['moderationAllowed']))
+                s.append(" %d " % int(attrs['moderationAllowed']))
                 keys.append("moderationAllowed")
 
             if attrs.has_key('roomManagementLevel'):
-                s.append(" '%d' " % int(attrs['roomManagementLevel']))
+                s.append(" %d " % int(attrs['roomManagementLevel']))
                 keys.append("roomManagementLevel")
 
             if attrs.has_key('userManagementlevel'):
-                s.append(" '%d' " % int(attrs['userManagementlevel']))
+                s.append(" %d " % int(attrs['userManagementlevel']))
                 keys.append("userManagementlevel")
 
             s = "insert into rooms (%s) values (%s)" %\
@@ -698,7 +698,7 @@ class PalabreClient(asynchat.async_chat):
         try:
             c = self.db.cursor()
 
-            c.execute("select id from rooms where id='%d'" % int(rid))
+            c.execute("select id from rooms where id=%d" % int(rid))
 
             r = c.fetchone()
             if r is None:
