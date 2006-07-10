@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.6 2006/06/28 12:29:29 lightdruid Exp $
+# $Id: xml.txt,v 1.7 2006/07/10 23:29:15 lightdruid Exp $
 #
 
 
@@ -94,7 +94,7 @@ Bad:
 
 * Get room properties
 
-C: <getroomproperties room='<CDATA>'/>\0
+C: <getroomproperties id='<CDATA>'/>\0
 S:
 
 Good:

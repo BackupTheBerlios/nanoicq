@@ -115,7 +115,7 @@ class Client(Thread):
                     #self.sock.xsend("<getroomlist />")
 
                     self.sock.xsend("<getuserproperties id='3' />")
-                    self.sock.xsend('''<setuserproperties isblocked="0" languageid="1" groupid="2" id="3" />''')
+                    self.sock.xsend('<setuserproperties isblocked="0" languageid="1" groupid="2" id="3" />')
                     self.sock.xsend("<getuserproperties id='3' />")
 
                     #self.sock.xsend("<delroom id='39' />")
