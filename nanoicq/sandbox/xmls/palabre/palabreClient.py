@@ -381,6 +381,9 @@ class PalabreClient(asynchat.async_chat):
    
             s += ' where id = %d' % int(uid)
             print s
+
+            self.db.commit()
+            self.db.begin()
             c.execute(s)
             self.db.commit()
 
@@ -503,7 +506,10 @@ class PalabreClient(asynchat.async_chat):
             s += ' where id = %d' % int(rid)
             print s
  
+            self.db.commit()
+            self.db.begin()
             c.execute(s)
+            self.db.commit()
 
             out = ["<setroomproperties isOk='1' >"]
             out.append("</setroomproperties>");
