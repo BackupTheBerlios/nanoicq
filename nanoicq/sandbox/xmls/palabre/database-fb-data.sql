@@ -1,5 +1,5 @@
 
--- $Id: database-fb-data.sql,v 1.1 2006/06/28 11:04:46 lightdruid Exp $
+-- $Id: database-fb-data.sql,v 1.2 2006/07/12 14:59:56 lightdruid Exp $
 
 delete from users;
 delete from rooms;
@@ -21,6 +21,9 @@ insert into rooms (
     temporary,
     passwordProtected,
 
+    pvtPassword,
+    publicPassword,
+
     moderationAllowed,
     roomManagementLevel,
     userManagementlevel,
@@ -37,6 +40,9 @@ insert into rooms (
         0,
         0,
         0,
+
+        '',
+        '',
 
         0,
         0,
@@ -57,6 +63,9 @@ insert into rooms (
     temporary,
     passwordProtected,
 
+    pvtPassword,
+    publicPassword,
+
     moderationAllowed,
     roomManagementLevel,
     userManagementlevel,
@@ -73,6 +82,9 @@ insert into rooms (
         0,
         0,
         0,
+
+        '',
+        '',
 
         0,
         0,

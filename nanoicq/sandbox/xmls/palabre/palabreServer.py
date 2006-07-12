@@ -11,6 +11,8 @@ import sys
 
 from palabre import config, logging, version, escape_string
 
+from util import generateSessionId, safeClose
+
 DB_MYSQL    = 0
 DB_FIRE     = 1
 dbtype = -1
@@ -216,6 +218,7 @@ class PalabreServer(asyncore.dispatcher):
 
         if uid is not None:
             self._clientLeft(uid)
+            self.leaveAllRooms(uid)
 
         logging.info("Client left: %s" % nickName)
 
@@ -256,7 +259,7 @@ class PalabreServer(asyncore.dispatcher):
 
         rs = c.fetchone()
         if rs is None:
-            logging.error("Disconnect was requested by user which does not have associated session (id='%d', sesId='%s')" % (uid, rc[1]))
+            logging.error("Disconnect was requested by user which does not have associated session (id='%d', sesId='unknown')" % (uid))
             return
 
         s = "delete from sessions where id = %d" % int(rs[0])
@@ -535,6 +538,43 @@ class PalabreServer(asyncore.dispatcher):
         """  Method for authentification
         """
         return self.checkPassword(nickName, password, sesId)
+
+    def leaveAllRooms(self, uid):
+        print 'leaving all rooms'
+
+        if uid is None:
+            print 'uis is None, return'
+            return
+
+        c = None
+
+        try:
+            c = self.db.cursor()
+
+            s = "select rooms_id from users_rooms where users_id = %d" % uid
+            print s
+            c.execute(s)
+
+            client_in_room = False
+            rs = c.fetchall()
+            for r in rs:
+                print 'Client #%d now in room #%d, leaving...' % (uid, int(r[0]))
+                client_in_room = True
+
+            self.db.commit()
+            self.db.begin()
+            self.db.execute_immediate("delete from users_rooms where users_id = %d" % (uid))
+            self.db.commit()
+ 
+            out = "<leaveallroom isOk='1' uid='%d' />" % (uid)
+ 
+            print out
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<leaveallroom isOk='0' msg=%s />" 
+            print out % (str(exc))
+
 
 def _test():
     p = PalabreServer()

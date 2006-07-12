@@ -8,6 +8,7 @@ version = "0.4"
 def escape_string(s):
     return s.replace("'", "''")
 
+
 if os.name in ["posix", "nt"]:
     # config file setup
     config = ConfigParser.SafeConfigParser()

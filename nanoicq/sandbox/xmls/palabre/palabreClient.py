@@ -6,7 +6,7 @@ import xml.dom.minidom as xmldom
 import xml.sax.saxutils as SAX
 import string
 import md5, random
-from util import generateSessionId
+from util import generateSessionId, safeClose
 
 from traceback import *
 
@@ -35,13 +35,6 @@ def NEGNUL(v):
         raise Exception("Value of type " + str(type(v)) + " passed to NEGNULL, must be integer")
     return v
 
-def safeClose(c):
-    """ Close cursor, safely, quietly """
-    try:
-        c.close()
-    except Exception, exc:
-        print str(exc)
-        pass
 
 _roomTemplate = '''
                 <room id='%d' 
@@ -54,6 +47,9 @@ _roomTemplate = '''
                         languageid='%d'
                         temporary='%d'
                         passwordProtected='%d'
+
+                        pvtPassword = '%s'
+                        publicPassword = '%s'
 
                         moderationAllowed='%d'
                         roomManagementLevel='%d'
@@ -76,6 +72,9 @@ _roomQuery = '''
                 languageid,
                 temporary,
                 passwordProtected,
+
+                pvtPassword,
+                publicPassword,
 
                 moderationAllowed,
                 roomManagementLevel,
@@ -197,6 +196,31 @@ class PalabreClient(asynchat.async_chat):
         except Exception, exc:
             out = "<getgroupproperties isOk='0' id='%d' msg=%s />"
             self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
+
+    # и еще 1 проблема. если комната password protected, тогда у нее должен быть property password и его надо добавить в
+
+    def groupLookUp(self, sesId = None, name = None):
+        print 'group look up...', name
+
+        try:
+            if name is None:
+                raise Exception("'name' missing in request")
+
+            c = self.db.cursor()
+            s = "select id, name, mlevel from groups where name = '%s'" % escape_string(name)
+            print s
+            c.execute(s)
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find group with name = '%s'" % escape_string(name))
+
+            out = "<grouplookup isOk='1' id='%d' name='%s' moderationLevel='%d' />" %\
+                (r[0], escape_string(string.strip(r[1])), r[2])
+            self.clientSendMessage(out)
+        except Exception, exc:
+            out = "<grouplookup isOk='0' name='%s' msg=%s />"
+            self.clientSendMessage( out % ( escape_string(str(name)), Q(str(exc)) ) )
 
     def deleteGroup(self, sesId = None, gid = None):
         print 'delete group...', gid
@@ -416,7 +440,15 @@ class PalabreClient(asynchat.async_chat):
                 print 'pass #3'
                 print r
                 out.append(_roomTemplate %\
-                    (r[0], Q(string.strip(r[1])), NUL(r[2]), NUL(r[3]), NUL(r[4]), NUL(r[5]), NUL(r[6]), NUL(r[7]), NUL(r[8]), NUL(r[9]), NUL(r[10]), NUL(r[11]), NUL(r[12]))
+                    (r[0], Q(string.strip(r[1])), NUL(r[2]), NUL(r[3]), NUL(r[4]), NUL(r[5]), NUL(r[6]), NUL(r[7]), 
+                        string.strip(r[8]), 
+                        string.strip(r[9]), 
+                        NUL(r[10]), 
+                        NUL(r[11]), 
+                        NUL(r[12]),
+                        NUL(r[13]), 
+                        NUL(r[14])
+                        )
                 )
 
             print 'pass #4'
@@ -450,7 +482,15 @@ class PalabreClient(asynchat.async_chat):
             rs = c.fetchall()
             for r in rs:
                 out.append(_roomTemplate %\
-                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12])
+                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4], r[5], r[6], r[7],
+                        string.strip(r[8]), 
+                        string.strip(r[9]), 
+                        NUL(r[10]), 
+                        NUL(r[11]), 
+                        NUL(r[12]),
+                        NUL(r[13]), 
+                        NUL(r[14])
+                        )
                 )
 
             out.append("</getroomproperties>");
@@ -743,12 +783,20 @@ class PalabreClient(asynchat.async_chat):
             print 'Client #%d attepting to join room #%d' % (self.ids, rid)
 
             #s = "update users_rooms"
-            s = "select name from rooms where id = %d" % rid
+            s = "select name, passwordProtected, publicPassword from rooms where id = %d" % rid
             print s
             c.execute(s)
             r = c.fetchone()
             if r is None:
                 raise Exception("Can't find room with id='%d'" % int(rid))
+
+            print r
+            if int(r[1]) == 1:
+                # Check password, room is password protected
+                if publicPassword is None:
+                    raise Exception("Empty password, room is password protected")
+                if publicPassword != string.strip(r[2]):
+                    raise Exception("Invalid password, room is password protected")
 
             s = "select rooms_id from users_rooms where users_id = %d" % self.ids
             print s
@@ -773,6 +821,7 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c)
             out = "<joinroom isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
+
                      
     def leaveRoom(self, sesId = None, rid = None, attrs = None):
         print 'leaving room'
@@ -843,7 +892,7 @@ class PalabreClient(asynchat.async_chat):
 
             c.execute(s)
 
-            out = ["<listusers isOk='1' >"]
+            out = ["<listusers isOk='1' id='%d' >" % rid]
 
             rs = c.fetchall()
             for r in rs:
@@ -857,8 +906,8 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<listusers isOk='0' msg=%s />" 
-            self.clientSendMessage( out % Q(str(exc)) )
+            out = "<listusers isOk='0' rid='%d' msg=%s />" 
+            self.clientSendMessage( out % (rid, Q(str(exc))) )
 
                      
     def handle_expt():
@@ -974,6 +1023,10 @@ class PalabreClient(asynchat.async_chat):
                 elif node == "getgroupproperties":
                     self.getGroupProperties(gid = attrs["id"])
 
+                # get group properties
+                elif node == "grouplookup":
+                    self.groupLookUp(name = attrs["name"])
+
                 # delete group
                 elif node == "deletegroup":
                     self.deleteGroup(gid = attrs["id"])
@@ -1030,10 +1083,10 @@ class PalabreClient(asynchat.async_chat):
 
                 # join room
                 elif node == "joinroom":
-                    publicPassword = None
-                    if attrs.has_key('publicPassword'):
-                        publicPassword = attrs['publicPassword']
-                    self.joinRoom(rid = attrs['id'], publicPassword = publicPassword)
+                    ppassword = None
+                    if attrs.has_key('password'):
+                        ppassword = attrs['password']
+                    self.joinRoom(rid = attrs['id'], publicPassword = ppassword)
 
                 # leave room
                 elif node == "leaveroom":
@@ -1053,8 +1106,8 @@ class PalabreClient(asynchat.async_chat):
                     self.server.serverSendRoomsToClient(self)
 
                 # Asking to join a room
-                elif node == "join":
-                    self.clientJoinRoom(attrs)
+                #elif node == "join":
+                #    self.clientJoinRoom(attrs)
 
                 # Leaving a room
                 elif node == "leave":

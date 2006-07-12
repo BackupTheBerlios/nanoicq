@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# $Id: util.py,v 1.2 2006/07/06 11:44:17 lightdruid Exp $
+# $Id: util.py,v 1.3 2006/07/12 14:59:56 lightdruid Exp $
 
 import md5, time, random
 
@@ -18,6 +18,15 @@ def generateSessionId():
     h.update(str(time.time()))
     h.update(str(random.randrange(int(time.time()))))
     return ashex(h.digest())
+
+def safeClose(c):
+    """ Close cursor, safely, quietly """
+    try:
+        c.close()
+    except Exception, exc:
+        print str(exc)
+        pass
+
 
 if __name__ == '__main__':
     print generateSessionId()

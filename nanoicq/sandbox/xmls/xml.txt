@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.7 2006/07/10 23:29:15 lightdruid Exp $
+# $Id: xml.txt,v 1.8 2006/07/12 14:59:56 lightdruid Exp $
 #
 
 
@@ -143,15 +143,15 @@ S:  * Successful:
 C: <join id='<CDATA>' /> or <join id='<CDATA>' password='<CDATA>' />
 S:
 
-    * Successful, 4 chunks of data must be sent:
+    * Successful
 
     uid = user ID, rid = room ID
 
-    <joinroom isOk='1' uid='4' rid='5' />
+    <join isOk='1' uid='4' rid='5' />
 
     * Not successful
 
-    <joinroom isOk='1' rid='5' msg='Bad or missing password' />
+    <join isOk='1' rid='5' msg='Bad or missing password' />
     
     Reasons:
         * 'Bad or missing password' (if room is password protected, if it's not,
