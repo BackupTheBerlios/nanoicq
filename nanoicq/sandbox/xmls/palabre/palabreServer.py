@@ -10,8 +10,8 @@ import os
 import sys
 
 from palabre import config, logging, version, escape_string
-
 from util import generateSessionId, safeClose
+from Message import mtypes
 
 DB_MYSQL    = 0
 DB_FIRE     = 1
@@ -616,10 +616,39 @@ class PalabreServer(asyncore.dispatcher):
                     if self._map[ii].ids == ids:
                         self._map[ii].sendCustomMessage(attrs)
                         found = True
+        elif msgtype == mtypes.M_BROADCAST:
+            if attrs.has_key("id"):
+                del attrs["id"]
+            if attrs.has_key("rid"):
+                del attrs["rid"]
 
+            for ii in self._map:
+                if not isinstance(self._map[ii], PalabreClient):
+                    continue
+
+                self._map[ii].sendCustomMessage(attrs)
         else:
             self._clients.sendCustomMessage(attrs)
 
+    def silentUser(self, uid, flag):
+        for ii in self._map:
+            if not isinstance(self._map[ii], PalabreClient):
+                continue
+
+            if self._map[ii].ids == uid:
+                self._map[ii].silent = flag
+
+    def blockClient(self, uid):
+        ''' Disconnect blocked user '''
+
+        msg = "<error msg='You are blocked. Disconnect requested.' />"
+        for ii in self._map:
+            if not isinstance(self._map[ii], PalabreClient):
+                continue
+
+            if self._map[ii].ids == uid:
+                self._map[ii].clientSendMessage(msg)
+                self._map[ii].handle_close()
 
 def _test():
     p = PalabreServer()

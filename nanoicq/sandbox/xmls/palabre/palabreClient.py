@@ -95,6 +95,9 @@ class PalabreClient(asynchat.async_chat):
         # Asynchat initialisation ... (main class for sending and receiving messages */
         asynchat.async_chat.__init__ (self, conn)
 
+        # Is client silent or not, it's session level attribute
+        self.silent = 0
+
         self.server = server
         self.conn = conn
 
@@ -126,6 +129,27 @@ class PalabreClient(asynchat.async_chat):
         self.isRoot = 0
 
         logging.info("Connection initialized for %s" % self.addr)
+
+    def silentUser(self, uid, flag):
+        try:
+            if flag not in [0,1]:
+                raise Exception("Silent flag has wrong value, must be (0|1)")
+
+            c = self.db.cursor()
+            s = 'select u.id from users u where id = %d' % uid
+            c.execute(s)
+
+            out = "<silentuser isOk='1' id='%d' />" % uid
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Unable to find user id=%d" % uid)
+
+            self.server.silentUser(uid, flag)
+ 
+            self.clientSendMessage(out)
+        except Exception, exc:
+            out = "<silentuser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
 
     def listGroups(self, sesId = None):
         print 'listing groups...'
@@ -398,8 +422,10 @@ class PalabreClient(asynchat.async_chat):
                 if r is None:
                     raise Exception("Can't find group with id='%d'" % gid)
 
+            isblocked = 0
             if attrs.has_key('isblocked'):
-                sl.append(" isblocked = %d " % int(attrs['isblocked']))
+                isblocked = int(attrs['isblocked'])
+                sl.append(" isblocked = %d " % isblocked)
 
             s += ",".join(sl)
    
@@ -414,6 +440,9 @@ class PalabreClient(asynchat.async_chat):
             out = "<setuserproperties isOk='1' id='%d' />" % int(uid)
             self.clientSendMessage(out)
             safeClose(c) 
+
+            if isblocked == 1:
+                self.server.blockClient(int(uid))
         except Exception, exc:
             safeClose(c)
             out = "<setuserproperties isOk='0' msg=%s />" 
@@ -1015,6 +1044,10 @@ class PalabreClient(asynchat.async_chat):
                 elif node == "listgroups":
                     self.listGroups()
 
+                # silent user
+                elif node == "silentuser":
+                    self.silentUser(int(attrs["id"]), int(attrs["flag"]))
+
                 # create group
                 elif node == "creategroup":
                     self.createGroup(name = attrs["name"], moderationLevel = attrs["moderationLevel"])
@@ -1353,13 +1386,14 @@ class PalabreClient(asynchat.async_chat):
 
 
     def clientHandleMessage(self, attrs):
-        """
-        """
         from Message import mtypes
         msgtype = int(attrs["type"])
         text = attrs["text"]
 
         try:
+            if self.silent == 1:
+                raise Exception("User id=%d is set to silent, unable to send message" % self.ids)
+
             c = self.db.cursor()
 
             if msgtype == mtypes.M_PERSONAL:
@@ -1374,6 +1408,8 @@ class PalabreClient(asynchat.async_chat):
 
                     out = "<message isOk='1' uid='%d' />" 
                     self.clientSendMessage(out % uid)
+                else:
+                    raise Exception("Missing 'id' attribute")
             elif msgtype == mtypes.M_PUBLIC:
                 if attrs.has_key("rid"):
                     rid = int(attrs["rid"])
@@ -1388,6 +1424,11 @@ class PalabreClient(asynchat.async_chat):
                     self.clientSendMessage(out % (rid))
                 else:
                     raise Exception("Missing 'rid' attribute")
+            elif msgtype == mtypes.M_BROADCAST:
+                    self.server.handlePersonalMessage(self.ids, msgtype = msgtype, text = text)
+
+                    out = "<message isOk='1' />" 
+                    self.clientSendMessage(out)
             else:
                 raise Exception("Message type %d not yet supported" % msgtype)
 
