@@ -117,7 +117,7 @@ class Client(Thread):
                     #self.sock.xsend("<createroom name='qwertyz' temporary='0' />")
                     #self.sock.xsend("<getroomlist />")
 
-                    #self.sock.xsend("<getuserproperties id='3' />")
+                    self.sock.xsend("<getuserproperties id='4' />")
                     #self.sock.xsend('<setuserproperties isblocked="0" id="4" />')
                     #self.sock.xsend("<getuserproperties id='3' />")
 
@@ -126,7 +126,7 @@ class Client(Thread):
                     #self.sock.xsend("<joinroom id='1' />")
                     #self.sock.xsend("<joinroom id='1' password='abcde' />")
                     #self.sock.xsend("<message text='hi' type='3' />")
-                    self.sock.xsend("<silentuser id='3' period='3' />")
+                    #self.sock.xsend("<silentuser id='3' period='3' />")
                     #self.sock.xsend("<message text='hi' type='3' />")
                     #self.sock.xsend("<joinroom id='1' password='abc' />")
 

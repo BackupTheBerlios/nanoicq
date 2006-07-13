@@ -15,6 +15,8 @@ from palabre import config, logging, version, escape_string
 from util import generateSessionId, safeClose
 from Message import mtypes
 
+SilentCheckInterval = 3 # seconds
+
 DB_MYSQL    = 0
 DB_FIRE     = 1
 dbtype = -1
@@ -103,7 +105,7 @@ class PalabreServer(asyncore.dispatcher):
 
     def timerThread(self, arg):
         while True:
-            time.sleep(1)
+            time.sleep(SilentCheckInterval)
             self.checkSilentUsers()
 
     def checkSilentUsers(self):
@@ -239,6 +241,7 @@ class PalabreServer(asyncore.dispatcher):
         <Returns nothing"""
 
         if uid is not None:
+            self.setLastIP(uid)
             self._clientLeft(uid)
             self.leaveAllRooms(uid)
 
@@ -379,7 +382,7 @@ class PalabreServer(asyncore.dispatcher):
             else:
                 return "<error>No room by that name</error>"
 
-    def checkPassword(self, nickName, password, sesId):
+    def checkPassword(self, nickName, password, sesId, ip):
         rc = True
         try:
             c = self.db.cursor()
@@ -391,8 +394,8 @@ class PalabreServer(asyncore.dispatcher):
                 ids = -1
             else:
                 ids = rs[0]
-                s = "insert into sessions (sesid, userid) values ('%s', %d)" %\
-                    (sesId, ids)
+                s = "insert into sessions (sesid, userid, ip) values ('%s', %d, '%s')" %\
+                    (sesId, ids, ip)
                 print "Executing: ", s
                 c.execute(s)
                 self.db.commit();
@@ -556,10 +559,10 @@ class PalabreServer(asyncore.dispatcher):
         else:
             return False
 
-    def isAuthorized(self, nickName, password, sesId):
+    def isAuthorized(self, nickName, password, sesId, ip):
         """  Method for authentification
         """
-        return self.checkPassword(nickName, password, sesId)
+        return self.checkPassword(nickName, password, sesId, ip)
 
     def leaveAllRooms(self, uid):
         print 'leaving all rooms'
@@ -673,6 +676,42 @@ class PalabreServer(asyncore.dispatcher):
             if self._map[ii].ids == uid:
                 self._map[ii].clientSendMessage(msg)
                 self._map[ii].handle_close()
+
+    def setLastIP(self, uid):
+        if uid is None:
+            print 'uis is None, return'
+            return
+
+        c = None
+
+        try:
+            c = self.db.cursor()
+
+            self.db.commit()
+            self.db.begin()
+
+            s = "select ip from sessions where userid = %d" % uid
+            c.execute(s)
+            rs = c.fetchall()
+            print rs
+
+            if len(rs) > 1:
+                print "BAD:", rs
+            addr = string.strip(rs[0][0])
+
+            s = "update users set lastip = '%s' where id = %d" % (addr, uid)
+            print s
+            self.db.execute_immediate(s)
+            self.db.commit()
+
+            out = "<updatelastip isOk='1' uid='%d' />" % (uid)
+
+            print out
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<updatelastip isOk='0' msg=%s />" 
+            print out % (str(exc))
 
 def _test():
     p = PalabreServer()

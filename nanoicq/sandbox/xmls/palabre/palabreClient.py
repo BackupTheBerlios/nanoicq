@@ -28,6 +28,11 @@ def NUL(v):
         return 0
     return v
 
+def STRNUL(v):
+    if v is None:
+        return ''
+    return v
+
 def NEGNUL(v):
     if v is None:
         return -1
@@ -107,6 +112,7 @@ class PalabreClient(asynchat.async_chat):
 
         # Adresse Ip ?
         self.addr = addr[0]
+        print '>>>', self.addr
 
         # Null character
         self.carTerm = "\0"
@@ -360,7 +366,7 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
-            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked, u.moderationlevel, u.roommanagementlevel, u.usermanagementlevel
+            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked, u.moderationlevel, u.roommanagementlevel, u.usermanagementlevel, u.lastIP
                 from users u where id = %d ''' % int(uid)
             c.execute(s)
 
@@ -371,8 +377,9 @@ class PalabreClient(asynchat.async_chat):
                 raise Exception("Can't find client with id='%d'" % int(uid))
 
             for r in rs:
-                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' moderationlevel='%d' roommanagementlevel='%d' usermanagementlevel='%d' />" %\
-                    (r[0], Q(string.strip(r[1])), NEGNUL(r[2]), r[3], r[4], r[5], r[6], r[7])
+                print r
+                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' moderationlevel='%d' roommanagementlevel='%d' usermanagementlevel='%d' lastip=%s />" %\
+                    (r[0], Q(string.strip(r[1])), NEGNUL(r[2]), r[3], r[4], r[5], r[6], r[7], Q(string.strip(STRNUL(r[8]))))
                 )
 
             out.append("</getuserproperties>");
@@ -1324,7 +1331,7 @@ class PalabreClient(asynchat.async_chat):
             return
 
         # Is he authorized anyway ?
-        rc, ids = self.server.isAuthorized(nickName, password, self.sesId)
+        rc, ids = self.server.isAuthorized(nickName, password, self.sesId, self.addr)
         if rc:
 
             # Store our own id

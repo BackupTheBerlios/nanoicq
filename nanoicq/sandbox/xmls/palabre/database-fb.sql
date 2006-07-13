@@ -1,5 +1,5 @@
 
--- $Id: database-fb.sql,v 1.7 2006/07/12 14:59:56 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.8 2006/07/13 14:33:18 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -22,6 +22,7 @@ create table sessions (
     sesid char(250),
     created timestamp not null,
     userid int not null,
+    ip char(16),
     primary key (id) 
 );
 
@@ -81,6 +82,7 @@ create table users (
     roomManagementLevel int default -1,
     userManagementLevel int default -1,
     moderationLevel int default -1,
+    lastIP char(16),
     primary key (id)
 );
 
