@@ -91,12 +91,13 @@ class PalabreClient(asynchat.async_chat):
     def __init__(self,server, conn, addr, db):
         self.ids = None
 
-
         # Asynchat initialisation ... (main class for sending and receiving messages */
         asynchat.async_chat.__init__ (self, conn)
 
         # Is client silent or not, it's session level attribute
         self.silent = 0
+        self.silentPeriod = 0
+        self.silentStart = None
 
         self.server = server
         self.conn = conn
@@ -130,10 +131,11 @@ class PalabreClient(asynchat.async_chat):
 
         logging.info("Connection initialized for %s" % self.addr)
 
-    def silentUser(self, uid, flag):
+    def silentUser(self, uid, attrs):
+        period = int(attrs["period"])
         try:
-            if flag not in [0,1]:
-                raise Exception("Silent flag has wrong value, must be (0|1)")
+            if period is None or period <= 0:
+                raise Exception("Silent period is invalid or not specified")
 
             c = self.db.cursor()
             s = 'select u.id from users u where id = %d' % uid
@@ -144,7 +146,7 @@ class PalabreClient(asynchat.async_chat):
             if rs is None:
                 raise Exception("Unable to find user id=%d" % uid)
 
-            self.server.silentUser(uid, flag)
+            self.server.silentUser(uid, period)
  
             self.clientSendMessage(out)
         except Exception, exc:
@@ -1046,7 +1048,7 @@ class PalabreClient(asynchat.async_chat):
 
                 # silent user
                 elif node == "silentuser":
-                    self.silentUser(int(attrs["id"]), int(attrs["flag"]))
+                    self.silentUser(int(attrs["id"]), attrs)
 
                 # create group
                 elif node == "creategroup":

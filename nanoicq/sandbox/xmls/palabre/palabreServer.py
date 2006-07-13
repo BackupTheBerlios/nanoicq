@@ -8,6 +8,8 @@ import signal
 import sys
 import os
 import sys
+import time
+import threading
 
 from palabre import config, logging, version, escape_string
 from util import generateSessionId, safeClose
@@ -95,6 +97,26 @@ class PalabreServer(asyncore.dispatcher):
         self.db = self.connectToDb()
         if self.db is None:
             self.serverShutDown()
+
+        self.timer = threading.Thread(target = self.timerThread, args=(self,))
+        self.timer.start()
+
+    def timerThread(self, arg):
+        while True:
+            time.sleep(1)
+            self.checkSilentUsers()
+
+    def checkSilentUsers(self):
+        for ii in self._map:
+            try:
+                if self._map[ii].silent == 1:
+                    gap = time.time() - self._map[ii].silentStart
+                    print 'GAP>', gap, self._map[ii].silentPeriod
+                    if gap >= self._map[ii].silentPeriod:
+                        print "Removing silent flag from user %d" % self._map[ii].ids
+                        self._map[ii].silent = 0
+            except AttributeError:
+                pass
 
     def checkDbStatus(self, db):
         checkTables = ['users']
@@ -630,13 +652,15 @@ class PalabreServer(asyncore.dispatcher):
         else:
             self._clients.sendCustomMessage(attrs)
 
-    def silentUser(self, uid, flag):
+    def silentUser(self, uid, period):
         for ii in self._map:
             if not isinstance(self._map[ii], PalabreClient):
                 continue
 
             if self._map[ii].ids == uid:
-                self._map[ii].silent = flag
+                self._map[ii].silent = 1
+                self._map[ii].silentPeriod = period
+                self._map[ii].silentStart = time.time()
 
     def blockClient(self, uid):
         ''' Disconnect blocked user '''

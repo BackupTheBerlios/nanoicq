@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.8 2006/07/12 14:59:56 lightdruid Exp $
+# $Id: xml.txt,v 1.9 2006/07/13 13:13:56 lightdruid Exp $
 #
 
 
@@ -185,13 +185,13 @@ S:  * Successful:
 
 * Invite user to room, FIXME: why we need a password here?
 
-C: <inviteuser id='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
+C: <inviteuser uid='<CDATA>' rid='<CDATA>' password='<CDATA>' />
 
 S:  * Successful:
-    <inviteuser id='<CDATA>' nickname='<CDATA>' isOk='1' /> 
+    <inviteuser uid='<CDATA>' rid='<CDATA>'  isOk='1' /> 
 
     * Not successful:
-    <inviteuser id='<CDATA>' nickname='<CDATA>' 
+    <inviteuser id='<CDATA>' rid='<CDATA>'
         isOk='0' msg='<CDATA> (reason)' /> 
  
 
@@ -284,14 +284,14 @@ S:
 
 * Silent user
 
-C: <silent nickname='<CDATA>' period='<CDATA>' />
+C: <silentuser id='<CDATA>' period='<CDATA>' />
 
 S: 
     * Successful:
-    <silent nickname='<CDATA>' isOk='1' />
+    <silent id='<CDATA>' isOk='1' />
 
     * Not successful:
-    <silent nickname='<CDATA>' isOk='0' msg='<CDATA> (reason)' />
+    <silent id='<CDATA>' isOk='0' msg='<CDATA> (reason)' />
 
 
 * Block user - FIXME, not implemented, what's this? What is the difference 
