@@ -146,7 +146,7 @@ class PalabreServer(asyncore.dispatcher):
         Defines class variable channel_class
         """
         conn, addr = self.accept()
-        self.channel_class(self, conn, addr, self.connectToDb())
+        connector = self.channel_class(self, conn, addr, self.connectToDb())
 
     def handle_close(self):
         """When shuting down the server
@@ -574,6 +574,51 @@ class PalabreServer(asyncore.dispatcher):
             safeClose(c)
             out = "<leaveallroom isOk='0' msg=%s />" 
             print out % (str(exc))
+
+    def handlePersonalMessage(self, from_uid, to_uid = None, rid = None, msgtype = None, text = None):
+        print 'handlePersonalMessage'
+        attrs = {}
+        attrs["from-uid"] = from_uid
+        attrs["type"] = msgtype
+        attrs["text"] = text
+
+        if to_uid is not None:
+            attrs["to-uid"] = to_uid
+            found = False
+            for ids in self._map:
+                if not isinstance(self._map[ids], PalabreClient):
+                    continue
+
+                if self._map[ids].ids == to_uid:
+                    self._map[ids].sendCustomMessage(attrs)
+                    found = True
+                    break
+
+                if not found:
+                    raise Exception("Client id=%d is offline now" % to_uid)
+        elif rid is not None:
+            attrs["rid"] = rid
+
+            c = self.db.cursor()
+            s = "select users.id, users.name from users where users.id in (select users_id from users_rooms where rooms_id = %d)" % rid
+            c.execute(s)
+
+            rs = c.fetchall()
+
+            for r in rs:
+                ids = r[0]
+                print 'ROOMS:> ', r, ids
+
+                for ii in self._map:
+                    if not isinstance(self._map[ii], PalabreClient):
+                        continue
+
+                    if self._map[ii].ids == ids:
+                        self._map[ii].sendCustomMessage(attrs)
+                        found = True
+
+        else:
+            self._clients.sendCustomMessage(attrs)
 
 
 def _test():

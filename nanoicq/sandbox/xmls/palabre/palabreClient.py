@@ -1008,8 +1008,8 @@ class PalabreClient(asynchat.async_chat):
             elif self.loggedIn:
 
                 # He is sending a message
-                if node == "msg" or node == "m":
-                    self.clientHandleMessage(attrs,texte)
+                if node == "message" or node == "m":
+                    self.clientHandleMessage(attrs)
 
                 # list groups
                 elif node == "listgroups":
@@ -1352,8 +1352,71 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendErrorMessage(msg="No room specified")
 
 
+    def clientHandleMessage(self, attrs):
+        """
+        """
+        from Message import mtypes
+        msgtype = int(attrs["type"])
+        text = attrs["text"]
 
-    def clientHandleMessage(self,attrs,texte):
+        try:
+            c = self.db.cursor()
+
+            if msgtype == mtypes.M_PERSONAL:
+                if attrs.has_key("id"):
+                    uid = int(attrs["id"])
+                    s = "select id from users where id = %d" % uid
+                    c.execute(s)
+                    rs = c.fetchone()
+                    if rs is None:
+                        raise Exception("Can't find user with id='%d'" % uid)
+                    self.server.handlePersonalMessage(self.ids, to_uid = uid, msgtype = msgtype, text = text)
+
+                    out = "<message isOk='1' uid='%d' />" 
+                    self.clientSendMessage(out % uid)
+            elif msgtype == mtypes.M_PUBLIC:
+                if attrs.has_key("rid"):
+                    rid = int(attrs["rid"])
+                    s = "select id from rooms where id = %d" % rid
+                    c.execute(s)
+                    rs = c.fetchone()
+                    if rs is None:
+                        raise Exception("Can't find room with id='%d'" % rid)
+                    self.server.handlePersonalMessage(self.ids, rid = rid, msgtype = msgtype, text = text)
+
+                    out = "<message isOk='1' rid='%d' />" 
+                    self.clientSendMessage(out % (rid))
+                else:
+                    raise Exception("Missing 'rid' attribute")
+            else:
+                raise Exception("Message type %d not yet supported" % msgtype)
+
+        except Exception, exc:
+        #except socket.error, exc:
+            out = "<message isOk='0' msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
+        
+    def sendCustomMessage(self, attrs):
+        print 'sendCustomMessage'
+
+        out = []
+        if attrs.has_key("from-uid"):
+            out.append("from-uid='%d'" % attrs["from-uid"])
+        if attrs.has_key("to-uid"):
+            out.append("to-uid='%d'" % attrs["to-uid"])
+        if attrs.has_key("from-uid"):
+            out.append("type='%d'" % attrs["type"])
+        if attrs.has_key("text"):
+            out.append("text=%s" % Q(attrs["text"]))
+
+        msg = """
+        <message %s
+        />
+        """ % " ".join(out)
+
+        self.clientSendMessage(msg)
+
+    def _clientHandleMessage(self,attrs,texte):
         """Method to handle classic text messages
 
             @attrs[back OR b]   Should we send the message back to the user (room messages only)?

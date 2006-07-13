@@ -29,7 +29,7 @@ class Client(Thread):
         self.running = 1
 
     def xml_connect(self):
-        req = '<connect nickname="test_' + str(self.ids) + '" password="pass_' + str(self.ids) + '" ></connect>'
+        req = '<connect nickname="zz" password="zz" ></connect>'
         #req = '<connect nickname="ab" password="ab" ></connect>'
         print req
         self.sock.xsend(req)
@@ -123,9 +123,10 @@ class Client(Thread):
 
                     #self.sock.xsend("<delroom id='2' />")
 
-                    #self.sock.xsend("<joinroom id='1' />")
                     self.sock.xsend("<joinroom id='1' password='abcde' />")
-                    self.sock.xsend("<message rid='1' text='hi' type='2' />")
+                    #self.sock.xsend("<message id='4' text='hi' type='0' />")
+                    #self.sock.xsend("<joinroom id='2' />")
+                    #self.sock.xsend("<joinroom id='1' password='abcde' />")
                     #self.sock.xsend("<joinroom id='1' password='abc' />")
 
                     #self.sock.xsend("<leaveroom id='5' />")
@@ -175,7 +176,7 @@ class Bench:
         for c in self.clients:
             c.start()
 
-        SEC = 3
+        SEC = 300
         print "Waiting for %d sec" % SEC
         time.sleep(SEC)
         for c in self.clients:

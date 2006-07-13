@@ -1,20 +1,19 @@
 #!/usr/bin/python
 
-# $Id: Message.py,v 1.1 2006/05/20 21:47:54 lightdruid Exp $
+# $Id: Message.py,v 1.2 2006/07/13 11:27:16 lightdruid Exp $
 
 import time
 from util import *
 
-_mtypes = [
-M_PERSONAL,
-M_PRIVATE, # FIXME what's the difference from M_PERSONAL
-M_PUBLIC,
-M_BROADCAST,
-M_GET_RECORDS_LIST,
-M_GET_RECORD,
-M_CUSTOM,
-M_STORE_RECORD
-] = range(8);
+class mtypes:
+    M_PERSONAL          = 0
+    M_PRIVATE           = 1
+    M_PUBLIC            = 2
+    M_BROADCAST         = 3
+    M_GET_RECORDS_LIST  = 4
+    M_GET_RECORD        = 5
+    M_CUSTOM            = 6
+    M_STORE_RECORD      = 7
 
  
 class Message:
@@ -24,7 +23,7 @@ class Message:
         self.text = None
         self.type = M_CUSTOM
 
-        assert self.type in _mtypes
+        #assert self.type in mtypes
 
     def send(self, sessId, message):
         fail()
