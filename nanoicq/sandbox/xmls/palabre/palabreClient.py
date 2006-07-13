@@ -137,6 +137,25 @@ class PalabreClient(asynchat.async_chat):
 
         logging.info("Connection initialized for %s" % self.addr)
 
+    def listBlockedUsers(self):
+        try:
+            c = self.db.cursor()
+            s = "select id, name from users where isblocked = 1"
+            c.execute(s)
+
+            out = ["<listblockedusers isOk='1' >"]
+            rs = c.fetchall()
+
+            if rs is not None:
+                for r in rs:
+                    out.append("<user id='%d' name='%s' />" % (r[0], escape_string(string.strip(r[1])) ))
+
+            out.append("</listblockedusers>") 
+            self.clientSendMessage("\n".join(out))
+        except Exception, exc:
+            out = "<listblockedusers isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
     def silentUser(self, uid, attrs):
         period = int(attrs["period"])
         try:
@@ -1074,6 +1093,10 @@ class PalabreClient(asynchat.async_chat):
                 # list groups
                 elif node == "listgroups":
                     self.listGroups()
+
+                # list groups
+                elif node == "listblockedusers":
+                    self.listBlockedUsers()
 
                 # silent user
                 elif node == "silentuser":
