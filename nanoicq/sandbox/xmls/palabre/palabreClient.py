@@ -159,6 +159,26 @@ class PalabreClient(asynchat.async_chat):
             out = "<silentuser isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
+    def locateUser(self, uid):
+        try:
+            c = self.db.cursor()
+            s = 'select r.id, r.name from rooms r where r.id in (select rooms_id from users_rooms where users_id = %d)' % uid
+            c.execute(s)
+
+            out = ["<locateuser isOk='1' id='%d' >" % uid]
+            rs = c.fetchall()
+            if rs is None:
+                raise Exception("Unable to find user id=%d" % uid)
+
+            for r in rs:
+                out.append("<room id='%d' name='%s' />" % (r[0], escape_string(string.strip(r[1])) ))
+
+            out.append("</locateuser>") 
+            self.clientSendMessage("\n".join(out))
+        except Exception, exc:
+            out = "<locateuser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
     def listGroups(self, sesId = None):
         print 'listing groups...'
         out = "<groups isOk='0' msg=%s />"
@@ -1045,6 +1065,8 @@ class PalabreClient(asynchat.async_chat):
 
             elif self.loggedIn:
 
+                print node
+
                 # He is sending a message
                 if node == "message" or node == "m":
                     self.clientHandleMessage(attrs)
@@ -1056,6 +1078,10 @@ class PalabreClient(asynchat.async_chat):
                 # silent user
                 elif node == "silentuser":
                     self.silentUser(int(attrs["id"]), attrs)
+
+                # locate user
+                elif node == "locateuser":
+                    self.locateUser(int(attrs["id"]))
 
                 # create group
                 elif node == "creategroup":
