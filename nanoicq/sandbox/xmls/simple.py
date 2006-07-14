@@ -122,7 +122,7 @@ class Client(Thread):
                     '''
 
                     #self.sock.xsend(s)
-                    #self.sock.xsend("<getroomlist />")
+                    self.sock.xsend("<getroomlist />")
                     self.sock.xsend('<getroomproperties id="3" />')
 
 
