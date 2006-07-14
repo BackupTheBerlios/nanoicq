@@ -41,6 +41,9 @@ def NEGNUL(v):
     return v
 
 
+class ZException(Exception):
+    pass
+
 _roomTemplate = '''
                 <room id='%d' 
                         name=%s
@@ -48,7 +51,6 @@ _roomTemplate = '''
                         creatorid='%d'
                         operatorid='%d'
 
-                        allowedUsers='%d'
                         languageid='%d'
                         temporary='%d'
                         passwordProtected='%d'
@@ -75,7 +77,6 @@ _roomQuery = '''
                 creatorid,
                 operatorid,
 
-                allowedUsers,
                 languageid,
                 temporary,
                 passwordProtected,
@@ -547,14 +548,14 @@ class PalabreClient(asynchat.async_chat):
                 print r
                 out.append(_roomTemplate %\
                     (r[0], Q(string.strip(r[1])), NUL(r[2]), NUL(r[3]), NUL(r[4]), NUL(r[5]), NUL(r[6]), NUL(r[7]), 
+                        string.strip(STRNUL(r[7])), 
                         string.strip(STRNUL(r[8])), 
-                        string.strip(STRNUL(r[9])), 
+                        NUL(r[9]), 
                         NUL(r[10]), 
-                        NUL(r[11]), 
-                        NUL(r[12]),
-                        NUL(r[13]), 
-                        NUL(r[14]),
-                        NUL(r[15])
+                        NUL(r[11]),
+                        NUL(r[12]), 
+                        NUL(r[13]),
+                        NUL(r[14])
                         )
                 )
 
@@ -594,7 +595,7 @@ class PalabreClient(asynchat.async_chat):
 
             rs = c.fetchall()
             for r in rs:
-                print 'R=', len(r), r[15], r
+                print 'R=', len(r)
                 out.append(_roomTemplate %\
                     (r[0], Q(string.strip(r[1])), 
                         NUL(r[2]), 
@@ -602,17 +603,22 @@ class PalabreClient(asynchat.async_chat):
                         NUL(r[4]), 
                         NUL(r[5]), 
                         NUL(r[6]), 
-                        NUL(r[7]),
+                        string.strip(STRNUL(r[7])), 
                         string.strip(STRNUL(r[8])), 
-                        string.strip(STRNUL(r[9])), 
+                        NUL(r[9]), 
                         NUL(r[10]), 
-                        NUL(r[11]), 
-                        NUL(r[12]),
-                        NUL(r[13]), 
-                        NUL(r[14]),
-                        NUL(r[15])
+                        NUL(r[11]),
+                        NUL(r[12]), 
+                        NUL(r[13]),
+                        NUL(r[14])
                         )
                 )
+
+            s = "select users_id from allowed_users_rooms where rooms_id=%d order by users_id" % rid
+            c.execute(s)
+            rs = c.fetchall()
+            for r in rs:
+                out.append("<client id='%d' />" % r[0])
 
             out.append("</getroomproperties>");
  
@@ -652,14 +658,30 @@ class PalabreClient(asynchat.async_chat):
                 sl.append(" operatorid = %d " % int(attrs['operatorid']))
             if attrs.has_key('pvtPassword'):
                 sl.append(" pvtpassword = '%s' " % escape_string(attrs['pvtPassword']))
+
             if attrs.has_key('publicPassword'):
-                sl.append(" publicpassword = '%s' " % escape_string(attrs['publicPassword']))
+
+                if attrs.has_key('passwordProtected'):
+                    protect = int(attrs['passwordProtected'])
+                    if protect == 1:
+                        sl.append(" publicpassword = '%s' " % escape_string(attrs['publicPassword']))
+
             if attrs.has_key('temporary'):
                 sl.append(" temporary = %d " % int(attrs['temporary']))
             if attrs.has_key('allowedUsers'):
                 sl.append(" allowedUsers = %d " % int(attrs['allowedUsers']))
+
             if attrs.has_key('passwordProtected'):
-                sl.append(" passwordProtected = %d " % int(attrs['passwordProtected']))
+                protect = int(attrs['passwordProtected'])
+                if protect == 1:
+                    if attrs.has_key('publicPassword'):
+                        pp = attrs['publicPassword']
+                        if len(pp) == 0:
+                            raise Exception("Room is password protected, but publicPassword is too short or empty")
+                    else:
+                        raise Exception("Room is password protected, but no publicPassword specified")
+                sl.append(" passwordProtected = %d " % protect)
+
             if attrs.has_key('moderationAllowed'):
                 sl.append(" moderationAllowed = %d " % int(attrs['moderationAllowed']))
             if attrs.has_key('roomManagementLevel'):
@@ -683,7 +705,7 @@ class PalabreClient(asynchat.async_chat):
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
-        except Exception, exc:
+        except ZException, exc:
             safeClose(c)
             out = "<setroomproperties isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
@@ -766,7 +788,14 @@ class PalabreClient(asynchat.async_chat):
             out = "<inviteuser isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def createRoom(self, sesId = None, attrs = {}):
+    def addAllowedUser(self):
+        #allowedUsers лучше передавать отдельным чанком как listMembers
+        #C: <listAllowedUser roomId="2">
+        #C: <deleleAllowedUser rommId="2" userId="4">
+        #C: <addAllowedUser rommId="2" userId="4">
+        pass
+
+    def createRoom(self, attrs, child):
         print 'creating new room'
 
         c = None
@@ -853,9 +882,41 @@ class PalabreClient(asynchat.async_chat):
 
             print s
             self.db.begin()
-            self.db.execute_immediate(s)
+            c.execute(s)
             self.db.commit()
-            print 'executed'
+
+            room_name = escape_string(attrs['name'])
+            c.execute("select id from rooms where name='%s'" % room_name)
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("createRoom: Can't find room with name='%s'" % room_name)
+            rid = r[0]
+
+            clients = []
+            for n in child:
+                print n, n.nodeName
+                if n.nodeName == 'client':
+                    for p in n.attributes.items():
+                        if p[0] == "id":
+                            clients.append(int(p[1]))
+            print clients
+
+            if len(clients) > 0:
+                s = "delete from allowed_users_rooms where "
+                allowed = []
+                for client in clients:
+                    allowed.append("(users_id=%d and rooms_id=%d)" % (client, rid))
+                s += " and ".join(allowed)
+                c.execute(s)
+                self.db.commit()
+
+                s = "insert into allowed_users_rooms (users_id, rooms_id) values (%d, %d)"
+                for client in clients:
+                    c.execute(s % (client, rid))
+
+                self.db.commit()
+                print 'executed'
 
             out = ["<createroom isOk='1' name=%s >" % Q(attrs['name'])]
             out.append("</createroom>");
@@ -1113,6 +1174,7 @@ class PalabreClient(asynchat.async_chat):
 
             # The only node
             n = data.childNodes[0]
+            print 'NODE:', n, dir(n), n.childNodes
 
             # And the name of the node !
             # The name defines the function
@@ -1145,7 +1207,7 @@ class PalabreClient(asynchat.async_chat):
 
             elif self.loggedIn:
 
-                print node
+                print 'ATTRS:', attrs, dir(attrs)
 
                 # He is sending a message
                 if node == "message" or node == "m":
@@ -1199,6 +1261,10 @@ class PalabreClient(asynchat.async_chat):
                         gid = attrs["id"], name = g_name, 
                         moderationLevel = g_moderationLevel)
    
+                # add allowed user
+                #elif node == "addalloweduser":
+                #    self.listMembers(gid = attrs["id"])
+
                 # get group members
                 elif node == "listmembers":
                     self.listMembers(gid = attrs["id"])
@@ -1231,7 +1297,7 @@ class PalabreClient(asynchat.async_chat):
 
                 # create room
                 elif node == "createroom":
-                    self.createRoom(attrs = attrs)
+                    self.createRoom(attrs = attrs, child = n.childNodes)
 
                 # delete room
                 elif node == "delroom":

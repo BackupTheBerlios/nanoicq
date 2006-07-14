@@ -1,5 +1,5 @@
 
--- $Id: database-fb.sql,v 1.9 2006/07/14 10:24:20 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.10 2006/07/14 11:29:43 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -11,6 +11,7 @@ drop table rooms;
 drop table users;
 drop table users_rooms;
 drop table users_groups;
+drop table allowed_users_rooms;
 
 drop generator gen_groups_id;
 drop generator gen_sessions_id;
@@ -101,6 +102,11 @@ create table users_rooms (
 create table users_groups (
     users_id int not null,
     groups_id int not null
+);
+
+create table allowed_users_rooms (
+    users_id int not null,
+    rooms_id int not null
 );
 
 --
