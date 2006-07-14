@@ -129,9 +129,14 @@ class Client(Thread):
                     #self.sock.xsend("<createroom name='flo3' > <client id='1' /> <client id='2' />  </createroom>")
                     #self.sock.xsend('<getroomproperties id="11" />')
 
-                    self.sock.xsend('<deletealloweduser uid="3" rid="11" />')
-                    self.sock.xsend('<addalloweduser uid="3" rid="11" />')
-                    self.sock.xsend('<listalloweduser rid="11" />')
+                    #self.sock.xsend('<deletealloweduser uid="3" rid="11" />')
+                    #self.sock.xsend('<addalloweduser uid="3" rid="11" />')
+                    #self.sock.xsend('<listalloweduser rid="11" />')
+
+                    #self.sock.xsend('<joinroom id="11" password="asd" />')
+                    self.sock.xsend("<listusers id='11' />")
+                    #self.sock.xsend('<addalloweduser uid="2" rid="2" />')
+                    self.sock.xsend('<redirectuser uid="2" from-rid="11" to-rid="2" />')
 
                     #self.sock.xsend('<userlookup name="zz" />')
 
