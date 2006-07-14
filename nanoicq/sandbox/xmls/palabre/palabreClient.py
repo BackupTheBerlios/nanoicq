@@ -8,6 +8,8 @@ import string
 import md5, random
 from util import generateSessionId, safeClose
 
+import cPickle
+
 from traceback import *
 
 from palabre import config, logging, version, escape_string
@@ -535,19 +537,19 @@ class PalabreClient(asynchat.async_chat):
 
             # Pass empty parameter
             s = _roomQuery % ""
-
-            print 'pass #1'
             c.execute(s)
 
             out = ["<getroomlist isOk='1' >"]
-            print 'pass #2'
 
             rs = c.fetchall()
             for r in rs:
-                print 'pass #3'
-                print r
+
+                #fil = open('s.pickle', 'wb')
+                #cPickle.dump(r, fil)
+                #fil.close()
+
                 out.append(_roomTemplate %\
-                    (r[0], Q(string.strip(r[1])), NUL(r[2]), NUL(r[3]), NUL(r[4]), NUL(r[5]), NUL(r[6]), NUL(r[7]), 
+                    (r[0], Q(string.strip(r[1])), NUL(r[2]), NUL(r[3]), NUL(r[4]), NUL(r[5]), NUL(r[6]),
                         string.strip(STRNUL(r[7])), 
                         string.strip(STRNUL(r[8])), 
                         NUL(r[9]), 

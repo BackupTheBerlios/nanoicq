@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.13 2006/07/14 12:51:58 lightdruid Exp $
+# $Id: xml.txt,v 1.14 2006/07/14 13:09:42 lightdruid Exp $
 #
 
 TODO:
@@ -427,6 +427,10 @@ Users
 =====================================
 
 FIXME: how we can create/delete users?
+
+* Blocked users
+
+C: 
 
 * Look up
 

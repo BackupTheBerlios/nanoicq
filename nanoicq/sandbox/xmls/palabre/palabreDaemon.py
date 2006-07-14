@@ -190,8 +190,6 @@ class palabreDaemon:
                 logfile.close()
             try:
                 while True:
-                    os.kill(pid,SIGINT)
-                    time.sleep(1)
                     os.kill(pid,SIGTERM)
                     time.sleep(1)
             except OSError, e:
