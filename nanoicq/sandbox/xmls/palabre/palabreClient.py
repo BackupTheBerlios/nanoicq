@@ -548,6 +548,12 @@ class PalabreClient(asynchat.async_chat):
         try:
             c = self.db.cursor()
 
+            c.execute("select id from rooms where id=%d" % int(rid))
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % int(rid))
+
             # Pass where clause
             s = _roomQuery % ("where id = %d" % rid)
             print s
@@ -558,8 +564,15 @@ class PalabreClient(asynchat.async_chat):
 
             rs = c.fetchall()
             for r in rs:
+                print 'R=', r
                 out.append(_roomTemplate %\
-                    (r[0], Q(string.strip(r[1])), r[2], r[3], r[4], r[5], r[6], r[7],
+                    (r[0], Q(string.strip(r[1])), 
+                        NUL(r[2]), 
+                        NUL(r[3]), 
+                        NUL(r[4]), 
+                        NUL(r[5]), 
+                        NUL(r[6]), 
+                        NUL(r[7]),
                         string.strip(STRNUL(r[8])), 
                         string.strip(STRNUL(r[9])), 
                         NUL(r[10]), 
