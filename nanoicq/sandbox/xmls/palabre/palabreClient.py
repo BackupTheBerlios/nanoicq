@@ -1414,7 +1414,10 @@ class PalabreClient(asynchat.async_chat):
             self.server.serverAddClient(self)
 
             # Notifying client
-            self.clientSendMessage("<connect isok='1' sesId='%s' msg='Your nickname is now : %s'/>" % (self.sesId, nickName))
+            self.clientSendMessage("<connect isok='1' msg='Your nickname is now : %s'/>" % (nickName))
+
+            # Old one, now we dont need to sent sesId
+            #self.clientSendMessage("<connect isok='1' sesId='%s' msg='Your nickname is now : %s'/>" % (self.sesId, nickName))
 
             if self.isRoot:
                 logging.warning("Admin connected: %s(%s)" % (self.nickName, self.addr))
