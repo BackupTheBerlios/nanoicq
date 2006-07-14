@@ -1,13 +1,10 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.10 2006/07/14 11:54:25 lightdruid Exp $
+# $Id: xml.txt,v 1.11 2006/07/14 12:46:53 lightdruid Exp $
 #
 
 
 Each chunk of well-formed XML message must be separated by '\0'.
 Everything is case sensitive, xml tags and attributes/properties data.
-Session ID is omitted, for sake of simplicity, but it's used for
-<connect> tag, the rest of communication does not require explicit
-session id identifier.
 
 C = client
 S = server
@@ -18,7 +15,7 @@ Chat
 
 * Connection
 
-C: <connect sesId='session id' nickname='<CDATA>' password='<CDATA>'/>\0
+C: <connect nickname='<CDATA>' password='<CDATA>'/>\0
 S: 
     connection successful:
         <connect isOk='1' msg='Your nickname now is : <CDATA>'/>\0
@@ -52,7 +49,6 @@ Good:
                         creatorid='0'
                         operatorid='0'
 
-                        allowedUsers='0'
                         languageid='0'
                         temporary='0'
                         passwordProtected='0'
@@ -72,7 +68,6 @@ Good:
                         creatorid='0'
                         operatorid='0'
 
-                        allowedUsers='0'
                         languageid='0'
                         temporary='0'
                         passwordProtected='0'
@@ -106,7 +101,6 @@ Good:
                         creatorid='0'
                         operatorid='0'
 
-                        allowedUsers='0'
                         languageid='0'
                         temporary='0'
                         passwordProtected='0'
@@ -118,6 +112,11 @@ Good:
                         numberOfUsers='0'
                         numberOfSpectators='0'
                 />
+
+    # Here we have allowed users
+    <client id='1' />
+    <client id='4' />
+    ...
 
 </getroomproperties>
 
@@ -140,18 +139,18 @@ S:  * Successful:
 
 * Join room
 
-C: <join id='<CDATA>' /> or <join id='<CDATA>' password='<CDATA>' />
+C: <joinroom id='<CDATA>' /> or <joinroom id='<CDATA>' password='<CDATA>' />
 S:
 
     * Successful
 
     uid = user ID, rid = room ID
 
-    <join isOk='1' uid='4' rid='5' />
+    <joinroom isOk='1' uid='4' rid='5' />
 
     * Not successful
 
-    <join isOk='1' rid='5' msg='Bad or missing password' />
+    <joinroom isOk='1' rid='5' msg='Bad or missing password' />
     
     Reasons:
         * 'Bad or missing password' (if room is password protected, if it's not,
@@ -160,30 +159,29 @@ S:
         * 'DB is down'
 
 
-* Add new allowed user
+* Add allowed user
 
-C: <addnewalloweduser id='<CDATA>' nickname='<CDATA>' password='<CDATA>' />
+C: <addalloweduser id='<CDATA>' rid='id' />
 S:  * Successful:
-    <addnewalloweduser id='<CDATA>' nickname='<CDATA>' isOk='1' /> 
+    <addalloweduser id='<CDATA>' isOk='1' /> 
 
     * Not successful:
-    <addnewalloweduser id='<CDATA>' nickname='<CDATA>' 
-        isOk='0' msg='<CDATA> (reason)' /> 
+    <addalloweduser id='<CDATA>' />
 
 
 * Remove allowed user
 
-C: <removealloweduser id='<CDATA>' nickname='<CDATA>'/>
+C: <removealloweduser id='<CDATA>' />
 
 S:  * Successful:
-    <removealloweduser id='<CDATA>' nickname='<CDATA>' isOk='1' /> 
+    <removealloweduser id='<CDATA>' isOk='1' /> 
 
     * Not successful:
-    <removealloweduser id='<CDATA>' nickname='<CDATA>' 
-        isOk='0' msg='<CDATA> (reason)' /> 
+    <removealloweduser id='<CDATA>'  /> 
  
 
-* Invite user to room, FIXME: why we need a password here?
+* FIXME: not yet implemented 
+ Invite user to room, FIXME: why we need a password here?
 
 C: <inviteuser uid='<CDATA>' rid='<CDATA>' password='<CDATA>' />
 
@@ -197,7 +195,7 @@ S:  * Successful:
 
 * Delete room, FIXME: why we need a password here? 
 
-C: <delroom id='<CDATA>' [password='<CDATA>'] >
+C: <delroom id='<CDATA>' />
 
 S: 
     * Successful:
@@ -222,6 +220,8 @@ S:
         
 
 * Join room as spectator
+
+FIXME: not implemented yet
 
 C: <joinasspectator room='<CDATA>'/>
 S:
@@ -324,6 +324,13 @@ S: <listalloweduser isOk='1' rid='11' >
 <client id='2' />
 <client id='3' />
 </listalloweduser>
+
+* Redirect users:
+
+C: <redirectuser uid="2" from-rid="11" to-rid="2" />
+
+S: <redirectuser isOk='1' uid="2" from-rid="11" to-rid="2" />
+
 
 =====================================
 Groups
