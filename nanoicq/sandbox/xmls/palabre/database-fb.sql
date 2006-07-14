@@ -1,5 +1,5 @@
 
--- $Id: database-fb.sql,v 1.10 2006/07/14 11:29:43 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.11 2006/07/14 15:25:50 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -96,7 +96,8 @@ SET GENERATOR gen_users_id TO 0;
 
 create table users_rooms (
     users_id int not null,
-    rooms_id int not null
+    rooms_id int not null,
+    spectator int default 0
 ); 
 
 create table users_groups (

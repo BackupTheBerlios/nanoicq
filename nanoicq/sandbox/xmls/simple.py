@@ -127,7 +127,7 @@ class Client(Thread):
                     #self.sock.xsend(s)
                     #self.sock.xsend("<getroomlist />")
                     #self.sock.xsend("<createroom name='flo3' > <client id='1' /> <client id='2' />  </createroom>")
-                    self.sock.xsend('<getroomproperties id="24" />')
+                    #self.sock.xsend('<getroomproperties id="2" />')
 
                     #self.sock.xsend('<deletealloweduser uid="3" rid="11" />')
                     #self.sock.xsend('<addalloweduser uid="3" rid="11" />')
@@ -148,6 +148,12 @@ class Client(Thread):
                     #self.sock.xsend("<delroom id='2' />")
 
                     #self.sock.xsend("<joinroom id='1' password='abcde' />")
+                    #self.sock.xsend("<joinasspectator rid='1' password='abcde' />")
+                    #self.sock.xsend("<listusers id='1' />")
+                    #self.sock.xsend("<leaveroom id='1' />")
+
+                    self.sock.xsend("<inviteuser uid='1' rid='1' />")
+
                     #self.sock.xsend("<joinroom id='2' password='abcde' />")
                     #self.sock.xsend("<leaveroom id='1' />")
                     #self.sock.xsend("<locateuser id='4' />")

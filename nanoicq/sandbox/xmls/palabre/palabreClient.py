@@ -766,32 +766,6 @@ class PalabreClient(asynchat.async_chat):
             out = "<addnewalloweduser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def inviteUser(self, sesId = None, rid = None, uid = None):
-        print 'inviting user'
-
-        rid = int(rid)
-        uid = int(uid)
-        c = None
-
-        try:
-            c = self.db.cursor()
-            s = ''
-
-            raise Exception("Not implemented yet")
-            print s
- 
-            c.execute(s)
-
-            out = ["<inviteuser error='0' >"]
-            out.append("</inviteuser>");
- 
-            self.clientSendMessage("\n".join(out))
-            safeClose(c) 
-        except Exception, exc:
-            safeClose(c)
-            out = "<inviteuser error='1' msg=%s />" 
-            self.clientSendMessage( out % Q(str(exc)) )
-
     def deleteAllowedUser(self, attrs):
         c = self.db.cursor()
 
@@ -1195,6 +1169,84 @@ class PalabreClient(asynchat.async_chat):
             out = "<delroom error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
+    def _getIntAttr(self, name, attrs):
+        if not attrs.has_key(name):
+            raise Exception("Missing '%s' attribute in request" % name)
+        try:
+            rc = int(attrs[name])
+        except:
+            raise Exception("Invalid '%s' attribute in request" % name)
+        return rc
+
+    def inviteUser(self, attrs):
+        try:
+            c = self.db.cursor()
+
+            uid = self._getIntAttr("uid", attrs)
+            rid = self._getIntAttr("rid", attrs)
+
+            self.server.inviteUser(uid, rid)
+
+            out = "<inviteuser error='0' uid='%d' rid='%d' />" % (self.ids, rid)
+
+            self.clientSendMessage(out)
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<inviteuser error='1' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def joinAsSpectator(self, attrs):
+        try:
+            c = self.db.cursor()
+
+            if not attrs.has_key("rid"):
+                raise Exception("Missing 'rid' attribute in request")
+            try:
+                rid = int(attrs["rid"])
+            except:
+                raise Exception("Invalid 'rid' attribute in request")
+
+            s = "select name, passwordProtected, publicPassword from rooms where id = %d" % rid
+            print s
+            c.execute(s)
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % rid)
+
+            if int(r[1]) == 1:
+                # Check password, room is password protected
+                if publicPassword is None:
+                    raise Exception("Empty password, room is password protected")
+                if publicPassword != string.strip(r[2]):
+                    raise Exception("Invalid password, room is password protected")
+
+            s = "select rooms_id from users_rooms where users_id = %d" % self.ids
+            print s
+            c.execute(s)
+
+            rs = c.fetchall()
+            for r in rs:
+                #print 'Client #%d now in room #%d' % (self.ids, int(r[0]))
+                if int(r[0]) == rid:
+                    raise Exception('Client #%d already in room #%d' % (self.ids, rid))
+
+
+            out = "<joinasspectator error='0' uid='%d' rid='%d' />" % (self.ids, rid)
+
+            self.db.commit()
+            self.db.begin()
+            s = "insert into users_rooms (users_id, rooms_id, spectator) values (%d, %d, %d)" % (self.ids, rid, 1)
+            c.execute(s)
+            self.db.commit()
+ 
+            self.clientSendMessage(out)
+            safeClose(c) 
+        except Exception, exc:
+            safeClose(c)
+            out = "<joinasspectator error='1' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
     def joinRoom(self, sesId = None, rid = None, publicPassword = None):
         print 'joining room'
 
@@ -1228,7 +1280,7 @@ class PalabreClient(asynchat.async_chat):
 
             rs = c.fetchall()
             for r in rs:
-                print 'Client #%d now in room #%d' % (self.ids, int(r[0]))
+                #print 'Client #%d now in room #%d' % (self.ids, int(r[0]))
                 if int(r[0]) == rid:
                     raise Exception('Client #%d already in room #%d' % (self.ids, rid))
 
@@ -1311,7 +1363,7 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find room with id='%d'" % int(rid))
 
-            s = "select id, name from users where id in (select users_id from users_rooms where rooms_id = %d)" % rid
+            s = "select id, name, moderationLevel, roomManagementLevel from users where id in (select users_id from users_rooms where rooms_id = %d)" % rid
             print s
 
             c.execute(s)
@@ -1319,9 +1371,21 @@ class PalabreClient(asynchat.async_chat):
             out = ["<listusers error='0' id='%d' >" % rid]
 
             rs = c.fetchall()
+            c2 = self.db.cursor()
+
             for r in rs:
-                out.append("<client id='%d' name='%s' />" %\
-                    (r[0], escape_string(string.strip(r[1])))
+                s2 = "select spectator from users_rooms where users_id=%d and rooms_id = %d" % (r[0], rid)
+                c2.execute(s2)
+                rs2 = c2.fetchone()
+
+                out.append("<client id='%d' name='%s' moderationLevel='%d' roomManagementLevel='%d' isspectator='%d' />" %\
+                    (
+                        r[0], 
+                        escape_string(string.strip(r[1])),
+                        NEGNUL(r[2]),
+                        NEGNUL(r[3]),
+                        NUL(rs2[0])
+                    )
                 )
 
             out.append("</listusers>");
@@ -1442,6 +1506,10 @@ class PalabreClient(asynchat.async_chat):
                 elif node == "listgroups":
                     self.listGroups()
 
+                # invitation
+                elif node == "inviteuser":
+                    self.inviteUser(attrs)
+
                 # list groups
                 elif node == "listblockedusers":
                     self.listBlockedUsers()
@@ -1539,6 +1607,10 @@ class PalabreClient(asynchat.async_chat):
                 # delete room
                 elif node == "delroom":
                     self.delRoom(rid = attrs['id'])
+
+                # join as spectator room
+                elif node == "joinasspectator":
+                    self.joinAsSpectator(attrs)
 
                 # join room
                 elif node == "joinroom":

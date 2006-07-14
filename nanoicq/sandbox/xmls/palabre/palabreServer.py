@@ -718,6 +718,9 @@ class PalabreServer(asyncore.dispatcher):
             out = "<updatelastip error='1' msg=%s />" 
             print out % (str(exc))
 
+    def inviteUser(self, uid, rid):
+        
+
 def _test():
     p = PalabreServer()
 
