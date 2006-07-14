@@ -91,16 +91,16 @@ class palabreDaemon:
             pid = None
 
         if action == 'stop':
-            self.stop(pid, False)
+            self.stop(pid, False, 'Restarting server')
         elif action == 'start':
             self.start()
         elif action == 'restart':
-            self.stop(pid, True)
+            self.stop(pid, True, 'Restarting server')
             self.start()
         elif action == 'status':
             self.status(pid)
 
-    def start(self):
+    def start(self, msg = None):
 
         logging.info("Starting Palabre...")
 
@@ -168,7 +168,7 @@ class palabreDaemon:
                 traceback.print_exc()
                 sys.exit(1)
 
-    def stop(self, pid, restart):
+    def stop(self, pid, restart, msg = None):
 
         logging.info("Stopping Palabre...")
         if not pid:
@@ -190,6 +190,8 @@ class palabreDaemon:
                 logfile.close()
             try:
                 while True:
+                    os.kill(pid,SIGINT)
+                    time.sleep(1)
                     os.kill(pid,SIGTERM)
                     time.sleep(1)
             except OSError, e:

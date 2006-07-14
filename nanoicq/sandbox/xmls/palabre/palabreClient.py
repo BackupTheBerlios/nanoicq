@@ -615,6 +615,10 @@ class PalabreClient(asynchat.async_chat):
                 sl.append(" name = '%s' " % escape_string(attrs['name']))
             if attrs.has_key('languageid'):
                 sl.append(" languageid = %d " % int(attrs['languageid']))
+            if attrs.has_key('creatorid'):
+                sl.append(" creatorid = %d " % int(attrs['creatorid']))
+            if attrs.has_key('operatorid'):
+                sl.append(" operatorid = %d " % int(attrs['operatorid']))
             if attrs.has_key('pvtPassword'):
                 sl.append(" pvtpassword = '%s' " % escape_string(attrs['pvtPassword']))
             if attrs.has_key('publicPassword'):
@@ -797,6 +801,10 @@ class PalabreClient(asynchat.async_chat):
             if attrs.has_key('userManagementlevel'):
                 s.append(" %d " % int(attrs['userManagementlevel']))
                 keys.append("userManagementlevel")
+
+            # creatroid must be seperate
+            s.append(" %d " % self.ids)
+            keys.append("creatorid")
 
             s = "insert into rooms (%s) values (%s)" %\
                 (",".join(keys), ",".join(s))

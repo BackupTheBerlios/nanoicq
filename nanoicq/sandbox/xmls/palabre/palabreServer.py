@@ -48,6 +48,9 @@ class PalabreServer(asyncore.dispatcher):
     # Class to instanciate upon connection
     channel_class = PalabreClient
 
+    def sig_handler(self, signo, frame):
+        print 'got SIGINT'
+
     def __init__(self, HOST='', PORT=2468, rootPassword=''):
         """ Constructor of the server
 
@@ -58,6 +61,8 @@ class PalabreServer(asyncore.dispatcher):
         @rootPassword = Defines the root password, to administrate the server (shutdown, ...)
 
         <Returns nothing"""
+
+        #signal.signal(signal.SIGINT, self.sig_handler)
 
         # Version
         self.version = version
