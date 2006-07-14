@@ -560,8 +560,8 @@ class PalabreClient(asynchat.async_chat):
             for r in rs:
                 out.append(_roomTemplate %\
                     (r[0], Q(string.strip(r[1])), r[2], r[3], r[4], r[5], r[6], r[7],
-                        string.strip(r[8]), 
-                        string.strip(r[9]), 
+                        string.strip(STRNUL(r[8])), 
+                        string.strip(STRNUL(r[9])), 
                         NUL(r[10]), 
                         NUL(r[11]), 
                         NUL(r[12]),
