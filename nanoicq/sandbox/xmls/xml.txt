@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.14 2006/07/14 13:09:42 lightdruid Exp $
+# $Id: xml.txt,v 1.15 2006/07/14 13:49:33 lightdruid Exp $
 #
 
 TODO:
@@ -24,7 +24,7 @@ Chat
 C: <connect nickname='<CDATA>' password='<CDATA>'/>\0
 S: 
     connection successful:
-        <connect isOk='1' msg='Your nickname now is : <CDATA>'/>\0
+        <connect error='0' msg='Your nickname now is : <CDATA>'/>\0
 
     connection not successful:
         <error>Client not authorized or bad password</error>
@@ -47,7 +47,7 @@ S:
 
 Good:
 
-<getroomlist isOk='1' >
+<getroomlist error='0' >
 
                 <room id='4'
                         name="room #1"
@@ -90,7 +90,7 @@ Good:
 
 Bad:
 
-<getroomlist isOk='0' msg = 'error message'/>
+<getroomlist error='1' msg = 'error message'/>
 
 
 * Get room properties
@@ -99,7 +99,7 @@ C: <getroomproperties id='<CDATA>'/>\0
 S:
 
 Good:
-<getroomproperties isOk='1' >
+<getroomproperties error='0' >
 
                 <room id='1'
                         name="room #1"
@@ -127,7 +127,7 @@ Good:
 </getroomproperties>
 
 Bad:
-<getroomproperties isOk='0' msg="error message" />
+<getroomproperties error='1' msg="error message" />
     
 
 * Set room properties
@@ -137,10 +137,10 @@ C:
     <setroomproperties id='1' userManagementlevel='2' param1='val' param2='val' />
 
 S:  * Successful:
-    <setroomproperties isOk='1'/>
+    <setroomproperties error='0'/>
 
     * Not successful:
-    <setroomproperties isOk='0' msg='<CDATA> (reason)'/>
+    <setroomproperties error='1' msg='<CDATA> (reason)'/>
    
 
 * Join room
@@ -152,11 +152,11 @@ S:
 
     uid = user ID, rid = room ID
 
-    <joinroom isOk='1' uid='4' rid='5' />
+    <joinroom error='0' uid='4' rid='5' />
 
     * Not successful
 
-    <joinroom isOk='1' rid='5' msg='Bad or missing password' />
+    <joinroom error='0' rid='5' msg='Bad or missing password' />
     
     Reasons:
         * 'Bad or missing password' (if room is password protected, if it's not,
@@ -169,7 +169,7 @@ S:
 
 C: <addalloweduser id='<CDATA>' rid='id' />
 S:  * Successful:
-    <addalloweduser id='<CDATA>' isOk='1' /> 
+    <addalloweduser id='<CDATA>' error='0' /> 
 
     * Not successful:
     <addalloweduser id='<CDATA>' />
@@ -180,7 +180,7 @@ S:  * Successful:
 C: <removealloweduser id='<CDATA>' />
 
 S:  * Successful:
-    <removealloweduser id='<CDATA>' isOk='1' /> 
+    <removealloweduser id='<CDATA>' error='0' /> 
 
     * Not successful:
     <removealloweduser id='<CDATA>'  /> 
@@ -192,11 +192,11 @@ S:  * Successful:
 C: <inviteuser uid='<CDATA>' rid='<CDATA>' password='<CDATA>' />
 
 S:  * Successful:
-    <inviteuser uid='<CDATA>' rid='<CDATA>'  isOk='1' /> 
+    <inviteuser uid='<CDATA>' rid='<CDATA>'  error='0' /> 
 
     * Not successful:
     <inviteuser id='<CDATA>' rid='<CDATA>'
-        isOk='0' msg='<CDATA> (reason)' /> 
+        error='1' msg='<CDATA> (reason)' /> 
  
 
 * Delete room, FIXME: why we need a password here? 
@@ -205,10 +205,10 @@ C: <delroom id='<CDATA>' />
 
 S: 
     * Successful:
-    <delroom id='<CDATA>' isOk='1' /> 
+    <delroom id='<CDATA>' error='0' /> 
 
     * Not successful:
-    <delroom id='<CDATA>' isOk='0' msg='<CDATA> (reason)' /> 
+    <delroom id='<CDATA>' error='1' msg='<CDATA> (reason)' /> 
 
 
 * Create room
@@ -218,11 +218,11 @@ C:  <createroom param='value' ... />
 S: 
     * Successful:
 
-<createroom isOk='1' name="qwerty" >
+<createroom error='0' name="qwerty" >
 </createroom>
 
     * Not successful:
-    <createroom isOk='0' msg="Room with name 'qwerty' already exists" />
+    <createroom error='1' msg="Room with name 'qwerty' already exists" />
         
 
 * Join room as spectator
@@ -249,7 +249,7 @@ S:
     </clients>\0
  
     * Not successful:
-    <joinasspectator room='<CDATA>' isOk='0' msg='<CDATA>' /> 
+    <joinasspectator room='<CDATA>' error='1' msg='<CDATA>' /> 
 
 
 * List users in room
@@ -259,7 +259,7 @@ C: <listusers id='<CDATA>' />
 S: 
     * Successful:
 
-    <listusers isOk='1' rid='<CDATA>'>
+    <listusers error='0' rid='<CDATA>'>
         <client id='<CDATA>' name='<CDATA>' />
         ...
     </listusers>\0
@@ -267,7 +267,7 @@ S:
 
     * Not successful:
 
-    <listusers isOk='0' id='<CDATA>' msg='<CDATA> (reason)' />
+    <listusers error='1' id='<CDATA>' msg='<CDATA> (reason)' />
 
 
 * Leave room
@@ -276,10 +276,10 @@ C: <leaveroom id='<CDATA>' />
 
 S: 
     * Successful:
-    <leaveroom id='<CDATA>' rid='<CDATA>' isOk='1' /> 
+    <leaveroom id='<CDATA>' rid='<CDATA>' error='0' /> 
 
     * Not successful:
-    <leaveroom rid='<CDATA>' isOk='0' msg='<CDATA> (reason)' /> 
+    <leaveroom rid='<CDATA>' error='1' msg='<CDATA> (reason)' /> 
 
 
 * Locate user - FIXME, not implemented, what's this?
@@ -294,10 +294,10 @@ C: <silentuser id='<CDATA>' period='<CDATA>' />
 
 S: 
     * Successful:
-    <silent id='<CDATA>' isOk='1' />
+    <silent id='<CDATA>' error='0' />
 
     * Not successful:
-    <silent id='<CDATA>' isOk='0' msg='<CDATA> (reason)' />
+    <silent id='<CDATA>' error='1' msg='<CDATA> (reason)' />
 
 
 * Block user - FIXME, not implemented, what's this? What is the difference 
@@ -309,23 +309,23 @@ S:
 C: <redirect nickname='<CDATA>' room='<CDATA> (target room)' />
 S: 
     * Successful:
-    <redirect nickname='<CDATA>' isOk='1' />
+    <redirect nickname='<CDATA>' error='0' />
 
     * Not successful:
-    <redirect nickname='<CDATA>' isOk='0' msg='<CDATA> (reason)' />
+    <redirect nickname='<CDATA>' error='1' msg='<CDATA> (reason)' />
 
 * Allowed users:   
 
 C: <addalloweduser uid="3" rid="11" />
 
-S: <addalloweduser uid='3' rid='11' isOk='1' />
+S: <addalloweduser uid='3' rid='11' error='0' />
 
 C: <deletealloweduser uid="3" rid="11" />
-S: <deletealloweduser uid='3' rid='11' isOk='1' />
+S: <deletealloweduser uid='3' rid='11' error='0' />
 
 C: <listalloweduser rid="11" />
 
-S: <listalloweduser isOk='1' rid='11' >
+S: <listalloweduser error='0' rid='11' >
 <client id='1' />
 <client id='2' />
 <client id='3' />
@@ -335,7 +335,7 @@ S: <listalloweduser isOk='1' rid='11' >
 
 C: <redirectuser uid="2" from-rid="11" to-rid="2" />
 
-S: <redirectuser isOk='1' uid="2" from-rid="11" to-rid="2" />
+S: <redirectuser error='0' uid="2" from-rid="11" to-rid="2" />
 
 
 =====================================
@@ -353,14 +353,14 @@ C: <listgroups />
 S: 
     * Successful
 
-<groups isOk='1'>
+<groups error='0'>
     <group id='1' name="group 0" moderationLevel='0' />
     <group id='2' name="group 1" moderationLevel='1' />
     <group id='3' name="group 2" moderationLevel='2' />
 </groups>
 
     * Not successful
-    <groups isOk='0' msg='<CDATA> (reason)' />
+    <groups error='1' msg='<CDATA> (reason)' />
  
 
 * Create group
@@ -370,12 +370,12 @@ C: <creategroup name='<CDATA>' moderationLevel='<CDATA>' />
 S:
     * Successful
 
-<creategroup isOk='1'>
+<creategroup error='0'>
     <group id='4' name='abcd' moderationLevel='1' />
 </creategroup>
 
     * Not successful
-    <creategroup name='<CDATA>' isOk='0' msg='<CDATA> (reason)' />
+    <creategroup name='<CDATA>' error='1' msg='<CDATA> (reason)' />
 
 
 * Retrieve group properties
@@ -384,10 +384,10 @@ C: <getgroupproperties id='<CDATA>' />
  
 S:
     * Successful
-    <getgroupproperties isOk='1' id='1' name='group 0' moderationLevel='0' />
+    <getgroupproperties error='0' id='1' name='group 0' moderationLevel='0' />
 
     * Not successful
-    <getgroupproperties isOk='0' id='45' msg="Can't find group with id='45'" /
+    <getgroupproperties error='1' id='45' msg="Can't find group with id='45'" /
   
 
 * Set group properties
@@ -396,10 +396,10 @@ C: <setgroupproperties id='<CDATA>' name='<CDATA>' moderationLevel='<CDATA>' />
 
 S:
     * Successful
-    <setgroupproperties isOk='1' id='2' />
+    <setgroupproperties error='0' id='2' />
 
     * Not successful
-    <setgroupproperties isOk='0' msg="Can't find group with id='13'" />
+    <setgroupproperties error='1' msg="Can't find group with id='13'" />
  
 
 * List group members
@@ -410,16 +410,16 @@ S:
     * Successful
 
 
-<listmembers isOk='1' id='0' >
+<listmembers error='0' id='0' >
     <client id='1' name="as" />
 </listmembers>
 
     If there are no members in group, output will look like this:
 
-<listmembers isOk='1' id='0' > </listmembers>
+<listmembers error='0' id='0' > </listmembers>
 
     * Not successful
-    <listmembers id='<CDATA>' isOk='0' msg='<CDATA>' />
+    <listmembers id='<CDATA>' error='1' msg='<CDATA>' />
  
 
 =====================================
@@ -436,7 +436,7 @@ C:
 
 C: <userlookup name='asd' />
 
-S: <userlookup isOk='1' id='123' />
+S: <userlookup error='0' id='123' />
  
 * Retrieve user properties, FIXME: how to get/set last IP?
 
@@ -445,13 +445,13 @@ C: <getuserproperties id='<CDATA>' />
 S:
     * Successful
 
-<getuserproperties isOk='1' id='1' >
+<getuserproperties error='0' id='1' >
     <client id='1' name="as" groupid='0' languageid='0' isblocked='0' />
 </getuserproperties>
 
  
     * Not successful
-    <getuserproperties id='<CDATA>' isOk='0' msg='<CDATA>' />
+    <getuserproperties id='<CDATA>' error='1' msg='<CDATA>' />
  
 
 * Set user properties, for list of allowed properties take a look at
@@ -462,10 +462,10 @@ C:
 
 S:
     * Successful
-    <setuserproperties isOk='1' id='3' />
+    <setuserproperties error='0' id='3' />
  
     * Not successful
-    <setuserproperties id='<CDATA>' isOk='0' msg='<CDATA>' />
+    <setuserproperties id='<CDATA>' error='1' msg='<CDATA>' />
 
 
 * Block/unblock user - FIXME, not implemented, what's this?

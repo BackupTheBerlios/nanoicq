@@ -127,7 +127,7 @@ class Client(Thread):
                     #self.sock.xsend(s)
                     #self.sock.xsend("<getroomlist />")
                     #self.sock.xsend("<createroom name='flo3' > <client id='1' /> <client id='2' />  </createroom>")
-                    self.sock.xsend('<getroomproperties id="6" />')
+                    self.sock.xsend('<getroomproperties id="24" />')
 
                     #self.sock.xsend('<deletealloweduser uid="3" rid="11" />')
                     #self.sock.xsend('<addalloweduser uid="3" rid="11" />')

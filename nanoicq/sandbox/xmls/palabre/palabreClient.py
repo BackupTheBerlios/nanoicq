@@ -43,8 +43,10 @@ def NEGNUL(v):
     return v
 
 
-class ZException(Exception):
+class FakeException(Exception):
+    ''' For debug only '''
     pass
+
 
 _roomTemplate = '''
                 <room id='%d' 
@@ -150,7 +152,7 @@ class PalabreClient(asynchat.async_chat):
             s = "select id, name from users where isblocked = 1"
             c.execute(s)
 
-            out = ["<listblockedusers isOk='1' >"]
+            out = ["<listblockedusers error='0' >"]
             rs = c.fetchall()
 
             if rs is not None:
@@ -160,7 +162,7 @@ class PalabreClient(asynchat.async_chat):
             out.append("</listblockedusers>") 
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            out = "<listblockedusers isOk='0' msg=%s />" 
+            out = "<listblockedusers error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def silentUser(self, uid, attrs):
@@ -173,7 +175,7 @@ class PalabreClient(asynchat.async_chat):
             s = 'select u.id from users u where id = %d' % uid
             c.execute(s)
 
-            out = "<silentuser isOk='1' id='%d' />" % uid
+            out = "<silentuser error='0' id='%d' />" % uid
             rs = c.fetchone()
             if rs is None:
                 raise Exception("Unable to find user id=%d" % uid)
@@ -182,7 +184,7 @@ class PalabreClient(asynchat.async_chat):
  
             self.clientSendMessage(out)
         except Exception, exc:
-            out = "<silentuser isOk='0' msg=%s />" 
+            out = "<silentuser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def locateUser(self, uid):
@@ -191,7 +193,7 @@ class PalabreClient(asynchat.async_chat):
             s = 'select r.id, r.name from rooms r where r.id in (select rooms_id from users_rooms where users_id = %d)' % uid
             c.execute(s)
 
-            out = ["<locateuser isOk='1' id='%d' >" % uid]
+            out = ["<locateuser error='0' id='%d' >" % uid]
             rs = c.fetchall()
             if rs is None:
                 raise Exception("Unable to find user id=%d" % uid)
@@ -202,18 +204,18 @@ class PalabreClient(asynchat.async_chat):
             out.append("</locateuser>") 
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            out = "<locateuser isOk='0' msg=%s />" 
+            out = "<locateuser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def listGroups(self, sesId = None):
         print 'listing groups...'
-        out = "<groups isOk='0' msg=%s />"
+        out = "<groups error='1' msg=%s />"
         try:
             c = self.db.cursor()
             c.execute("select id, name, mlevel from groups order by name")
             rs = c.fetchall()
 
-            out = ["<groups isOk='1'>"]
+            out = ["<groups error='0'>"]
             for r in rs:
                 print r
                 out.append("<group id='%d' name=%s moderationLevel='%d' />" %\
@@ -227,7 +229,7 @@ class PalabreClient(asynchat.async_chat):
     def createGroup(self, sesId = None, name = None, moderationLevel = None):
         print 'creating group...', name, moderationLevel
 
-        out = "<creategroup isOk='0' msg=%s />"
+        out = "<creategroup error='1' msg=%s />"
         try:
             c = self.db.cursor()
             s = "insert into groups (name, mlevel) values ('%s', %d)" %\
@@ -241,7 +243,7 @@ class PalabreClient(asynchat.async_chat):
 
             r = c.fetchone()
 
-            out = ["<creategroup isOk='1'>"] 
+            out = ["<creategroup error='0'>"] 
             out.append("<group id='%d' name='%s' moderationLevel='%d' />" %\
                     (r[0], escape_string(string.strip(r[1])), r[2]))
             out.append("</creategroup>")
@@ -268,11 +270,11 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find group with id='%d'" % int(gid))
 
-            out = "<getgroupproperties isOk='1' id='%d' name='%s' moderationLevel='%d' />" %\
+            out = "<getgroupproperties error='0' id='%d' name='%s' moderationLevel='%d' />" %\
                 (r[0], escape_string(string.strip(r[1])), r[2])
             self.clientSendMessage(out)
         except Exception, exc:
-            out = "<getgroupproperties isOk='0' id='%d' msg=%s />"
+            out = "<getgroupproperties error='1' id='%d' msg=%s />"
             self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
 
     # и еще 1 проблема. если комната password protected, тогда у нее должен быть property password и его надо добавить в
@@ -293,11 +295,11 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find group with name = '%s'" % escape_string(name))
 
-            out = "<grouplookup isOk='1' id='%d' name='%s' moderationLevel='%d' />" %\
+            out = "<grouplookup error='0' id='%d' name='%s' moderationLevel='%d' />" %\
                 (r[0], escape_string(string.strip(r[1])), r[2])
             self.clientSendMessage(out)
         except Exception, exc:
-            out = "<grouplookup isOk='0' name='%s' msg=%s />"
+            out = "<grouplookup error='1' name='%s' msg=%s />"
             self.clientSendMessage( out % ( escape_string(str(name)), Q(str(exc)) ) )
 
     def userLookUp(self, sesId = None, name = None):
@@ -316,13 +318,13 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find user with name = '%s'" % escape_string(name))
 
-            out = ["<userlookup isOk='1' name = '%s' >" % name]
+            out = ["<userlookup error='0' name = '%s' >" % name]
             out.append("<client id='%d' />" % r[0])
             out.append("</userlookup>")
 
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            out = "<userlookup isOk='0' name='%s' msg=%s />"
+            out = "<userlookup error='1' name='%s' msg=%s />"
             self.clientSendMessage( out % ( escape_string(str(name)), Q(str(exc)) ) )
 
     def deleteGroup(self, sesId = None, gid = None):
@@ -371,16 +373,16 @@ class PalabreClient(asynchat.async_chat):
                 self.sb.rollback()
                 raise
 
-            out = "<deletegroup isOk='1' id='%d' />" % gid
+            out = "<deletegroup error='0' id='%d' />" % gid
             self.clientSendMessage(out)
         except Exception, exc:
-            out = "<deletegroup isOk='0' id='%d' msg=%s />"
+            out = "<deletegroup error='1' id='%d' msg=%s />"
             self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
 
     def setGroupProperties(self, sesId = None, gid = None, name = None, moderationLevel = None):
         print 'retrieving group properties...', gid
 
-        out = "<setgroupproperties isOk='0' msg=%s />"
+        out = "<setgroupproperties error='1' msg=%s />"
         try:
             c = self.db.cursor()
 
@@ -405,7 +407,7 @@ class PalabreClient(asynchat.async_chat):
             c.execute(s)
             self.db.commit()            
 
-            out = "<setgroupproperties isOk='1' id='%d' />" % int(gid)
+            out = "<setgroupproperties error='0' id='%d' />" % int(gid)
             self.clientSendMessage(out)
         except Exception, exc:
             self.clientSendMessage( out % Q(str(exc)) )
@@ -418,7 +420,7 @@ class PalabreClient(asynchat.async_chat):
             s = 'select u.id, u.name from users u where gid = %d' % int(gid)
             c.execute(s)
 
-            out = ["<listmembers isOk='1' id='%d' >" % int(gid)]
+            out = ["<listmembers error='0' id='%d' >" % int(gid)]
 
             rs = c.fetchall()
             for r in rs:
@@ -429,7 +431,7 @@ class PalabreClient(asynchat.async_chat):
  
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            out = "<listmembers isOk='0' msg=%s />" 
+            out = "<listmembers error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def getUserProperties(self, sesId = None, uid = None):
@@ -441,7 +443,7 @@ class PalabreClient(asynchat.async_chat):
                 from users u where id = %d ''' % int(uid)
             c.execute(s)
 
-            out = ["<getuserproperties isOk='1' id='%d' >" % int(uid)]
+            out = ["<getuserproperties error='0' id='%d' >" % int(uid)]
 
             rs = c.fetchall()
             if len(rs) == 0:
@@ -457,7 +459,7 @@ class PalabreClient(asynchat.async_chat):
  
             self.clientSendMessage("\n".join(out))
         except Exception, exc:
-            out = "<getuserproperties isOk='0' id='%d' msg=%s />" 
+            out = "<getuserproperties error='1' id='%d' msg=%s />" 
             self.clientSendMessage( out % ( int(uid), Q(str(exc)) ) )
 
     def setUserProperties(self, sesId = None, attrs = {}):
@@ -517,7 +519,7 @@ class PalabreClient(asynchat.async_chat):
             c.execute(s)
             self.db.commit()
 
-            out = "<setuserproperties isOk='1' id='%d' />" % int(uid)
+            out = "<setuserproperties error='0' id='%d' />" % int(uid)
             self.clientSendMessage(out)
             safeClose(c) 
 
@@ -525,7 +527,7 @@ class PalabreClient(asynchat.async_chat):
                 self.server.blockClient(int(uid))
         except Exception, exc:
             safeClose(c)
-            out = "<setuserproperties isOk='0' msg=%s />" 
+            out = "<setuserproperties error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def getRoomList(self, sesId = None):
@@ -539,7 +541,7 @@ class PalabreClient(asynchat.async_chat):
             s = _roomQuery % ""
             c.execute(s)
 
-            out = ["<getroomlist isOk='1' >"]
+            out = ["<getroomlist error='0' >"]
 
             rs = c.fetchall()
             for r in rs:
@@ -568,7 +570,7 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<getroomlist isOk='0' msg=%s />" 
+            out = "<getroomlist error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
             raise exc
 
@@ -593,7 +595,7 @@ class PalabreClient(asynchat.async_chat):
 
             c.execute(s)
 
-            out = ["<getroomproperties isOk='1' >"]
+            out = ["<getroomproperties error='0' >"]
 
             rs = c.fetchall()
             for r in rs:
@@ -628,7 +630,7 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<getroomproperties isOk='0' msg=%s />" 
+            out = "<getroomproperties error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def setRoomProperties(self, sesId = None, rid = None, attrs = {}):
@@ -702,14 +704,14 @@ class PalabreClient(asynchat.async_chat):
             c.execute(s)
             self.db.commit()
 
-            out = ["<setroomproperties isOk='1' >"]
+            out = ["<setroomproperties error='0' >"]
             out.append("</setroomproperties>");
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
-        except ZException, exc:
+        except Exception, exc:
             safeClose(c)
-            out = "<setroomproperties isOk='0' msg=%s />" 
+            out = "<setroomproperties error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def removeAllowedUser(self, sesId = None, rid = None, uid = None):
@@ -728,14 +730,14 @@ class PalabreClient(asynchat.async_chat):
  
             c.execute(s)
 
-            out = ["<removealloweduser isOk='1' >"]
+            out = ["<removealloweduser error='0' >"]
             out.append("</removealloweduser>");
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<removealloweduser isOk='0' msg=%s />" 
+            out = "<removealloweduser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
  
     def appendNewAllowedUser(self, sesId = None, rid = None, uid = None):
@@ -754,14 +756,14 @@ class PalabreClient(asynchat.async_chat):
  
             c.execute(s)
 
-            out = ["<addnewalloweduser isOk='1' >"]
+            out = ["<addnewalloweduser error='0' >"]
             out.append("</addnewalloweduser>");
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<addnewalloweduser isOk='0' msg=%s />" 
+            out = "<addnewalloweduser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def inviteUser(self, sesId = None, rid = None, uid = None):
@@ -780,14 +782,14 @@ class PalabreClient(asynchat.async_chat):
  
             c.execute(s)
 
-            out = ["<inviteuser isOk='1' >"]
+            out = ["<inviteuser error='0' >"]
             out.append("</inviteuser>");
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<inviteuser isOk='0' msg=%s />" 
+            out = "<inviteuser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def deleteAllowedUser(self, attrs):
@@ -831,12 +833,12 @@ class PalabreClient(asynchat.async_chat):
             c.execute(s)
             self.db.commit()
 
-            self.clientSendMessage("<deletealloweduser uid='%d' rid='%d' isOk='1' />" % (uid, rid))
+            self.clientSendMessage("<deletealloweduser uid='%d' rid='%d' error='0' />" % (uid, rid))
             safeClose(c) 
 
         except Exception, exc:
             safeClose(c)
-            out = "<deletealloweduser isOk='0' msg=%s />" 
+            out = "<deletealloweduser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
 
@@ -855,7 +857,7 @@ class PalabreClient(asynchat.async_chat):
             self.db.commit()
             self.db.begin()
 
-            out = ["<listalloweduser isOk='1' rid='%d' >" % rid]
+            out = ["<listalloweduser error='0' rid='%d' >" % rid]
 
             s = "select id from rooms where id = %d" % rid
             c.execute(s)
@@ -875,7 +877,7 @@ class PalabreClient(asynchat.async_chat):
 
         except Exception, exc:
             safeClose(c)
-            out = "<listalloweduser isOk='0' msg=%s />" 
+            out = "<listalloweduser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def redirectUser(self, attrs):
@@ -951,12 +953,12 @@ class PalabreClient(asynchat.async_chat):
 
             self.db.commit()
 
-            self.clientSendMessage("<redirectuser uid='%d' from_rid='%d' to_rid='%d' isOk='1' />" % (uid, from_rid, to_rid))
+            self.clientSendMessage("<redirectuser uid='%d' from_rid='%d' to_rid='%d' error='0' />" % (uid, from_rid, to_rid))
             safeClose(c) 
 
         except Exception, exc:
             safeClose(c)
-            out = "<redirectuser isOk='0' from_rid='%d' to_rid='%d' msg=%s />" 
+            out = "<redirectuser error='1' from_rid='%d' to_rid='%d' msg=%s />" 
             self.clientSendMessage( out % (from_rid, to_rid, Q(str(exc))) )
 
 
@@ -1010,12 +1012,12 @@ class PalabreClient(asynchat.async_chat):
             c.execute(s)
             self.db.commit()
 
-            self.clientSendMessage("<addalloweduser uid='%d' rid='%d' isOk='1' />" % (uid, rid))
+            self.clientSendMessage("<addalloweduser uid='%d' rid='%d' error='0' />" % (uid, rid))
             safeClose(c) 
 
         except Exception, exc:
             safeClose(c)
-            out = "<addalloweduser isOk='0' msg=%s />" 
+            out = "<addalloweduser error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def createRoom(self, attrs, child):
@@ -1141,14 +1143,14 @@ class PalabreClient(asynchat.async_chat):
                 self.db.commit()
                 print 'executed'
 
-            out = ["<createroom isOk='1' name=%s >" % Q(attrs['name'])]
+            out = ["<createroom error='0' name=%s >" % Q(attrs['name'])]
             out.append("</createroom>");
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<createroom isOk='0' msg=%s />" 
+            out = "<createroom error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def delRoom(self, sesId = None, rid = None):
@@ -1183,14 +1185,14 @@ class PalabreClient(asynchat.async_chat):
             c.execute(s)
             self.db.commit()
 
-            out = ["<delroom isOk='1' id='%d' >" % rid]
+            out = ["<delroom error='0' id='%d' >" % rid]
             out.append("</delroom>");
  
             self.clientSendMessage("\n".join(out))
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<delroom isOk='0' msg=%s />" 
+            out = "<delroom error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
     def joinRoom(self, sesId = None, rid = None, publicPassword = None):
@@ -1235,13 +1237,13 @@ class PalabreClient(asynchat.async_chat):
             self.db.execute_immediate("insert into users_rooms (users_id, rooms_id) values (%d, %d)" % (self.ids, rid))
             self.db.commit()
  
-            out = "<joinroom isOk='1' uid='%d' rid='%d' />" % (self.ids, rid)
+            out = "<joinroom error='0' uid='%d' rid='%d' />" % (self.ids, rid)
  
             self.clientSendMessage(out)
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<joinroom isOk='0' msg=%s />" 
+            out = "<joinroom error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
                      
@@ -1284,13 +1286,13 @@ class PalabreClient(asynchat.async_chat):
             self.db.execute_immediate("delete from users_rooms where users_id = %d and rooms_id = %d" % (self.ids, rid))
             self.db.commit()
  
-            out = "<leaveroom isOk='1' uid='%d' rid='%d' />" % (self.ids, rid)
+            out = "<leaveroom error='0' uid='%d' rid='%d' />" % (self.ids, rid)
  
             self.clientSendMessage(out)
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<leaveroom isOk='0' rid='%d' msg=%s />" 
+            out = "<leaveroom error='1' rid='%d' msg=%s />" 
             self.clientSendMessage( out % (rid, Q(str(exc))) )
 
     def listUsers(self, sesId = None, rid = None, attrs = None):
@@ -1314,7 +1316,7 @@ class PalabreClient(asynchat.async_chat):
 
             c.execute(s)
 
-            out = ["<listusers isOk='1' id='%d' >" % rid]
+            out = ["<listusers error='0' id='%d' >" % rid]
 
             rs = c.fetchall()
             for r in rs:
@@ -1328,7 +1330,7 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<listusers isOk='0' rid='%d' msg=%s />" 
+            out = "<listusers error='1' rid='%d' msg=%s />" 
             self.clientSendMessage( out % (rid, Q(str(exc))) )
 
                      
@@ -1823,7 +1825,7 @@ class PalabreClient(asynchat.async_chat):
 
             c = self.db.cursor()
 
-            if msgtype == mtypes.M_PERSONAL:
+            if msgtype == mtypes.M_PERSONAL or msgtype == mtypes.M_PRIVATE:
                 if attrs.has_key("id"):
                     uid = int(attrs["id"])
                     s = "select id from users where id = %d" % uid
@@ -1833,7 +1835,7 @@ class PalabreClient(asynchat.async_chat):
                         raise Exception("Can't find user with id='%d'" % uid)
                     self.server.handlePersonalMessage(self.ids, to_uid = uid, msgtype = msgtype, text = text)
 
-                    out = "<message isOk='1' uid='%d' />" 
+                    out = "<message error='0' uid='%d' />" 
                     self.clientSendMessage(out % uid)
                 else:
                     raise Exception("Missing 'id' attribute")
@@ -1847,21 +1849,21 @@ class PalabreClient(asynchat.async_chat):
                         raise Exception("Can't find room with id='%d'" % rid)
                     self.server.handlePersonalMessage(self.ids, rid = rid, msgtype = msgtype, text = text)
 
-                    out = "<message isOk='1' rid='%d' />" 
+                    out = "<message error='0' rid='%d' />" 
                     self.clientSendMessage(out % (rid))
                 else:
                     raise Exception("Missing 'rid' attribute")
             elif msgtype == mtypes.M_BROADCAST:
                     self.server.handlePersonalMessage(self.ids, msgtype = msgtype, text = text)
 
-                    out = "<message isOk='1' />" 
+                    out = "<message error='0' />" 
                     self.clientSendMessage(out)
             else:
                 raise Exception("Message type %d not yet supported" % msgtype)
 
         except Exception, exc:
         #except socket.error, exc:
-            out = "<message isOk='0' msg=%s />" 
+            out = "<message error='1' msg=%s />" 
             self.clientSendMessage( out % (Q(str(exc))) )
         
     def sendCustomMessage(self, attrs):

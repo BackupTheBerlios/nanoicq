@@ -596,13 +596,13 @@ class PalabreServer(asyncore.dispatcher):
             self.db.execute_immediate("delete from users_rooms where users_id = %d" % (uid))
             self.db.commit()
  
-            out = "<leaveallroom isOk='1' uid='%d' />" % (uid)
+            out = "<leaveallroom error='0' uid='%d' />" % (uid)
  
             print out
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<leaveallroom isOk='0' msg=%s />" 
+            out = "<leaveallroom error='1' msg=%s />" 
             print out % (str(exc))
 
     def handlePersonalMessage(self, from_uid, to_uid = None, rid = None, msgtype = None, text = None):
@@ -709,13 +709,13 @@ class PalabreServer(asyncore.dispatcher):
             self.db.execute_immediate(s)
             self.db.commit()
 
-            out = "<updatelastip isOk='1' uid='%d' />" % (uid)
+            out = "<updatelastip error='0' uid='%d' />" % (uid)
 
             print out
             safeClose(c) 
         except Exception, exc:
             safeClose(c)
-            out = "<updatelastip isOk='0' msg=%s />" 
+            out = "<updatelastip error='1' msg=%s />" 
             print out % (str(exc))
 
 def _test():
