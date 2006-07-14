@@ -876,6 +876,87 @@ class PalabreClient(asynchat.async_chat):
             out = "<listalloweduser isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
+    def redirectUser(self, attrs):
+        c = self.db.cursor()
+
+        try:
+
+            if not attrs.has_key("uid"):
+                raise Exception("Missing 'uid' attribute in request")
+            try:
+                uid = int(attrs["uid"])
+            except:
+                raise Exception("Invalid 'uid' attribute in request")
+
+            if not attrs.has_key("to-rid"):
+                raise Exception("Missing 'to_rid' attribute in request")
+            try:
+                to_rid = int(attrs["to-rid"])
+            except:
+                raise Exception("Invalid 'to-rid' attribute in request")
+
+            if not attrs.has_key("from-rid"):
+                raise Exception("Missing 'to_rid' attribute in request")
+            try:
+                from_rid = int(attrs["from-rid"])
+            except:
+                raise Exception("Invalid 'from-rid' attribute in request")
+
+            self.db.commit()
+            self.db.begin()
+
+            s = "select id from users where id = %d" % uid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Can't find user with id = '%d'" % uid)
+
+            s = "select id from rooms where id = %d" % to_rid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Can't find room with id = '%d'" % to_rid)
+
+            s = "select id from rooms where id = %d" % from_rid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Can't find room with id = '%d'" % from_rid)
+
+            s = "select users_id from allowed_users_rooms where rooms_id=%d order by users_id" % to_rid
+            print s
+            c.execute(s)
+            rs = c.fetchall()
+
+            found = False
+            for r in rs:
+                if r[0] == uid:
+                    found = True
+                    break
+            if not found:
+                raise Exception("User id=%d is not in allowed list for room id=%d" % (uid, to_rid))
+
+            s = "select users_id from users_rooms where users_id=%d and rooms_id=%d order by users_id" % (uid, from_rid)
+            print s
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Can't find user id=%d in room id='%d'" % (uid, from_rid))
+
+            s = "update users_rooms set rooms_id=%d where users_id=%d and rooms_id=%d" % (to_rid, uid, from_rid)
+            print s
+            c.execute(s)
+
+            self.db.commit()
+
+            self.clientSendMessage("<redirectuser uid='%d' from_rid='%d' to_rid='%d' isOk='1' />" % (uid, from_rid, to_rid))
+            safeClose(c) 
+
+        except Exception, exc:
+            safeClose(c)
+            out = "<redirectuser isOk='0' from_rid='%d' to_rid='%d' msg=%s />" 
+            self.clientSendMessage( out % (from_rid, to_rid, Q(str(exc))) )
+
 
     def addAllowedUser(self, attrs):
         #allowedUsers лучше передавать отдельным чанком как listMembers
@@ -1314,7 +1395,7 @@ class PalabreClient(asynchat.async_chat):
 
             # The only node
             n = data.childNodes[0]
-            print 'NODE:', n, dir(n), n.childNodes
+            #print 'NODE:', n, dir(n), n.childNodes
 
             # And the name of the node !
             # The name defines the function
@@ -1347,7 +1428,7 @@ class PalabreClient(asynchat.async_chat):
 
             elif self.loggedIn:
 
-                print 'ATTRS:', attrs, dir(attrs)
+                #print 'ATTRS:', attrs, dir(attrs)
 
                 # He is sending a message
                 if node == "message" or node == "m":
@@ -1401,6 +1482,10 @@ class PalabreClient(asynchat.async_chat):
                         gid = attrs["id"], name = g_name, 
                         moderationLevel = g_moderationLevel)
    
+                # redirect
+                elif node == "redirectuser":
+                    self.redirectUser(attrs)
+
                 # add allowed user
                 elif node == "addalloweduser":
                     self.addAllowedUser(attrs)

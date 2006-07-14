@@ -136,7 +136,7 @@ class Client(Thread):
                     #self.sock.xsend('<joinroom id="11" password="asd" />')
                     self.sock.xsend("<listusers id='11' />")
                     #self.sock.xsend('<addalloweduser uid="2" rid="2" />')
-                    self.sock.xsend('<redirectuser uid="2" from-rid="11" to-rid="2" />')
+                    #self.sock.xsend('<redirectuser uid="2" from-rid="11" to-rid="2" />')
 
                     #self.sock.xsend('<userlookup name="zz" />')
 
