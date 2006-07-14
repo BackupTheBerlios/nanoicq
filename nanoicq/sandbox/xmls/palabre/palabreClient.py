@@ -1769,7 +1769,7 @@ class PalabreClient(asynchat.async_chat):
             self.server.serverAddClient(self)
 
             # Notifying client
-            self.clientSendMessage("<connect isok='1' msg='Your nickname is now : %s'/>" % (nickName))
+            self.clientSendMessage("<connect error='0' msg='Your nickname is now : %s'/>" % (nickName))
 
             # Old one, now we dont need to sent sesId
             #self.clientSendMessage("<connect isok='1' sesId='%s' msg='Your nickname is now : %s'/>" % (self.sesId, nickName))
