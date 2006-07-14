@@ -124,10 +124,14 @@ class Client(Thread):
                     s = '''
 <setroomproperties numberOfSpectators="0" numberOfUsers="0" userManagementlevel="0" roomManagementLevel="0" moderationAllowed="0" passwordProtected="1" temporary="0" languageid="0" allowedUsers="0" operatorid="0" creatorid="2" publicPassword="asd" id="11" />
                     '''
-                    self.sock.xsend(s)
+                    #self.sock.xsend(s)
                     #self.sock.xsend("<getroomlist />")
                     #self.sock.xsend("<createroom name='flo3' > <client id='1' /> <client id='2' />  </createroom>")
-                    self.sock.xsend('<getroomproperties id="11" />')
+                    #self.sock.xsend('<getroomproperties id="11" />')
+
+                    self.sock.xsend('<deletealloweduser uid="3" rid="11" />')
+                    self.sock.xsend('<addalloweduser uid="3" rid="11" />')
+                    self.sock.xsend('<listalloweduser rid="11" />')
 
                     #self.sock.xsend('<userlookup name="zz" />')
 

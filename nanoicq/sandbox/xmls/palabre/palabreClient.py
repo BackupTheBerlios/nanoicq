@@ -788,12 +788,152 @@ class PalabreClient(asynchat.async_chat):
             out = "<inviteuser isOk='0' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def addAllowedUser(self):
+    def deleteAllowedUser(self, attrs):
+        c = self.db.cursor()
+
+        try:
+
+            if not attrs.has_key("uid"):
+                raise Exception("Missing 'uid' attribute in request")
+            try:
+                uid = int(attrs["uid"])
+            except:
+                raise Exception("Invalid 'uid' attribute in request")
+
+            if not attrs.has_key("rid"):
+                raise Exception("Missing 'rid' attribute in request")
+            try:
+                rid = int(attrs["rid"])
+            except:
+                raise Exception("Invalid 'rid' attribute in request")
+
+            self.db.commit()
+            self.db.begin()
+
+            s = "select users_id from allowed_users_rooms where rooms_id=%d order by users_id" % rid
+            print s
+            c.execute(s)
+            rs = c.fetchall()
+
+            found = False
+            for r in rs:
+                if r[0] == uid:
+                    found = True
+                    break
+
+            if not found:
+                raise Exception("User id=%d not found in allowed list for room id=%d" % (uid, rid))
+
+            s = "delete from allowed_users_rooms where (users_id=%d and rooms_id=%d)" % (uid, rid)
+            print s
+            c.execute(s)
+            self.db.commit()
+
+            self.clientSendMessage("<deletealloweduser uid='%d' rid='%d' isOk='1' />" % (uid, rid))
+            safeClose(c) 
+
+        except Exception, exc:
+            safeClose(c)
+            out = "<deletealloweduser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+
+    def listAllowedUser(self, attrs):
+        c = self.db.cursor()
+
+        try:
+
+            if not attrs.has_key("rid"):
+                raise Exception("Missing 'rid' attribute in request")
+            try:
+                rid = int(attrs["rid"])
+            except:
+                raise Exception("Invalid 'rid' attribute in request")
+
+            self.db.commit()
+            self.db.begin()
+
+            out = ["<listalloweduser isOk='1' rid='%d' >" % rid]
+
+            s = "select id from rooms where id = %d" % rid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Can't find room with id = '%d'" % rid)
+
+            s = "select users_id from allowed_users_rooms where rooms_id=%d order by users_id" % rid
+            c.execute(s)
+            rs = c.fetchall()
+            for r in rs:
+                out.append("<client id='%d' />" % r[0])
+
+            out.append("</listalloweduser>")
+            self.clientSendMessage("\n".join(out))
+            safeClose(c) 
+
+        except Exception, exc:
+            safeClose(c)
+            out = "<listalloweduser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+
+    def addAllowedUser(self, attrs):
         #allowedUsers лучше передавать отдельным чанком как listMembers
         #C: <listAllowedUser roomId="2">
         #C: <deleleAllowedUser rommId="2" userId="4">
         #C: <addAllowedUser rommId="2" userId="4">
-        pass
+
+        c = self.db.cursor()
+
+        try:
+
+            if not attrs.has_key("uid"):
+                raise Exception("Missing 'uid' attribute in request")
+            try:
+                uid = int(attrs["uid"])
+            except:
+                raise Exception("Invalid 'uid' attribute in request")
+
+            if not attrs.has_key("rid"):
+                raise Exception("Missing 'rid' attribute in request")
+            try:
+                rid = int(attrs["rid"])
+            except:
+                raise Exception("Invalid 'rid' attribute in request")
+
+            self.db.commit()
+            self.db.begin()
+
+            s = "select users_id from allowed_users_rooms where rooms_id=%d order by users_id" % rid
+            c.execute(s)
+            rs = c.fetchall()
+            for r in rs:
+                if r[0] == uid:
+                    raise Exception("User id=%d already in allowed list for room id=%d" % (uid, rid))
+
+            s = "select id from users where id = %d" % uid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Can't find user with id = '%d'" % uid)
+
+            s = "select id from rooms where id = %d" % rid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Can't find room with id = '%d'" % rid)
+
+            s = "insert into allowed_users_rooms (users_id, rooms_id) values (%d, %d)" % (uid, rid)
+            c.execute(s)
+            self.db.commit()
+
+            self.clientSendMessage("<addalloweduser uid='%d' rid='%d' isOk='1' />" % (uid, rid))
+            safeClose(c) 
+
+        except Exception, exc:
+            safeClose(c)
+            out = "<addalloweduser isOk='0' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
 
     def createRoom(self, attrs, child):
         print 'creating new room'
@@ -1262,8 +1402,16 @@ class PalabreClient(asynchat.async_chat):
                         moderationLevel = g_moderationLevel)
    
                 # add allowed user
-                #elif node == "addalloweduser":
-                #    self.listMembers(gid = attrs["id"])
+                elif node == "addalloweduser":
+                    self.addAllowedUser(attrs)
+
+                # list allowed user
+                elif node == "listalloweduser":
+                    self.listAllowedUser(attrs)
+
+                # delete allowed user
+                elif node == "deletealloweduser":
+                    self.deleteAllowedUser(attrs)
 
                 # get group members
                 elif node == "listmembers":

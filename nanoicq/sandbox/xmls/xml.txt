@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.9 2006/07/13 13:13:56 lightdruid Exp $
+# $Id: xml.txt,v 1.10 2006/07/14 11:54:25 lightdruid Exp $
 #
 
 
@@ -307,7 +307,23 @@ S:
 
     * Not successful:
     <redirect nickname='<CDATA>' isOk='0' msg='<CDATA> (reason)' />
-   
+
+* Allowed users:   
+
+C: <addalloweduser uid="3" rid="11" />
+
+S: <addalloweduser uid='3' rid='11' isOk='1' />
+
+C: <deletealloweduser uid="3" rid="11" />
+S: <deletealloweduser uid='3' rid='11' isOk='1' />
+
+C: <listalloweduser rid="11" />
+
+S: <listalloweduser isOk='1' rid='11' >
+<client id='1' />
+<client id='2' />
+<client id='3' />
+</listalloweduser>
 
 =====================================
 Groups
