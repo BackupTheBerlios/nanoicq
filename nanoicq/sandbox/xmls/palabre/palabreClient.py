@@ -772,6 +772,10 @@ class PalabreClient(asynchat.async_chat):
         c = None
 
         try:
+
+            if not attrs.has_key('name'):
+                raise Exception("Room name not specified")
+
             c = self.db.cursor()
             #s = "select id from rooms where rooms.name like '%s'" % escape_string(attrs['name'])
             #s = "select id, name from rooms where name like 's%%'" % escape_string(attrs['name'])
@@ -798,9 +802,6 @@ class PalabreClient(asynchat.async_chat):
             if attrs.has_key('name'):
                 s.append( " '%s' " % escape_string(attrs['name']))
                 keys.append("name")
-            else:
-                raise Exception("Room name not specified")
-
 
             if attrs.has_key('languageid'):
                 s.append(" %d " % int(attrs['languageid']))
