@@ -62,6 +62,8 @@ _roomTemplate = '''
 
                         numberOfUsers='%d'
                         numberOfSpectators='%d'
+
+                        lastUpdateUserId ='%d'
                 />
 '''
 
@@ -86,7 +88,9 @@ _roomQuery = '''
                 userManagementlevel,
 
                 numberOfUsers,
-                numberOfSpectators
+                numberOfSpectators,
+
+                lastUpdateUserId
 
             from rooms %s order by name 
 '''
@@ -291,6 +295,31 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage(out)
         except Exception, exc:
             out = "<grouplookup isOk='0' name='%s' msg=%s />"
+            self.clientSendMessage( out % ( escape_string(str(name)), Q(str(exc)) ) )
+
+    def userLookUp(self, sesId = None, name = None):
+        print 'user look up...', name
+
+        try:
+            if name is None:
+                raise Exception("'name' missing in request")
+
+            c = self.db.cursor()
+            s = "select id from users where name = '%s'" % escape_string(name)
+            print s
+            c.execute(s)
+
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find user with name = '%s'" % escape_string(name))
+
+            out = ["<userlookup isOk='1' name = '%s' >" % name]
+            out.append("<client id='%d' />" % r[0])
+            out.append("</userlookup>")
+
+            self.clientSendMessage("\n".join(out))
+        except Exception, exc:
+            out = "<userlookup isOk='0' name='%s' msg=%s />"
             self.clientSendMessage( out % ( escape_string(str(name)), Q(str(exc)) ) )
 
     def deleteGroup(self, sesId = None, gid = None):
@@ -524,7 +553,8 @@ class PalabreClient(asynchat.async_chat):
                         NUL(r[11]), 
                         NUL(r[12]),
                         NUL(r[13]), 
-                        NUL(r[14])
+                        NUL(r[14]),
+                        NUL(r[15])
                         )
                 )
 
@@ -564,7 +594,7 @@ class PalabreClient(asynchat.async_chat):
 
             rs = c.fetchall()
             for r in rs:
-                print 'R=', r
+                print 'R=', len(r), r[15], r
                 out.append(_roomTemplate %\
                     (r[0], Q(string.strip(r[1])), 
                         NUL(r[2]), 
@@ -579,7 +609,8 @@ class PalabreClient(asynchat.async_chat):
                         NUL(r[11]), 
                         NUL(r[12]),
                         NUL(r[13]), 
-                        NUL(r[14])
+                        NUL(r[14]),
+                        NUL(r[15])
                         )
                 )
 
@@ -615,8 +646,8 @@ class PalabreClient(asynchat.async_chat):
                 sl.append(" name = '%s' " % escape_string(attrs['name']))
             if attrs.has_key('languageid'):
                 sl.append(" languageid = %d " % int(attrs['languageid']))
-            if attrs.has_key('creatorid'):
-                sl.append(" creatorid = %d " % int(attrs['creatorid']))
+            #if attrs.has_key('creatorid'):
+            #    sl.append(" creatorid = %d " % int(attrs['creatorid']))
             if attrs.has_key('operatorid'):
                 sl.append(" operatorid = %d " % int(attrs['operatorid']))
             if attrs.has_key('pvtPassword'):
@@ -635,6 +666,8 @@ class PalabreClient(asynchat.async_chat):
                 sl.append(" roomManagementLevel = %d " % int(attrs['roomManagementLevel']))
             if attrs.has_key('userManagementlevel'):
                 sl.append(" userManagementlevel = %d " % int(attrs['userManagementlevel']))
+
+            sl.append(" lastUpdateUserId = %d " % self.ids)
 
             s += ", ".join(sl)      
             s += ' where id = %d' % int(rid)
@@ -805,6 +838,10 @@ class PalabreClient(asynchat.async_chat):
             # creatroid must be seperate
             s.append(" %d " % self.ids)
             keys.append("creatorid")
+
+            # lastUpdateUserId must be seperate
+            s.append(" %d " % self.ids)
+            keys.append("lastUpdateUserId")
 
             s = "insert into rooms (%s) values (%s)" %\
                 (",".join(keys), ",".join(s))
@@ -1174,6 +1211,10 @@ class PalabreClient(asynchat.async_chat):
                 # get room list
                 elif node == "getroomlist":
                     self.getRoomList()
+
+                # 
+                elif node == "userlookup":
+                    self.userLookUp(name = attrs["name"])
 
                 # get room properties
                 elif node == "getroomproperties":
