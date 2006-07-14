@@ -802,6 +802,8 @@ class PalabreClient(asynchat.async_chat):
             if attrs.has_key('languageid'):
                 s.append(" %d " % int(attrs['languageid']))
                 keys.append("languageid")
+            else:
+                raise Exception("Room name not specified")
 
             if attrs.has_key('pvtPassword'):
                 s.append( " '%s' " % escape_string(attrs['pvtPassword']))
