@@ -664,7 +664,7 @@ class PalabreClient(asynchat.async_chat):
 
             rid = self._getIntAttr("id", attrs)
             pvtPasswordProtected = self._getIntAttr("pvtPasswordProtected", attrs)
-            pvtPassword = self._getStrAttr("pvtPassword", attrs)
+
 
             if pvtPasswordProtected not in [0, 1]:
                 raise Exception("pvtPasswordProtected has invalid value")
@@ -684,6 +684,8 @@ class PalabreClient(asynchat.async_chat):
             dbPvtPassword = STRNUL(string.strip(r[2]))
 
             if dbPvtPasswordProtected == 1:
+                pvtPassword = self._getStrAttr("pvtPassword", attrs)
+
                 if pvtPassword != dbPvtPassword:
                     #raise Exception("Invalid pvtPassword %s/%s" % (pvtPassword, dbPvtPassword))
                     raise Exception("Invalid pvtPassword")
