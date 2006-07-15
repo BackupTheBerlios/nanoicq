@@ -46,9 +46,9 @@ class palabreMain(threading.Thread):
 
         try:
             global topServer
-            server = palabreServer.PalabreServer(self.ip, self.port, \
+            self.server = palabreServer.PalabreServer(self.ip, self.port, \
                                                  self.password)
-            topServer = server
+            topServer = self.server
 
             asyncore.loop()
         except Exception, e:
@@ -164,8 +164,8 @@ class palabreDaemon:
             # main call
             try:
                 # we send the main server in another thread (i forgot why)
-                server = palabreMain()
-                server.start()
+                self.server = palabreMain()
+                self.server.start()
                 # if we get this far, we're started, write pidfile, log...
                 file(self.pidfile,'w+').write("%s" % pid)
                 logging.info("...started with pid: %s." % pid)
@@ -201,7 +201,7 @@ class palabreDaemon:
                 logging.shutdown()
                 logfile.close()
             try:
-                topServer.notifyStop()
+                self.server.server.notifyStop()
                 time.sleep(1)
 
                 while True:
