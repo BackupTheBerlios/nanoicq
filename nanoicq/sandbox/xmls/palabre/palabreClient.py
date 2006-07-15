@@ -1337,12 +1337,7 @@ class PalabreClient(asynchat.async_chat):
         try:
             c = self.db.cursor()
 
-            if not attrs.has_key("rid"):
-                raise Exception("Missing 'rid' attribute in request")
-            try:
-                rid = int(attrs["rid"])
-            except:
-                raise Exception("Invalid 'rid' attribute in request")
+            rid = self._getIntAttr("rid", attrs)
 
             s = "select name, passwordProtected, publicPassword from rooms where id = %d" % rid
             print s
@@ -1782,40 +1777,41 @@ class PalabreClient(asynchat.async_chat):
                 #    self.clientJoinRoom(attrs)
 
                 # Leaving a room
-                elif node == "leave":
-                    self.clientLeaveRoom(attrs)
+                #elif node == "leave":
+                #    self.clientLeaveRoom(attrs)
 
                 # Setting a param for a room
-                elif node == "setparam":
-
-                    self.clientSetRoomParam(attrs)
+                #elif node == "setparam":
+                #    self.clientSetRoomParam(attrs)
+                #
 
                 # removing a param from a room
-                elif node == "removeparam":
-                    self.clientUnsetRoomParam(attrs)
+                #elif node == "removeparam":
+                #    self.clientUnsetRoomParam(attrs)
 
                 # adding a child room
-                elif node == "addchild":
-                    self.clientAddChildRoom(attrs)
+                #elif node == "addchild":
+                #    self.clientAddChildRoom(attrs)
 
                 # Shutdown server
-                elif node == "shutdown":
-                    # Must Be root
-                    if self.isRoot:
-                        self.server.serverShutDown()
+                #elif node == "shutdown":
+                #    # Must Be root
+                #    if self.isRoot:
+                #        self.server.serverShutDown()
+
                 # Kick User from entire server !!
-                elif node == "rmuser":
-                    # Must be root
-                    if attrs.has_key('nickName'):
-                        if self.isRoot:
-                            self.server.serverRmClient(attrs['nickName'],self)
+                #elif node == "rmuser":
+                #    # Must be root
+                #    if attrs.has_key('nickName'):
+                #        if self.isRoot:
+                #            self.server.serverRmClient(attrs['nickName'],self)
 
                 # Get Informations about a room
-                elif node == "getinfo":
-                                        # Must be root
-                    if attrs.has_key('room'):
-                        if self.isRoot:
-                            self.clientSendMessage(self.server.serverGetRoom(attrs['room']))
+                #elif node == "getinfo":
+                #                        # Must be root
+                #    if attrs.has_key('room'):
+                #        if self.isRoot:
+                #            self.clientSendMessage(self.server.serverGetRoom(attrs['room']))
                                         
                 # something else ?
                 # TODO : Implement a method for adding simply other nodes
@@ -2001,10 +1997,6 @@ class PalabreClient(asynchat.async_chat):
     def clientJoinRoom(self,attrs):
         """
             Clients joins a room
-
-            Le client décide de rejoindre une room
-            Méthode appellée par parseData
-            <join room='XXX' />
         """
 
         # Xml node must have a room param
@@ -2080,7 +2072,6 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage( out % (Q(str(exc))) )
         
     def sendCustomMessage(self, attrs):
-        print 'sendCustomMessage'
 
         out = []
         if attrs.has_key("from-uid"):

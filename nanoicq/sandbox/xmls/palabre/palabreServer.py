@@ -624,8 +624,8 @@ class PalabreServer(asyncore.dispatcher):
                     found = True
                     break
 
-                if not found:
-                    raise Exception("Client id=%d is offline now" % to_uid)
+            if not found:
+                raise Exception("Client id=%d is offline now" % to_uid)
         elif rid is not None:
             attrs["rid"] = rid
 
@@ -661,14 +661,19 @@ class PalabreServer(asyncore.dispatcher):
             self._clients.sendCustomMessage(attrs)
 
     def silentUser(self, uid, period):
+        found = False
         for ii in self._map:
             if not isinstance(self._map[ii], PalabreClient):
                 continue
 
             if self._map[ii].ids == uid:
+                found = True
                 self._map[ii].silent = 1
                 self._map[ii].silentPeriod = period
                 self._map[ii].silentStart = time.time()
+
+        if not found:
+            raise Exception("Client id=%d is offline now" % uid)
 
     def blockClient(self, uid):
         ''' Disconnect blocked user '''
@@ -719,7 +724,20 @@ class PalabreServer(asyncore.dispatcher):
             print out % (str(exc))
 
     def inviteUser(self, uid, rid):
-        pass
+        found = False
+
+        for ids in self._map:
+            if not isinstance(self._map[ids], PalabreClient):
+                continue
+
+            if self._map[ids].ids == uid:
+                msg = "<inviteuser rid='%d' uid='%d' />" % (rid, uid)
+                self._map[ids].clientSendMessage()
+                found = True
+                break
+
+        if not found:
+            raise Exception("Client id=%d is offline now" % uid)
         
 
 def _test():
