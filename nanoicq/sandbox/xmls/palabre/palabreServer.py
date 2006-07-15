@@ -48,9 +48,6 @@ class PalabreServer(asyncore.dispatcher):
     # Class to instanciate upon connection
     channel_class = PalabreClient
 
-    def sig_handler(self, signo, frame):
-        print 'got SIGINT'
-
     def __init__(self, HOST='', PORT=2468, rootPassword=''):
         """ Constructor of the server
 
@@ -61,8 +58,6 @@ class PalabreServer(asyncore.dispatcher):
         @rootPassword = Defines the root password, to administrate the server (shutdown, ...)
 
         <Returns nothing"""
-
-        #signal.signal(signal.SIGINT, self.sig_handler)
 
         # Version
         self.version = version
@@ -732,12 +727,20 @@ class PalabreServer(asyncore.dispatcher):
 
             if self._map[ids].ids == uid:
                 msg = "<inviteuser rid='%d' uid='%d' />" % (rid, uid)
-                self._map[ids].clientSendMessage()
+                self._map[ids].clientSendMessage(msg)
                 found = True
                 break
 
         if not found:
             raise Exception("Client id=%d is offline now" % uid)
+
+    def notifyStop(self, reason = "unknown"):
+        for ids in self._map:
+            if not isinstance(self._map[ids], PalabreClient):
+                continue
+
+            self._map[ids].clientSendMessage("<server action='stop' reason='%s' />" % reason)
+
         
 
 def _test():

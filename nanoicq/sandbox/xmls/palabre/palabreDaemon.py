@@ -5,6 +5,7 @@ from signal import SIGTERM, SIGINT
 
 from palabre import config, logfile, logging, version, palabreServer
 
+topServer = None
 
 class palabreMain(threading.Thread):
 
@@ -12,6 +13,7 @@ class palabreMain(threading.Thread):
 
         threading.Thread.__init__(self)
         self.setDaemon(True)
+
 
         # some default
         self.ip = ""
@@ -30,7 +32,7 @@ class palabreMain(threading.Thread):
         # These are used to catch startup errors of the asyncore server
         self.startError = None
         self.startedEvent = threading.Event()
-    
+
     def start(self):
 
         threading.Thread.start(self)
@@ -43,8 +45,11 @@ class palabreMain(threading.Thread):
     def run(self):
 
         try:
+            global topServer
             server = palabreServer.PalabreServer(self.ip, self.port, \
                                                  self.password)
+            topServer = server
+
             asyncore.loop()
         except Exception, e:
             logging.exception(str(e))
@@ -80,6 +85,12 @@ class palabreDaemon:
                 
         if not self.daemon:
             signal.signal(SIGINT, self.sig_handler)
+
+        signal.signal(signal.SIGTERM, self.sig_term_handler)
+
+    def sig_term_handler(self, signo, frame):
+        print 'got SIGNAL'
+        topServer.notifyStop()
 
     def control(self, action):
 

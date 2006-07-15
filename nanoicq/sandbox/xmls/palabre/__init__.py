@@ -48,3 +48,12 @@ if os.name in ["posix", "nt"]:
         console.setFormatter(formatter)
         # add the handler to the root logger
         logging.getLogger('').addHandler(console)
+
+def sig_handler(signo, frame):
+    print 'got SIGNAL'
+
+import signal
+signal.signal(signal.SIGTERM, sig_handler)
+
+
+
