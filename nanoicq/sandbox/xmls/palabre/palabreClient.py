@@ -563,7 +563,9 @@ class PalabreClient(asynchat.async_chat):
                         NUL(r[11]),
                         NUL(r[12]), 
                         NUL(r[13]),
-                        NUL(r[14])
+                        NUL(r[14]),
+                        NUL(r[15]),
+                        NUL(r[16])
                         )
                 )
 
