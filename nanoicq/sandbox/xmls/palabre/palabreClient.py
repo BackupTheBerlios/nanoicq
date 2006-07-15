@@ -452,7 +452,8 @@ class PalabreClient(asynchat.async_chat):
                         u.moderationlevel, 
                         u.roommanagementlevel, 
                         u.usermanagementlevel, 
-                        u.lastIP
+                        u.lastIP,
+                        u.groupUserManagementLevel
                 from users u where id = %d ''' % int(uid)
             c.execute(s)
 
@@ -464,8 +465,10 @@ class PalabreClient(asynchat.async_chat):
 
             for r in rs:
                 print r
-                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' moderationlevel='%d' roommanagementlevel='%d' usermanagementlevel='%d' lastip=%s />" %\
-                    (r[0], Q(string.strip(r[1])), NEGNUL(r[2]), r[3], r[4], r[5], r[6], r[7], Q(string.strip(STRNUL(r[8]))))
+                out.append("<client id='%d' name=%s groupid='%d' languageid='%d' isblocked='%d' moderationlevel='%d' roommanagementlevel='%d' usermanagementlevel='%d' lastip=%s groupUserManagementLevel='%d' />" %\
+                    (
+                        r[0], Q(string.strip(r[1])), NEGNUL(r[2]), r[3], r[4], r[5], r[6], r[7], Q(string.strip(STRNUL(r[8]))), NUL(r[9])
+                    )
                 )
 
             out.append("</getuserproperties>");
@@ -507,6 +510,9 @@ class PalabreClient(asynchat.async_chat):
                 sl.append(" moderationlevel = %d " % int(attrs['moderationlevel']))
             if attrs.has_key('password'):
                 sl.append(" password = %s " % escape_string(attrs['password']))
+
+            if attrs.has_key('groupUserManagementLevel'):
+                sl.append(" groupUserManagementLevel = %d " % int(attrs['groupUserManagementLevel']))
             if attrs.has_key('groupid'):
                 gid = int(attrs['groupid'])
                 sl.append(" gid = %d " % gid)

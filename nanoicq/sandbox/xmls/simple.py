@@ -146,12 +146,12 @@ class Client(Thread):
                     #self.sock.xsend('<userlookup name="zz" />')
 
                     #self.sock.xsend('<createuser name="andrey" password="andrey" />')
-                    self.sock.xsend('<deleteuser id="6" />')
+                    #self.sock.xsend('<deleteuser id="5" />')
 
 
                     #self.sock.xsend("<getuserproperties id='4' />")
-                    #self.sock.xsend('<setuserproperties isblocked="0" id="4" />')
-                    #self.sock.xsend("<getuserproperties id='3' />")
+                    #self.sock.xsend('<setuserproperties groupUserManagementLevel="3" id="4" />')
+                    self.sock.xsend("<getuserproperties id='3' />")
 
                     #self.sock.xsend("<delroom id='2' />")
 
@@ -222,7 +222,7 @@ class Bench:
         for c in self.clients:
             c.start()
 
-        SEC = 4
+        SEC = 3
         print "Waiting for %d sec" % SEC
         time.sleep(SEC)
         for c in self.clients:

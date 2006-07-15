@@ -1,5 +1,5 @@
 
--- $Id: database-fb.sql,v 1.13 2006/07/15 19:13:20 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.14 2006/07/15 20:09:28 lightdruid Exp $
 
 -- 
 -- 
@@ -89,6 +89,7 @@ create table users (
     moderationLevel int default -1,
     lastIP char(16),
     dbOperator int default 0,
+    groupUserManagementLevel int default 0,
     primary key (id)
 );
 
