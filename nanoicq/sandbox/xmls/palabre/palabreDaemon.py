@@ -165,6 +165,8 @@ class palabreDaemon:
             try:
                 # we send the main server in another thread (i forgot why)
                 self.server = palabreMain()
+                global topServer
+                topServer = self.server
                 self.server.start()
                 # if we get this far, we're started, write pidfile, log...
                 file(self.pidfile,'w+').write("%s" % pid)
@@ -201,7 +203,8 @@ class palabreDaemon:
                 logging.shutdown()
                 logfile.close()
             try:
-                self.server.server.notifyStop()
+                global topServer
+                topServer.notifyStop()
                 time.sleep(1)
 
                 while True:
