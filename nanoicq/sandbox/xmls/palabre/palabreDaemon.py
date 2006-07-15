@@ -217,6 +217,11 @@ class palabreDaemon:
                     logging.shutdown()
                     logfile.close()
                     sys.exit(1)
+            except Exception, e:
+                    logging.error("%s" % e.strerror)
+                    logging.shutdown()
+                    logfile.close()
+                    sys.exit(1)
 
     def status(self, pid):
 
