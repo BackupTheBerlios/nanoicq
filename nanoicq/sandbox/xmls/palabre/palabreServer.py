@@ -719,6 +719,7 @@ class PalabreServer(asyncore.dispatcher):
             print out % (str(exc))
 
     def inviteUser(self, uid, rid):
+        pass
         
 
 def _test():

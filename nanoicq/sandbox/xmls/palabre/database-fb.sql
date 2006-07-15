@@ -1,5 +1,5 @@
 
--- $Id: database-fb.sql,v 1.11 2006/07/14 15:25:50 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.12 2006/07/15 13:05:09 lightdruid Exp $
 
 -- create database test;
 -- create user postnuke identified by 'postnuke';
@@ -65,6 +65,8 @@ create table rooms (
     numberOfSpectators int,
 
     lastUpdateUserId int,
+    allowedGroupId int,
+    pvtPasswordProtected int default 0,
  
     primary key (id)
 );

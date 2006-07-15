@@ -126,12 +126,16 @@ class Client(Thread):
                     '''
                     #self.sock.xsend(s)
                     #self.sock.xsend("<getroomlist />")
-                    #self.sock.xsend("<createroom name='flo3' > <client id='1' /> <client id='2' />  </createroom>")
-                    #self.sock.xsend('<getroomproperties id="2" />')
+                    #self.sock.xsend("<createroom name='fl' > <client id='1' /> <client id='2' />  </createroom>")
+                    self.sock.xsend('<getroomproperties id="2" />')
+                    self.sock.xsend('<setroomproperties id="2" pvtPassword="newone" allowedGroupId="3" />')
+
+                    #self.sock.xsend('<setroomsecurity pvtPassword="123" newPvtPassword="newone" pvtPasswordProtected="1" id="2" />')
+
 
                     #self.sock.xsend('<deletealloweduser uid="3" rid="11" />')
-                    #self.sock.xsend('<addalloweduser uid="3" rid="11" />')
-                    #self.sock.xsend('<listalloweduser rid="11" />')
+                    #self.sock.xsend('<addalloweduser uid="2" rid="1" />')
+                    #self.sock.xsend('<listalloweduser rid="1" />')
 
                     #self.sock.xsend('<joinroom id="11" password="asd" />')
                     #self.sock.xsend("<listusers id='11' />")
@@ -152,7 +156,7 @@ class Client(Thread):
                     #self.sock.xsend("<listusers id='1' />")
                     #self.sock.xsend("<leaveroom id='1' />")
 
-                    self.sock.xsend("<inviteuser uid='1' rid='1' />")
+                    #self.sock.xsend("<inviteuser uid='1' rid='1' />")
 
                     #self.sock.xsend("<joinroom id='2' password='abcde' />")
                     #self.sock.xsend("<leaveroom id='1' />")

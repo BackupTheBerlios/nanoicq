@@ -69,7 +69,9 @@ _roomTemplate = '''
                         numberOfUsers='%d'
                         numberOfSpectators='%d'
 
-                        lastUpdateUserId ='%d'
+                        lastUpdateUserId='%d'
+                        allowedGroupId='%d'
+                        pvtPasswordProtected='%d'
                 />
 '''
 
@@ -95,7 +97,9 @@ _roomQuery = '''
                 numberOfUsers,
                 numberOfSpectators,
 
-                lastUpdateUserId
+                lastUpdateUserId,
+                allowedGroupId,
+                pvtPasswordProtected
 
             from rooms %s order by name 
 '''
@@ -614,7 +618,9 @@ class PalabreClient(asynchat.async_chat):
                         NUL(r[11]),
                         NUL(r[12]), 
                         NUL(r[13]),
-                        NUL(r[14])
+                        NUL(r[14]),
+                        NUL(r[15]),
+                        NUL(r[16])
                         )
                 )
 
@@ -633,6 +639,96 @@ class PalabreClient(asynchat.async_chat):
             out = "<getroomproperties error='1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
+    def setRoomSecurity(self, attrs):
+
+        # Set password, room had no password
+        # <setroomsecurity id='1'
+        #    pvtPasswordProtected='1' 
+        #    newPvtPassword='password' />
+
+        # Set password, room had password
+        # <setroomsecurity id='1'
+        #    pvtPasswordProtected='1' 
+        #    pvtPassword='oldpassword'
+        #    newPvtPassword='newpassword' />
+
+        # Remove password, room had password
+        # <setroomsecurity id='1'
+        #    pvtPasswordProtected='0' 
+        #    pvtPassword='oldpassword' />
+
+        try:
+            c = self.db.cursor()
+
+            rid = self._getIntAttr("id", attrs)
+            pvtPasswordProtected = self._getIntAttr("pvtPasswordProtected", attrs)
+            pvtPassword = self._getStrAttr("pvtPassword", attrs)
+
+            if pvtPasswordProtected not in [0, 1]:
+                raise Exception("pvtPasswordProtected has invalid value")
+
+            newPvtPassword = None
+            if attrs.has_key('newPvtPassword'):
+                newPvtPassword = attrs['newPvtPassword']
+                if len(newPvtPassword) == 0:
+                    raise Exception("newPvtPassword is too short")
+
+            c.execute("select id, pvtPasswordProtected, pvtPassword from rooms where id=%d" % rid)
+            r = c.fetchone()
+            if r is None:
+                raise Exception("Can't find room with id='%d'" % rid)
+
+            dbPvtPasswordProtected = NUL(r[1])
+            dbPvtPassword = STRNUL(string.strip(r[2]))
+
+            if dbPvtPasswordProtected == 1:
+                if pvtPassword != dbPvtPassword:
+                    #raise Exception("Invalid pvtPassword %s/%s" % (pvtPassword, dbPvtPassword))
+                    raise Exception("Invalid pvtPassword")
+
+                if pvtPasswordProtected == 1:
+                    # Set password, room had password
+                    # <setroomsecurity id='1'
+                    #    pvtPasswordProtected='1' 
+                    #    pvtPassword='oldpassword'
+                    #    newPvtPassword='newpassword' />
+                    if newPvtPassword is None:
+                        raise Exception("newPvtPassword is not specified")
+                    s = "update rooms set pvtPasswordProtected = 1, pvtPassword = '%s' where id = %d" % ( escape_string(newPvtPassword), rid )
+                else:
+                    # Remove password, room had password
+                    # <setroomsecurity id='1'
+                    #    pvtPasswordProtected='0' 
+                    #    pvtPassword='oldpassword' />
+                    s = "update rooms set pvtPasswordProtected = 0, pvtPassword = '' where id = %d" % ( rid )
+            else:
+                if pvtPasswordProtected == 1:
+                    # Set password, room had no password
+                    # <setroomsecurity id='1'
+                    #    pvtPasswordProtected='1' 
+                    #    newPvtPassword='password' />
+                    if newPvtPassword is None:
+                        raise Exception("newPvtPassword is not specified")
+                    s = "update rooms set pvtPasswordProtected = 1, pvtPassword = '%s' where id = %d" % ( escape_string(newPvtPassword), rid )
+                else:
+                    # Remove password
+                    s = "update rooms set pvtPasswordProtected = 0, pvtPassword = '' where id = %d" % ( rid )
+
+            print s
+
+            self.db.commit()
+            self.db.begin()
+            c.execute(s)
+            self.db.commit()
+
+            out = "<setroomsecurity id='%d' error='0' />" 
+            self.clientSendMessage(out % rid)
+
+        except Exception, exc:
+            safeClose(c)
+            out = "<setroomsecurity error='1' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
     def setRoomProperties(self, sesId = None, rid = None, attrs = {}):
         print 'setting room properties...'
 
@@ -643,11 +739,24 @@ class PalabreClient(asynchat.async_chat):
             print attrs
             c = self.db.cursor()
 
-            c.execute("select id from rooms where id=%d" % int(rid))
+            c.execute("select id, pvtPasswordProtected, pvtPassword from rooms where id=%d" % int(rid))
 
             r = c.fetchone()
             if r is None:
                 raise Exception("Can't find room with id='%d'" % int(rid))
+
+            pvtPasswordProtected = NUL(r[1])
+            pvtPassword = string.strip(STRNUL(r[2]))
+
+            if pvtPasswordProtected == 1:
+                if attrs.has_key('pvtPassword'):
+                    rawPvtPassword = attrs['pvtPassword']
+                    if rawPvtPassword != pvtPassword:
+                        #raise Exception("Room is password protected, invalid pvtPassword %s/%s" % (rawPvtPassword, pvtPassword))
+                        raise Exception("Room is password protected, invalid pvtPassword")
+                else:
+                    raise Exception("Room properties are password protected, but no pvtPassword specified")
+                    #sl.append(" pvtPassword = '%s' " % escape_string(attrs['pvtPassword']))
 
             sl = []
             s = 'update rooms set '
@@ -660,9 +769,9 @@ class PalabreClient(asynchat.async_chat):
             #    sl.append(" creatorid = %d " % int(attrs['creatorid']))
             if attrs.has_key('operatorid'):
                 sl.append(" operatorid = %d " % int(attrs['operatorid']))
-            if attrs.has_key('pvtPassword'):
-                sl.append(" pvtpassword = '%s' " % escape_string(attrs['pvtPassword']))
 
+            # Special handling, if we've received publicPassword, then
+            # passwordProtected must be specified
             if attrs.has_key('publicPassword'):
 
                 if attrs.has_key('passwordProtected'):
@@ -675,6 +784,8 @@ class PalabreClient(asynchat.async_chat):
             if attrs.has_key('allowedUsers'):
                 sl.append(" allowedUsers = %d " % int(attrs['allowedUsers']))
 
+            # Special handling, if we've received publicPassword, then
+            # passwordProtected must be specified
             if attrs.has_key('passwordProtected'):
                 protect = int(attrs['passwordProtected'])
                 if protect == 1:
@@ -692,6 +803,19 @@ class PalabreClient(asynchat.async_chat):
                 sl.append(" roomManagementLevel = %d " % int(attrs['roomManagementLevel']))
             if attrs.has_key('userManagementlevel'):
                 sl.append(" userManagementlevel = %d " % int(attrs['userManagementlevel']))
+
+            if attrs.has_key('allowedGroupId'):
+                # We need to check group existence
+                allowedGroupId = int(attrs['allowedGroupId'])
+                checkGroupSql = "select id from groups where id = %d" % allowedGroupId
+                checkGroupCursor = self.db.cursor()
+                checkGroupCursor.execute(checkGroupSql)
+                rs = checkGroupCursor.fetchone()
+                print 'ALLOWEDGROUP', rs
+                if rs is None or len(rs) == 0:
+                    raise Exception("Unable to find group id=%d (allowedGroupId)" % allowedGroupId)
+
+                sl.append(" allowedGroupId = %d " % allowedGroupId)
 
             sl.append(" lastUpdateUserId = %d " % self.ids)
 
@@ -843,7 +967,13 @@ class PalabreClient(asynchat.async_chat):
             c.execute(s)
             rs = c.fetchall()
             for r in rs:
-                out.append("<client id='%d' />" % r[0])
+                s = "select name from users where id = %d" % r[0]
+                c2 = self.db.cursor()
+                c2.execute(s)
+                rs2 = c2.fetchone()
+                if rs2 is None or len(rs2) == 0:
+                    raise Exception("Internal error: can't find user id=%d in 'users' table" % r[0])
+                out.append("<client id='%d' name=%s />" % (r[0], Q(string.strip(rs2[0]))))
 
             out.append("</listalloweduser>")
             self.clientSendMessage("\n".join(out))
@@ -1022,8 +1152,6 @@ class PalabreClient(asynchat.async_chat):
                 if i_name == escape_string(attrs['name']):
                     raise Exception("Room with name '%s' already exists" % attrs['name'])
 
-            #
-
             keys = []
             s = []
 
@@ -1117,7 +1245,7 @@ class PalabreClient(asynchat.async_chat):
                 self.db.commit()
                 print 'executed'
 
-            out = ["<createroom error='0' name=%s >" % Q(attrs['name'])]
+            out = ["<createroom error='0' id='%d' name=%s >" % ( rid, Q(attrs['name']) )]
             out.append("</createroom>");
  
             self.clientSendMessage("\n".join(out))
@@ -1170,10 +1298,17 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage( out % Q(str(exc)) )
 
     def _getIntAttr(self, name, attrs):
+        try:
+            rc = int(self._getStrAttr(name, attrs))
+        except ValueError, exc:
+            raise Exception("Invalid '%s' attribute in request" % name)
+        return rc
+
+    def _getStrAttr(self, name, attrs):
         if not attrs.has_key(name):
             raise Exception("Missing '%s' attribute in request" % name)
         try:
-            rc = int(attrs[name])
+            rc = attrs[name]
         except:
             raise Exception("Invalid '%s' attribute in request" % name)
         return rc
@@ -1501,6 +1636,10 @@ class PalabreClient(asynchat.async_chat):
                 # He is sending a message
                 if node == "message" or node == "m":
                     self.clientHandleMessage(attrs)
+
+                # security
+                elif node == "setroomsecurity":
+                    self.setRoomSecurity(attrs)
 
                 # list groups
                 elif node == "listgroups":
