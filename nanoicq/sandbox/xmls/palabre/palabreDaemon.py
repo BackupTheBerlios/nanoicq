@@ -5,8 +5,6 @@ from signal import SIGTERM, SIGINT
 
 from palabre import config, logfile, logging, version, palabreServer
 
-topServer = None
-
 class palabreMain(threading.Thread):
 
     def __init__(self):
@@ -33,6 +31,13 @@ class palabreMain(threading.Thread):
         self.startError = None
         self.startedEvent = threading.Event()
 
+        signal.signal(signal.SIGTERM, self.sig_term_handler)
+
+    def sig_term_handler(self, signo, frame):
+        self.server.notifyStop()
+        time.sleep(1)
+        pass
+
     def start(self):
 
         threading.Thread.start(self)
@@ -45,11 +50,8 @@ class palabreMain(threading.Thread):
     def run(self):
 
         try:
-            global topServer
             self.server = palabreServer.PalabreServer(self.ip, self.port, \
                                                  self.password)
-            topServer = self.server
-
             asyncore.loop()
         except Exception, e:
             logging.exception(str(e))
@@ -85,13 +87,6 @@ class palabreDaemon:
                 
         if not self.daemon:
             signal.signal(SIGINT, self.sig_handler)
-
-        signal.signal(signal.SIGTERM, self.sig_term_handler)
-
-    def sig_term_handler(self, signo, frame):
-        #topServer.notifyStop()
-        #time.sleep(1)
-        pass
 
     def control(self, action):
 
@@ -165,8 +160,6 @@ class palabreDaemon:
             try:
                 # we send the main server in another thread (i forgot why)
                 self.server = palabreMain()
-                global topServer
-                topServer = self.server
                 self.server.start()
                 # if we get this far, we're started, write pidfile, log...
                 file(self.pidfile,'w+').write("%s" % pid)
@@ -203,9 +196,10 @@ class palabreDaemon:
                 logging.shutdown()
                 logfile.close()
             try:
-                global topServer
-                topServer.notifyStop()
-                time.sleep(1)
+                #global topServer
+                #topServer.notifyStop()
+                #time.sleep(1)
+                os.killpg(pid, 15)
 
                 while True:
                     os.kill(pid,SIGTERM)
