@@ -150,8 +150,8 @@ class Client(Thread):
 
 
                     #self.sock.xsend("<getuserproperties id='4' />")
-                    #self.sock.xsend('<setuserproperties groupUserManagementLevel="3" id="4" />')
-                    self.sock.xsend("<getuserproperties id='3' />")
+                    self.sock.xsend('<setuserproperties groupUserManagementLevel="6" dbOperator="1" id="4" />')
+                    self.sock.xsend("<getuserproperties id='4' />")
 
                     #self.sock.xsend("<delroom id='2' />")
 
