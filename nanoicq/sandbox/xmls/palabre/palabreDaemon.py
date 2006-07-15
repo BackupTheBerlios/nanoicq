@@ -3,6 +3,9 @@
 import sys, os, signal, time, threading, traceback, asyncore
 from signal import SIGTERM, SIGINT
 
+if sys.platform != "win32":
+    from signal import SIGUSR1
+
 from palabre import config, logfile, logging, version, palabreServer
 
 class palabreMain(threading.Thread):
@@ -31,9 +34,10 @@ class palabreMain(threading.Thread):
         self.startError = None
         self.startedEvent = threading.Event()
 
-        signal.signal(signal.SIGTERM, self.sig_term_handler)
+        if sys.platform != "win32":
+            signal.signal(signal.SIGUSR1, self.sig_usr1_handler)
 
-    def sig_term_handler(self, signo, frame):
+    def sig_usr1_handler(self, signo, frame):
         self.server.notifyStop()
         time.sleep(1)
         pass
@@ -199,7 +203,7 @@ class palabreDaemon:
                 #global topServer
                 #topServer.notifyStop()
                 #time.sleep(1)
-                os.killpg(pid, 15)
+                os.kill(pid, signal.SIGUSR1)
 
                 while True:
                     os.kill(pid,SIGTERM)
