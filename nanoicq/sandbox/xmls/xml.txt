@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.16 2006/07/15 14:07:35 lightdruid Exp $
+# $Id: xml.txt,v 1.17 2006/07/15 19:13:20 lightdruid Exp $
 #
 
 TODO:
@@ -447,7 +447,17 @@ S:
 Users
 =====================================
 
-FIXME: how we can create/delete users?
+* Create user
+
+C: <createuser name='a' password='b' />
+
+S: <createuser name='a' id='1' error='0' />
+
+* Delete user
+
+C: <deleteuser id='1' />
+
+S: <deleteuser id='1' error='0' />
 
 * Blocked users
 

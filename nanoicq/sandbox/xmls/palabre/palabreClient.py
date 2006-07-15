@@ -443,7 +443,16 @@ class PalabreClient(asynchat.async_chat):
 
         try:
             c = self.db.cursor()
-            s = ''' select u.id, u.name, u.gid, u.languageid, u.isblocked, u.moderationlevel, u.roommanagementlevel, u.usermanagementlevel, u.lastIP
+            s = ''' select 
+                        u.id, 
+                        u.name, 
+                        u.gid, 
+                        u.languageid, 
+                        u.isblocked, 
+                        u.moderationlevel, 
+                        u.roommanagementlevel, 
+                        u.usermanagementlevel, 
+                        u.lastIP
                 from users u where id = %d ''' % int(uid)
             c.execute(s)
 
@@ -1481,6 +1490,83 @@ class PalabreClient(asynchat.async_chat):
             out = "<leaveroom error='1' rid='%d' msg=%s />" 
             self.clientSendMessage( out % (rid, Q(str(exc))) )
 
+    def createUser(self, attrs):
+        try:
+            c = self.db.cursor()
+            name = self._getStrAttr("name", attrs)
+            password = self._getStrAttr("password", attrs)
+            if len(password) == 0:
+                raise Exception("Password is too short")
+
+            s = "select id from users where name = '%s'" % escape_string(name)
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is not None:
+                raise Exception("User '%s' already exists with id=%d" % (name, rs[0]))
+
+            self.db.commit()
+            self.db.begin()
+            s = "insert into users (name, upassword) values ('%s', '%s')" % (escape_string(name), escape_string(password))
+            c.execute(s)
+            self.db.commit()
+
+            s = "select id from users where name = '%s'" % escape_string(name)
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("Internal error: User '%s' not exists after insert" % (name))
+
+            out = "<createuser error='0' name='%s' id='%d' />" % ((escape_string(name), rs[0]))
+            self.clientSendMessage(out)
+
+        except Exception, exc:
+            safeClose(c)
+            out = "<createuser error='1' msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
+    
+    def deleteUser(self, attrs):
+        try:
+            c = self.db.cursor()
+
+            uid = self._getIntAttr("id", attrs)
+
+            s = "select id, name from users where id = %d" % uid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise Exception("User id='%d' does not exist" % uid)
+
+            userName = string.strip(STRNUL(rs[1]))
+
+            self.db.commit()
+            self.db.begin()
+
+            s = "delete from users_groups where users_id = %d" % uid
+            c.execute(s)
+
+            s = "delete from users_rooms where users_id = %d" % uid
+            c.execute(s)
+
+            s = "delete from allowed_users_rooms where users_id = %d" % uid
+            c.execute(s)
+
+            s = "delete from users where id = %d" % uid
+            c.execute(s)
+
+            self.db.commit()
+
+            msg = """<error msg='User "%s" has been deleted. Disconnect requested.' />"""
+            # Actually it's not block, just disconnect him
+            self.server.blockClient(id, msg % userName)
+
+            out = "<deleteuser error='0' id='%d' />" % (uid)
+            self.clientSendMessage(out)
+
+        except Exception, exc:
+            safeClose(c)
+            out = "<deleteuser error='1' msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
+    
     def listUsers(self, sesId = None, rid = None, attrs = None):
         print 'list room users...'
 
@@ -1635,6 +1721,13 @@ class PalabreClient(asynchat.async_chat):
                 # He is sending a message
                 if node == "message" or node == "m":
                     self.clientHandleMessage(attrs)
+
+                # users
+                elif node == "createuser":
+                    self.createUser(attrs)
+
+                elif node == "deleteuser":
+                    self.deleteUser(attrs)
 
                 # security
                 elif node == "setroomsecurity":

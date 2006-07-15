@@ -670,10 +670,9 @@ class PalabreServer(asyncore.dispatcher):
         if not found:
             raise Exception("Client id=%d is offline now" % uid)
 
-    def blockClient(self, uid):
+    def blockClient(self, uid, msg = "<error msg='You are blocked. Disconnect requested.' />"):
         ''' Disconnect blocked user '''
 
-        msg = "<error msg='You are blocked. Disconnect requested.' />"
         for ii in self._map:
             if not isinstance(self._map[ii], PalabreClient):
                 continue

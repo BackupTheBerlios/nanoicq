@@ -1,9 +1,9 @@
 
--- $Id: database-fb.sql,v 1.12 2006/07/15 13:05:09 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.13 2006/07/15 19:13:20 lightdruid Exp $
 
--- create database test;
--- create user postnuke identified by 'postnuke';
--- grant all on test.* to 'postnuke'@'%' identified by 'postnuke';
+-- 
+-- 
+-- 
 
 drop table sessions;
 drop table groups;
@@ -88,6 +88,7 @@ create table users (
     userManagementLevel int default -1,
     moderationLevel int default -1,
     lastIP char(16),
+    dbOperator int default 0,
     primary key (id)
 );
 
