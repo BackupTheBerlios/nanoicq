@@ -38,8 +38,10 @@ class palabreMain(threading.Thread):
             signal.signal(signal.SIGUSR1, self.sig_usr1_handler)
 
     def sig_usr1_handler(self, signo, frame):
+        print "enter to signal handler"
         self.server.notifyStop()
         time.sleep(1)
+        print "exit from signal handler"
         pass
 
     def start(self):
@@ -203,10 +205,15 @@ class palabreDaemon:
                 #global topServer
                 #topServer.notifyStop()
                 #time.sleep(1)
+                print "sending signal..."
                 os.kill(pid, signal.SIGUSR1)
+                #os.system("kill -USR1 %d" % pid)
 
+                print "signal sent"
                 while True:
+                    print "in the signal loop", pid
                     os.kill(pid,SIGTERM)
+                    os.kill(pid,signal.SIGKILL)
                     time.sleep(1)
             except OSError, e:
                 if e.strerror.find("No such process") >= 0:
