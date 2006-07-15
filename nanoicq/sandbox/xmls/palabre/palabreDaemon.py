@@ -89,8 +89,9 @@ class palabreDaemon:
         signal.signal(signal.SIGTERM, self.sig_term_handler)
 
     def sig_term_handler(self, signo, frame):
-        print 'got SIGNAL'
-        topServer.notifyStop()
+        #topServer.notifyStop()
+        #time.sleep(1)
+        pass
 
     def control(self, action):
 
@@ -200,6 +201,9 @@ class palabreDaemon:
                 logging.shutdown()
                 logfile.close()
             try:
+                topServer.notifyStop()
+                time.sleep(1)
+
                 while True:
                     os.kill(pid,SIGTERM)
                     time.sleep(1)
