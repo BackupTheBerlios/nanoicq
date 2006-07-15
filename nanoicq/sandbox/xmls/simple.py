@@ -143,7 +143,7 @@ class Client(Thread):
                     #self.sock.xsend('<addalloweduser uid="2" rid="2" />')
                     #self.sock.xsend('<redirectuser uid="2" from-rid="11" to-rid="2" />')
 
-                    #self.sock.xsend('<userlookup name="zz" />')
+                    self.sock.xsend('<userlookup name="zz" />')
 
 
                     #self.sock.xsend("<getuserproperties id='4' />")
@@ -219,7 +219,7 @@ class Bench:
         for c in self.clients:
             c.start()
 
-        SEC = 400
+        SEC = 4
         print "Waiting for %d sec" % SEC
         time.sleep(SEC)
         for c in self.clients:

@@ -314,7 +314,7 @@ class PalabreClient(asynchat.async_chat):
                 raise Exception("'name' missing in request")
 
             c = self.db.cursor()
-            s = "select id from users where name = '%s'" % escape_string(name)
+            s = "select id, name from users where name = '%s'" % escape_string(name)
             print s
             c.execute(s)
 
@@ -322,8 +322,8 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise Exception("Can't find user with name = '%s'" % escape_string(name))
 
-            out = ["<userlookup error='0' name = '%s' >" % name]
-            out.append("<client id='%d' />" % r[0])
+            out = ["<userlookup error='0' >"]
+            out.append("<client id='%d' name = '%s' />" % (r[0], name))
             out.append("</userlookup>")
 
             self.clientSendMessage("\n".join(out))
