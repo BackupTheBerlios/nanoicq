@@ -150,8 +150,8 @@ class Client(Thread):
 
 
                     #self.sock.xsend("<getuserproperties id='4' />")
-                    self.sock.xsend('<setuserproperties groupUserManagementLevel="6" dbOperator="1" id="4" />')
-                    self.sock.xsend("<getuserproperties id='4' />")
+                    #self.sock.xsend('<setuserproperties groupUserManagementLevel="6" dbOperator="1" id="4" />')
+                    #self.sock.xsend("<getuserproperties id='4' />")
 
                     #self.sock.xsend("<delroom id='2' />")
 
@@ -170,7 +170,7 @@ class Client(Thread):
 
                     #self.sock.xsend("<joinroom id='1' />")
                     #self.sock.xsend("<joinroom id='1' password='abcde' />")
-                    #self.sock.xsend("<message text='hi' type='3' />")
+                    self.sock.xsend("<message  text='hi' to-uid='3' type='1' />")
                     #self.sock.xsend("<silentuser id='3' period='3' />")
                     #self.sock.xsend("<message text='hi' type='3' />")
                     #self.sock.xsend("<joinroom id='1' password='abc' />")

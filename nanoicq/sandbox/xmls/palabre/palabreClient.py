@@ -2128,6 +2128,9 @@ class PalabreClient(asynchat.async_chat):
         msgtype = int(attrs["type"])
         text = attrs["text"]
 
+        if attrs.has_key("from-uid"):
+                del attrs["from-uid"]
+
         try:
             if self.silent == 1:
                 raise Exception("User id=%d is set to silent, unable to send message" % self.ids)
@@ -2135,8 +2138,8 @@ class PalabreClient(asynchat.async_chat):
             c = self.db.cursor()
 
             if msgtype == mtypes.M_PERSONAL or msgtype == mtypes.M_PRIVATE:
-                if attrs.has_key("id"):
-                    uid = int(attrs["id"])
+                if attrs.has_key("to-uid"):
+                    uid = int(attrs["to-uid"])
                     s = "select id from users where id = %d" % uid
                     c.execute(s)
                     rs = c.fetchone()
@@ -2147,7 +2150,7 @@ class PalabreClient(asynchat.async_chat):
                     out = "<message error='0' uid='%d' />" 
                     self.clientSendMessage(out % uid)
                 else:
-                    raise Exception("Missing 'id' attribute")
+                    raise Exception("Missing 'to-uid' attribute")
             elif msgtype == mtypes.M_PUBLIC:
                 if attrs.has_key("rid"):
                     rid = int(attrs["rid"])
@@ -2182,16 +2185,21 @@ class PalabreClient(asynchat.async_chat):
             out.append("from-uid='%d'" % attrs["from-uid"])
         if attrs.has_key("to-uid"):
             out.append("to-uid='%d'" % attrs["to-uid"])
-        if attrs.has_key("from-uid"):
+        if attrs.has_key("type"):
             out.append("type='%d'" % attrs["type"])
         if attrs.has_key("text"):
             out.append("text=%s" % Q(attrs["text"]))
 
+        import time
+        t = time.gmtime()
+        tm = "%04d%02d%02d%02d%02d%02d" % (t[0], t[1], t[2], t[3], t[4], t[5])
+        out.append("time='%s'" % tm)
         msg = """
         <message %s
         />
         """ % " ".join(out)
 
+        print msg
         self.clientSendMessage(msg)
 
     def _clientHandleMessage(self,attrs,texte):
