@@ -2064,9 +2064,20 @@ class PalabreClient(asynchat.async_chat):
         rc, ids = self.server.isAuthorized(nickName, password, self.sesId, self.addr)
         if rc:
 
-            # Store our own id
+            # Store our own id and name
             self.ids = int(ids)
+            self.name = None
             print "Our id=%d" % self.ids
+
+            try:
+                c = self.db.cursor()
+                c.execute("select name from users where id = %d" % self.ids)
+                rs = c.fetchone()
+                if rs is None or len(rs) == 0:
+                    raise Exception("Internal error: login is unable to find user with id=%d" % self.ids)
+                self.name = string.strip(rs[0])
+            except Exception, exc:
+                print exc
 
             if self.server.isBlocked(ids):
                 self.clientSendErrorMessage(msg = "Client #%d is blocked" % ids)
@@ -2145,7 +2156,7 @@ class PalabreClient(asynchat.async_chat):
                     rs = c.fetchone()
                     if rs is None:
                         raise Exception("Can't find user with id='%d'" % uid)
-                    self.server.handlePersonalMessage(self.ids, to_uid = uid, msgtype = msgtype, text = text)
+                    self.server.handlePersonalMessage(self.ids, to_uid = uid, msgtype = msgtype, text = text, from_name = self.name)
 
                     out = "<message error='0' uid='%d' />" 
                     self.clientSendMessage(out % uid)
@@ -2159,14 +2170,14 @@ class PalabreClient(asynchat.async_chat):
                     rs = c.fetchone()
                     if rs is None:
                         raise Exception("Can't find room with id='%d'" % rid)
-                    self.server.handlePersonalMessage(self.ids, rid = rid, msgtype = msgtype, text = text)
+                    self.server.handlePersonalMessage(self.ids, rid = rid, msgtype = msgtype, text = text, from_name = self.name)
 
                     out = "<message error='0' rid='%d' />" 
                     self.clientSendMessage(out % (rid))
                 else:
                     raise Exception("Missing 'rid' attribute")
             elif msgtype == mtypes.M_BROADCAST:
-                    self.server.handlePersonalMessage(self.ids, msgtype = msgtype, text = text)
+                    self.server.handlePersonalMessage(self.ids, msgtype = msgtype, text = text, from_name = self.name)
 
                     out = "<message error='0' />" 
                     self.clientSendMessage(out)
@@ -2189,6 +2200,12 @@ class PalabreClient(asynchat.async_chat):
             out.append("type='%d'" % attrs["type"])
         if attrs.has_key("text"):
             out.append("text=%s" % Q(attrs["text"]))
+        if attrs.has_key("from-name"):
+            out.append("from-name=%s" % Q(attrs["from-name"]))
+        if attrs.has_key("rid"):
+            out.append("rid='%d'" % attrs["rid"])
+
+        # D 425
 
         import time
         t = time.gmtime()

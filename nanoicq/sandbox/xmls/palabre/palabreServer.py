@@ -600,12 +600,16 @@ class PalabreServer(asyncore.dispatcher):
             out = "<leaveallroom error='1' msg=%s />" 
             print out % (str(exc))
 
-    def handlePersonalMessage(self, from_uid, to_uid = None, rid = None, msgtype = None, text = None):
+    def handlePersonalMessage(self, from_uid, to_uid = None, rid = None, msgtype = None, text = None, from_name = None):
         print 'handlePersonalMessage'
         attrs = {}
         attrs["from-uid"] = from_uid
         attrs["type"] = msgtype
         attrs["text"] = text
+        attrs["from-name"] = from_name
+
+        if rid is not None:
+            attrs["rid"] = rid
 
         if to_uid is not None:
             attrs["to-uid"] = to_uid

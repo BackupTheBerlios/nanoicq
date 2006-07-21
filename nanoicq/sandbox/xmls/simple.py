@@ -169,8 +169,8 @@ class Client(Thread):
                     #self.sock.xsend("<listblockedusers />")
 
                     #self.sock.xsend("<joinroom id='1' />")
-                    #self.sock.xsend("<joinroom id='1' password='abcde' />")
-                    self.sock.xsend("<message  text='hi' to-uid='3' type='1' />")
+                    self.sock.xsend("<joinroom id='1' password='abcde' />")
+                    self.sock.xsend("<message  text='hi' to-uid='2' type='2' rid='1' />")
                     #self.sock.xsend("<silentuser id='3' period='3' />")
                     #self.sock.xsend("<message text='hi' type='3' />")
                     #self.sock.xsend("<joinroom id='1' password='abc' />")
