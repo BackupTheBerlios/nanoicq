@@ -1018,19 +1018,19 @@ class PalabreClient(asynchat.async_chat):
             except:
                 raise Exception("Invalid 'uid' attribute in request")
 
-            if not attrs.has_key("to-rid"):
+            if not attrs.has_key("to_rid"):
                 raise Exception("Missing 'to_rid' attribute in request")
             try:
-                to_rid = int(attrs["to-rid"])
+                to_rid = int(attrs["to_rid"])
             except:
-                raise Exception("Invalid 'to-rid' attribute in request")
+                raise Exception("Invalid 'to_rid' attribute in request")
 
-            if not attrs.has_key("from-rid"):
-                raise Exception("Missing 'to_rid' attribute in request")
+            if not attrs.has_key("from_rid"):
+                raise Exception("Missing 'from_rid' attribute in request")
             try:
-                from_rid = int(attrs["from-rid"])
+                from_rid = int(attrs["from_rid"])
             except:
-                raise Exception("Invalid 'from-rid' attribute in request")
+                raise Exception("Invalid 'from_rid' attribute in request")
 
             self.db.commit()
             self.db.begin()
@@ -2139,8 +2139,8 @@ class PalabreClient(asynchat.async_chat):
         msgtype = int(attrs["type"])
         text = attrs["text"]
 
-        if attrs.has_key("from-uid"):
-                del attrs["from-uid"]
+        if attrs.has_key("from_uid"):
+            del attrs["from_uid"]
 
         try:
             if self.silent == 1:
@@ -2149,8 +2149,8 @@ class PalabreClient(asynchat.async_chat):
             c = self.db.cursor()
 
             if msgtype == mtypes.M_PERSONAL or msgtype == mtypes.M_PRIVATE:
-                if attrs.has_key("to-uid"):
-                    uid = int(attrs["to-uid"])
+                if attrs.has_key("to_uid"):
+                    uid = int(attrs["to_uid"])
                     s = "select id from users where id = %d" % uid
                     c.execute(s)
                     rs = c.fetchone()
@@ -2161,7 +2161,7 @@ class PalabreClient(asynchat.async_chat):
                     out = "<message error='0' uid='%d' />" 
                     self.clientSendMessage(out % uid)
                 else:
-                    raise Exception("Missing 'to-uid' attribute")
+                    raise Exception("Missing 'to_uid' attribute")
             elif msgtype == mtypes.M_PUBLIC:
                 if attrs.has_key("rid"):
                     rid = int(attrs["rid"])
@@ -2192,16 +2192,16 @@ class PalabreClient(asynchat.async_chat):
     def sendCustomMessage(self, attrs):
 
         out = []
-        if attrs.has_key("from-uid"):
-            out.append("from-uid='%d'" % attrs["from-uid"])
-        if attrs.has_key("to-uid"):
-            out.append("to-uid='%d'" % attrs["to-uid"])
+        if attrs.has_key("from_uid"):
+            out.append("from_uid='%d'" % attrs["from_uid"])
+        if attrs.has_key("to_uid"):
+            out.append("to_uid='%d'" % attrs["to_uid"])
         if attrs.has_key("type"):
             out.append("type='%d'" % attrs["type"])
         if attrs.has_key("text"):
             out.append("text=%s" % Q(attrs["text"]))
-        if attrs.has_key("from-name"):
-            out.append("from-name=%s" % Q(attrs["from-name"]))
+        if attrs.has_key("from_name"):
+            out.append("from_name=%s" % Q(attrs["from_name"]))
         if attrs.has_key("rid"):
             out.append("rid='%d'" % attrs["rid"])
 

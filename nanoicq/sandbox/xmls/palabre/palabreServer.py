@@ -603,16 +603,16 @@ class PalabreServer(asyncore.dispatcher):
     def handlePersonalMessage(self, from_uid, to_uid = None, rid = None, msgtype = None, text = None, from_name = None):
         print 'handlePersonalMessage'
         attrs = {}
-        attrs["from-uid"] = from_uid
+        attrs["from_uid"] = from_uid
         attrs["type"] = msgtype
         attrs["text"] = text
-        attrs["from-name"] = from_name
+        attrs["from_name"] = from_name
 
         if rid is not None:
             attrs["rid"] = rid
 
         if to_uid is not None:
-            attrs["to-uid"] = to_uid
+            attrs["to_uid"] = to_uid
             found = False
             for ids in self._map:
                 if not isinstance(self._map[ids], PalabreClient):
