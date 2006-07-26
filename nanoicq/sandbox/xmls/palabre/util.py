@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
-# $Id: util.py,v 1.3 2006/07/12 14:59:56 lightdruid Exp $
+# $Id: util.py,v 1.4 2006/07/26 14:22:36 lightdruid Exp $
 
 import md5, time, random
+
+# We use these to send userjoin/userleave notifications
+EV_LEAVE = 0
+EV_JOIN = 1
 
 def fail():
     raise NotImplementedError

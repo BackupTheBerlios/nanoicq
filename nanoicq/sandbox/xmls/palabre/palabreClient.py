@@ -6,13 +6,13 @@ import xml.dom.minidom as xmldom
 import xml.sax.saxutils as SAX
 import string
 import md5, random
-from util import generateSessionId, safeClose
-
 import cPickle
-
 from traceback import *
 
+from util import *
 from palabre import config, logging, version, escape_string
+from Message import mtypes
+
 
 if config.get("database", "type") == "mysql":
     import MySQLdb as DB
@@ -1440,6 +1440,9 @@ class PalabreClient(asynchat.async_chat):
             self.db.begin()
             self.db.execute_immediate("insert into users_rooms (users_id, rooms_id) values (%d, %d)" % (self.ids, rid))
             self.db.commit()
+
+            # Notify all clients in room
+            self.server.handleClientInRoom(uid = self.ids, rid = rid, flag = EV_JOIN)
  
             out = "<joinroom error='0' uid='%d' rid='%d' />" % (self.ids, rid)
  
@@ -1489,6 +1492,9 @@ class PalabreClient(asynchat.async_chat):
             self.db.begin()
             self.db.execute_immediate("delete from users_rooms where users_id = %d and rooms_id = %d" % (self.ids, rid))
             self.db.commit()
+
+            # Notify all clients in room
+            self.server.handleClientInRoom(uid = self.ids, rid = rid, flag = EV_LEAVE)
  
             out = "<leaveroom error='0' uid='%d' rid='%d' />" % (self.ids, rid)
  
@@ -2135,7 +2141,6 @@ class PalabreClient(asynchat.async_chat):
 
 
     def clientHandleMessage(self, attrs):
-        from Message import mtypes
         msgtype = int(attrs["type"])
         text = attrs["text"]
 
@@ -2149,19 +2154,27 @@ class PalabreClient(asynchat.async_chat):
             c = self.db.cursor()
 
             if msgtype == mtypes.M_PERSONAL or msgtype == mtypes.M_PRIVATE:
-                if attrs.has_key("to_uid"):
-                    uid = int(attrs["to_uid"])
-                    s = "select id from users where id = %d" % uid
-                    c.execute(s)
-                    rs = c.fetchone()
-                    if rs is None:
-                        raise Exception("Can't find user with id='%d'" % uid)
-                    self.server.handlePersonalMessage(self.ids, to_uid = uid, msgtype = msgtype, text = text, from_name = self.name)
 
-                    out = "<message error='0' uid='%d' />" 
-                    self.clientSendMessage(out % uid)
-                else:
-                    raise Exception("Missing 'to_uid' attribute")
+                rid = self._getIntAttr("rid", attrs)
+                uid = self._getIntAttr("to_uid", attrs)
+
+                s = "select id from users where id = %d" % uid
+                c.execute(s)
+                rs = c.fetchone()
+                if rs is None:
+                    raise Exception("Can't find user with id='%d'" % uid)
+
+                s = "select id from rooms where id = %d" % rid
+                c.execute(s)
+                rs = c.fetchone()
+                if rs is None:
+                    raise Exception("Can't find room with id='%d'" % rid)
+
+                self.server.handlePersonalMessage(self.ids, rid = rid, to_uid = uid, msgtype = msgtype, text = text, from_name = self.name)
+
+                out = "<message error='0' uid='%d' />" 
+                self.clientSendMessage(out % uid)
+
             elif msgtype == mtypes.M_PUBLIC:
                 if attrs.has_key("rid"):
                     rid = int(attrs["rid"])

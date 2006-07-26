@@ -12,7 +12,8 @@ import time
 import threading
 
 from palabre import config, logging, version, escape_string
-from util import generateSessionId, safeClose
+#from util import generateSessionId, safeClose
+from util import *
 from Message import mtypes
 
 SilentCheckInterval = 3 # seconds
@@ -20,6 +21,7 @@ SilentCheckInterval = 3 # seconds
 DB_MYSQL    = 0
 DB_FIRE     = 1
 dbtype = -1
+
 
 if config.get("database", "type") == "mysql":
     import MySQLdb as DB
@@ -38,14 +40,6 @@ from palabreRoom import PalabreRoom
 
 
 class PalabreServer(asyncore.dispatcher):
-    """PalabreServer Class - Main Class
-
-     This class open the port and listen for connections
-     It is the first to be initialized and instanciates
-     the rooms and clients upon requests.
-    """
-
-    # Class to instanciate upon connection
     channel_class = PalabreClient
 
     def __init__(self, HOST='', PORT=2468, rootPassword=''):
@@ -585,6 +579,7 @@ class PalabreServer(asyncore.dispatcher):
             for r in rs:
                 print 'Client #%d now in room #%d, leaving...' % (uid, int(r[0]))
                 client_in_room = True
+                self.handleClientInRoom(uid = uid, rid = r[0], flag = EV_LEAVE)
 
             self.db.commit()
             self.db.begin()
@@ -611,8 +606,12 @@ class PalabreServer(asyncore.dispatcher):
         if rid is not None:
             attrs["rid"] = rid
 
-        if to_uid is not None:
+        if msgtype in [mtypes.M_PERSONAL, mtypes.M_PRIVATE] and to_uid is not None:
             attrs["to_uid"] = to_uid
+
+            if rid is None:
+                raise Exception("Room ID (rid) must be specified for personal and private messages")
+
             found = False
             for ids in self._map:
                 if not isinstance(self._map[ids], PalabreClient):
@@ -744,6 +743,39 @@ class PalabreServer(asyncore.dispatcher):
 
             self._map[ids].clientSendMessage("<server action='stop' reason='%s' />" % reason)
 
+    def handleClientInRoom(self, uid, rid, flag):
+
+        if flag == EV_LEAVE:
+            msg = "<userleave id='%d' rid='%d' />" % (uid, rid)
+        else:
+            msg = "<userjoin id='%d' rid='%d' />" % (uid, rid)
+
+        c = self.db.cursor()
+        s = "select users_id from users_rooms where rooms_id = %d" % rid
+        c.execute(s)
+        rs = c.fetchall()
+
+        if rs is None or len(rs) == 0:
+            # there is no one in the room, we don't need to notify anybody
+            return
+
+        notifyList = []
+        for r in rs:
+            notifyList.append(r[0])
+        print 'notifyList', notifyList
+
+        for ids in self._map:
+            if not isinstance(self._map[ids], PalabreClient):
+                continue
+            #print "ids=%d, uid=%d" % (self._map[ids].ids, uid)
+            #print "notifyList: ", notifyList
+
+            targetIds = self._map[ids].ids
+
+            if targetIds != uid and targetIds in notifyList:
+                # We don't need to notify ourselves
+                print 'GOING:', ids
+                self._map[ids].clientSendMessage(msg)
         
 
 def _test():
