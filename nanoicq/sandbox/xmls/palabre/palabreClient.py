@@ -1442,7 +1442,7 @@ class PalabreClient(asynchat.async_chat):
             self.db.commit()
 
             # Notify all clients in room
-            self.server.handleClientInRoom(uid = self.ids, rid = rid, flag = EV_JOIN)
+            self.server.handleClientInRoom(uid = self.ids, rid = rid, flag = EV_JOIN, name = self.name)
  
             out = "<joinroom error='0' uid='%d' rid='%d' />" % (self.ids, rid)
  
@@ -1494,7 +1494,7 @@ class PalabreClient(asynchat.async_chat):
             self.db.commit()
 
             # Notify all clients in room
-            self.server.handleClientInRoom(uid = self.ids, rid = rid, flag = EV_LEAVE)
+            self.server.handleClientInRoom(uid = self.ids, rid = rid, flag = EV_LEAVE, name = self.name)
  
             out = "<leaveroom error='0' uid='%d' rid='%d' />" % (self.ids, rid)
  
@@ -1685,6 +1685,26 @@ class PalabreClient(asynchat.async_chat):
             self.parseData (data = self.doc)
             self.doc.unlink()
 
+    def getInfo(self, attrs):
+        c = self.db.cursor()
+        try:
+            clientUids = self.server.getConnectedUsers()
+
+            out = [ "<info error='0' >" ]
+            out.append("<connected>")
+            for cuid in clientUids:
+                out.append("<user id='%d' />" % cuid)
+            out.append("</connected>")
+            out.append("</info>")
+            self.clientSendMessage("\n".join(out))
+
+            safeClose(c)
+        except Exception, exc:
+            safeClose(c)
+            out = "<info error='1' msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
+            
+
     def parseData(self,data):
         """
             OK terminator was found, and @data is parsed XML !
@@ -1736,6 +1756,10 @@ class PalabreClient(asynchat.async_chat):
                 # He is sending a message
                 if node == "message" or node == "m":
                     self.clientHandleMessage(attrs)
+
+                # info
+                elif node == "info":
+                    self.getInfo(attrs)
 
                 # users
                 elif node == "createuser":
@@ -1938,7 +1962,6 @@ class PalabreClient(asynchat.async_chat):
 
     def handle_close (self):
         """Client Just left without telling us (closing browser window, ...)
-            Le client vient de se déconnecter ... 'ala' goret surement
         """
 
         asynchat.async_chat.close (self)
@@ -2054,6 +2077,7 @@ class PalabreClient(asynchat.async_chat):
 
         #self.sesId = attrs['sesId']
         self.sesId = generateSessionId()
+        print "generated sesId:", self.sesId
         password = ''
 
         # password ?

@@ -570,6 +570,13 @@ class PalabreServer(asyncore.dispatcher):
         try:
             c = self.db.cursor()
 
+            s = "select name from users where id = %d" % uid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None or len(rs) == 0:
+                raise Exception("Leave all rooms: Unable to find user with id = %d" % uid)
+            name = string.strip(rs[0])
+
             s = "select rooms_id from users_rooms where users_id = %d" % uid
             print s
             c.execute(s)
@@ -579,7 +586,7 @@ class PalabreServer(asyncore.dispatcher):
             for r in rs:
                 print 'Client #%d now in room #%d, leaving...' % (uid, int(r[0]))
                 client_in_room = True
-                self.handleClientInRoom(uid = uid, rid = r[0], flag = EV_LEAVE)
+                self.handleClientInRoom(uid = uid, rid = r[0], flag = EV_LEAVE, name = name)
 
             self.db.commit()
             self.db.begin()
@@ -743,12 +750,12 @@ class PalabreServer(asyncore.dispatcher):
 
             self._map[ids].clientSendMessage("<server action='stop' reason='%s' />" % reason)
 
-    def handleClientInRoom(self, uid, rid, flag):
+    def handleClientInRoom(self, uid, rid, flag, name):
 
         if flag == EV_LEAVE:
-            msg = "<userleave id='%d' rid='%d' />" % (uid, rid)
+            msg = "<userleave id='%d' name='%s' rid='%d' />" % (uid, escape_string(name), rid)
         else:
-            msg = "<userjoin id='%d' rid='%d' />" % (uid, rid)
+            msg = "<userjoin id='%d' name='%s' rid='%d' />" % (uid, escape_string(name), rid)
 
         c = self.db.cursor()
         s = "select users_id from users_rooms where rooms_id = %d" % rid
@@ -776,6 +783,15 @@ class PalabreServer(asyncore.dispatcher):
                 # We don't need to notify ourselves
                 print 'GOING:', ids
                 self._map[ids].clientSendMessage(msg)
+
+    def getConnectedUsers(self):
+        out = []
+        for ids in self._map:
+            if not isinstance(self._map[ids], PalabreClient):
+                continue
+
+            out.append(self._map[ids].ids)
+        return out
         
 
 def _test():

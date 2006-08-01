@@ -1,5 +1,5 @@
 # vim: set enc=utf8 et
-# $Id: xml.txt,v 1.17 2006/07/15 19:13:20 lightdruid Exp $
+# $Id: xml.txt,v 1.18 2006/08/01 08:23:47 lightdruid Exp $
 #
 
 TODO:
@@ -306,7 +306,14 @@ S:
 * Locate user - FIXME, not implemented, what's this?
 
 
-* List blocked users - FIXME, not implemented, what's this? 
+* List blocked users
+
+C: <listblockedusers />
+
+S:  <listblockedusers error='0'>
+        <user id='1' name='abcd' />
+        ...
+    </listblockedusers>
 
 
 * Silent user
@@ -327,13 +334,10 @@ S:
 
 * Redirect user
 
-C: <redirect nickname='<CDATA>' room='<CDATA> (target room)' />
-S: 
-    * Successful:
-    <redirect nickname='<CDATA>' error='0' />
+C: <redirectuser uid="2" from-rid="11" to-rid="2" />
 
-    * Not successful:
-    <redirect nickname='<CDATA>' error='1' msg='<CDATA> (reason)' />
+S: <redirectuser error='0' uid="2" from-rid="11" to-rid="2" />
+
 
 * Allowed users:   
 
@@ -352,20 +356,17 @@ S: <listalloweduser error='0' rid='11' >
 <client id='3' />
 </listalloweduser>
 
-* Redirect users:
-
-C: <redirectuser uid="2" from-rid="11" to-rid="2" />
-
-S: <redirectuser error='0' uid="2" from-rid="11" to-rid="2" />
-
 
 =====================================
 Groups
 =====================================
  
 
-* Group lookup - FIXME, not implemented, what's this?
+* Group lookup
 
+C: <grouplookup name='room name' />
+
+S: <grouplookup error='0' id='1' name='abcd' moderationLevel='1' />
 
 * List groups
 
@@ -511,13 +512,13 @@ Messaging
 Message types are coded using number, here is mapping:
 
 personal            0
-private             1 -- FIXME: what's difference from personal?
+private             1 
 public              2
 broadcast           3
-get records list    4 -- FIXME: what's this?
-get record          5 -- FIXME: what's this? 
-custom              6
-store record        7 -- FIXME: what's this? 
+get records list    4 -- not implemented
+get record          5 -- not implemented
+custom              6 -- not implemented
+store record        7 -- not implemented
 
 C:  <message type='<CDATA>'>
         <recipients>

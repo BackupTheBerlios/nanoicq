@@ -170,7 +170,7 @@ class Client(Thread):
 
                     #self.sock.xsend("<joinroom id='1' />")
                     self.sock.xsend("<joinroom id='1' password='abcde' />")
-                    self.sock.xsend("<message  text='hi' to_uid='2' type='1' rid='1' />")
+                    #self.sock.xsend("<message  text='hi' to_uid='2' type='1' rid='1' />")
                     #self.sock.xsend("<silentuser id='3' period='3' />")
                     #self.sock.xsend("<message text='hi' type='3' />")
                     #self.sock.xsend("<joinroom id='1' password='abc' />")
@@ -181,6 +181,7 @@ class Client(Thread):
 
                     #self.sock.xsend("<grouplookup name='group 2' />")
                     #self.joinLeave()
+                    #self.sock.xsend("<info/>")
               
                 for a in node.attributes.items():
                     #attrs[p[0]] = p[1].encode("utf-8")
