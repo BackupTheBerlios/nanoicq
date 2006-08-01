@@ -181,7 +181,7 @@ class Client(Thread):
 
                     #self.sock.xsend("<grouplookup name='group 2' />")
                     #self.joinLeave()
-                    #self.sock.xsend("<info/>")
+                    self.sock.xsend("<info/>")
               
                 for a in node.attributes.items():
                     #attrs[p[0]] = p[1].encode("utf-8")

@@ -1691,10 +1691,15 @@ class PalabreClient(asynchat.async_chat):
             clientUids = self.server.getConnectedUsers()
 
             out = [ "<info error='0' >" ]
-            out.append("<connected>")
+            out.append("\t<connected>")
             for cuid in clientUids:
-                out.append("<user id='%d' />" % cuid)
-            out.append("</connected>")
+                out.append("\t\t<user id='%d' >" % cuid)
+                c.execute("select rooms_id from users_rooms where users_id = %d" % cuid)
+                rs = c.fetchall()
+                for r in rs:
+                    out.append("\t\t\t<room id='%d' />" % r[0])
+                out.append("\t\t</user>")
+            out.append("\t</connected>")
             out.append("</info>")
             self.clientSendMessage("\n".join(out))
 
