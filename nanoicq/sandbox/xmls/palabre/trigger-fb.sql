@@ -1,10 +1,11 @@
 
--- $Id: trigger-fb.sql,v 1.3 2006/06/28 11:02:50 lightdruid Exp $
+-- $Id: trigger-fb.sql,v 1.4 2006/08/02 15:26:47 lightdruid Exp $
 
 drop trigger sessions_tr;
 drop trigger groups_tr;
 drop trigger rooms_tr;
 drop trigger users_tr;
+drop trigger connect_history_tr;
  
 SET TERM !! ; 
 
@@ -43,6 +44,18 @@ as
 begin
     if (new.id is null) then
         new.id = gen_id(gen_users_id, 1);
+end
+!!
+
+
+create or alter trigger connect_history_tr for connect_history
+active before insert position 0
+as
+begin
+    if (new.id is null) then
+        new.id = gen_id(gen_connect_history_id, 1);
+    if (new.last_connected is null) then
+        new.last_connected = CURRENT_TIMESTAMP;
 end
 !!
 

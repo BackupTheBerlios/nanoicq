@@ -392,6 +392,12 @@ class PalabreServer(asyncore.dispatcher):
                     (sesId, ids, ip)
                 print "Executing: ", s
                 c.execute(s)
+
+                s = "insert into connect_history (sesid, userid, lastip) values ('%s', %d, '%s')" %\
+                    (sesId, ids, ip)
+                print "Executing: ", s
+                c.execute(s)
+
                 self.db.commit();
         except:
             raise

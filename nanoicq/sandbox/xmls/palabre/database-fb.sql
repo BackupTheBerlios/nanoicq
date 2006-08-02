@@ -1,5 +1,5 @@
 
--- $Id: database-fb.sql,v 1.14 2006/07/15 20:09:28 lightdruid Exp $
+-- $Id: database-fb.sql,v 1.15 2006/08/02 15:26:47 lightdruid Exp $
 
 -- 
 -- 
@@ -12,11 +12,13 @@ drop table users;
 drop table users_rooms;
 drop table users_groups;
 drop table allowed_users_rooms;
+drop table connect_history;
 
 drop generator gen_groups_id;
 drop generator gen_sessions_id;
 drop generator gen_rooms_id;
 drop generator gen_users_id;
+drop generator gen_connect_history_id;
   
 create table sessions (
     id int not null,
@@ -113,5 +115,18 @@ create table allowed_users_rooms (
     users_id int not null,
     rooms_id int not null
 );
+
+CREATE GENERATOR gen_connect_history_id;
+SET GENERATOR gen_connect_history_id TO 0;
+
+create table connect_history (
+    id int not null,
+    sesid char(250),
+    userid int not null,
+    lastIP char(16) not null,
+    last_connected timestamp not null,
+    last_disconnected timestamp
+);
+
 
 --

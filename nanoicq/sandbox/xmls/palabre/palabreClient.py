@@ -1700,6 +1700,15 @@ class PalabreClient(asynchat.async_chat):
                     out.append("\t\t\t<room id='%d' />" % r[0])
                 out.append("\t\t</user>")
             out.append("\t</connected>")
+
+            out.append("\t<history range='last 10' >")
+            s = "select first 10 userid, last_connected, lastip from connect_history order by last_connected desc"
+            c.execute(s)
+            rs = c.fetchall()
+            for r in rs:
+                out.append("\t<entry uid='%d' connected='%s' ip='%s' />" % (r[0], r[1], string.strip(r[2])) )
+            out.append("\t</history>")
+
             out.append("</info>")
             self.clientSendMessage("\n".join(out))
 
