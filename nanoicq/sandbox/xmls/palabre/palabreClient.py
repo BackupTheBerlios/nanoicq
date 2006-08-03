@@ -2208,6 +2208,21 @@ class PalabreClient(asynchat.async_chat):
                 if rs is None:
                     raise Exception("Can't find room with id='%d'" % rid)
 
+                # Check that we're in the same room as recepient
+                s = "select rooms_id from users_rooms where users_id = %d" % self.ids
+                c.execute(s)
+                rs = c.fetchall()
+
+                found = False
+                for r in rs:
+                    if rid == r[0]:
+                        found = True
+                        break
+
+                if not found:
+                    raise Exception("User id=%d can't send messages to room id=%d" % (self.ids, rid))
+                # end check
+
                 self.server.handlePersonalMessage(self.ids, rid = rid, to_uid = uid, msgtype = msgtype, text = text, from_name = self.name)
 
                 out = "<message error='0' uid='%d' />" 
@@ -2222,6 +2237,21 @@ class PalabreClient(asynchat.async_chat):
                     if rs is None:
                         raise Exception("Can't find room with id='%d'" % rid)
                     self.server.handlePersonalMessage(self.ids, rid = rid, msgtype = msgtype, text = text, from_name = self.name)
+
+                    # Check that we're in the same room as recepient
+                    s = "select rooms_id from users_rooms where users_id = %d" % self.ids
+                    c.execute(s)
+                    rs = c.fetchall()
+
+                    found = False
+                    for r in rs:
+                        if rid == r[0]:
+                            found = True
+                            break
+
+                    if not found:
+                        raise Exception("User id=%d can't send messages to room id=%d" % (self.ids, rid))
+                    # end check
 
                     out = "<message error='0' rid='%d' />" 
                     self.clientSendMessage(out % (rid))
