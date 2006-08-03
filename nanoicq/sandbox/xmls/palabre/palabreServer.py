@@ -410,7 +410,7 @@ class PalabreServer(asyncore.dispatcher):
             c.execute("select isblocked from users where id = %d" % uid)
             rs = c.fetchone()
             if rs is None:
-                raise Exception("isBlocked: Can't find user #%d" % uid)
+                raise Exception(ERRORS[47] % uid)
             else:
                 try:
                     if int(rs[0]) == 0:
@@ -418,10 +418,11 @@ class PalabreServer(asyncore.dispatcher):
                     elif int(rs[0]) == 1:
                         rc = True
                     else:
-                        raise Exception("Wrong value for isblocked, must be 0 or 1")
+                        raise Exception(ERRORS[45])
                     
                 except Exception, msg:
                     logging.error("Wrong value for isblocked = '%s'" % str(rs[0]))
+                    raise Exception(msg)
         except:
             raise
         return rc
@@ -580,7 +581,7 @@ class PalabreServer(asyncore.dispatcher):
             c.execute(s)
             rs = c.fetchone()
             if rs is None or len(rs) == 0:
-                raise Exception("Leave all rooms: Unable to find user with id = %d" % uid)
+                raise Exception(ERRORS[15] % uid)
             name = string.strip(rs[0])
 
             s = "select rooms_id from users_rooms where users_id = %d" % uid
@@ -623,7 +624,7 @@ class PalabreServer(asyncore.dispatcher):
             attrs["to_uid"] = to_uid
 
             if rid is None:
-                raise Exception("Room ID (rid) must be specified for personal and private messages")
+                raise Exception(ERRORS[22])
 
             found = False
             for ids in self._map:
@@ -636,7 +637,7 @@ class PalabreServer(asyncore.dispatcher):
                     break
 
             if not found:
-                raise Exception("Client id=%d is offline now" % to_uid)
+                raise Exception(ERRORS[40] % to_uid)
         elif rid is not None:
             attrs["rid"] = rid
 
@@ -684,7 +685,7 @@ class PalabreServer(asyncore.dispatcher):
                 self._map[ii].silentStart = time.time()
 
         if not found:
-            raise Exception("Client id=%d is offline now" % uid)
+            raise Exception(ERRORS[40] % uid)
 
     def blockClient(self, uid, msg = "<error msg='You are blocked. Disconnect requested.' />"):
         ''' Disconnect blocked user '''
@@ -747,7 +748,7 @@ class PalabreServer(asyncore.dispatcher):
                 break
 
         if not found:
-            raise Exception("Client id=%d is offline now" % uid)
+            raise Exception(ERRORS[40] % uid)
 
     def notifyStop(self, reason = "unknown"):
         for ids in self._map:

@@ -124,6 +124,7 @@ class Client(Thread):
                     #self.sock.xsend("<delroom id='2' />")
 
                     self.sock.xsend("<joinroom id='1' password='abcde' />")
+                    self.sock.xsend("<joinroom id='2' password='abcde' />")
                     #self.sock.xsend('<setuserproperties isblocked="0" id="4" />')
 
                     #self.sock.xsend("<message id='4' text='hi' type='0' />")
