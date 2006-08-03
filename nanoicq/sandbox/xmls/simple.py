@@ -155,7 +155,7 @@ class Client(Thread):
 
                     #self.sock.xsend("<delroom id='2' />")
 
-                    self.sock.xsend("<joinroom id='2' password='abcde' />")
+                    self.sock.xsend("<joinroom id='1' password='abcde' />")
                     #self.sock.xsend("<joinasspectator rid='1' password='abcde' />")
                     #self.sock.xsend("<listusers id='1' />")
                     #self.sock.xsend("<leaveroom id='1' />")

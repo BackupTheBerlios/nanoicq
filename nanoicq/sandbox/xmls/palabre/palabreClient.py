@@ -2177,6 +2177,24 @@ class PalabreClient(asynchat.async_chat):
         else:
             self.clientSendErrorMessage(msg="No room specified")
 
+    def inTheSameRoom(self, c, uid, rid):
+        # Check that we're in the same room as recepient
+        s = "select rooms_id from users_rooms where users_id in (%d, %d) and rooms_id=%d" % (self.ids, uid, rid)
+        c.execute(s)
+        rs = c.fetchall()
+
+        found = False
+
+        print 'check user in room', rs
+        if rs is None or len(rs) == 0:
+            pass
+        else:
+            if len(rs) == 2:
+                found = True
+
+        if not found:
+            raise Exception("User id=%d can't send messages to room id=%d" % (self.ids, rid))
+        # end check
 
     def clientHandleMessage(self, attrs):
         msgtype = int(attrs["type"])
@@ -2208,20 +2226,7 @@ class PalabreClient(asynchat.async_chat):
                 if rs is None:
                     raise Exception("Can't find room with id='%d'" % rid)
 
-                # Check that we're in the same room as recepient
-                s = "select rooms_id from users_rooms where users_id = %d" % self.ids
-                c.execute(s)
-                rs = c.fetchall()
-
-                found = False
-                for r in rs:
-                    if rid == r[0]:
-                        found = True
-                        break
-
-                if not found:
-                    raise Exception("User id=%d can't send messages to room id=%d" % (self.ids, rid))
-                # end check
+                self.inTheSameRoom(c, uid, rid)
 
                 self.server.handlePersonalMessage(self.ids, rid = rid, to_uid = uid, msgtype = msgtype, text = text, from_name = self.name)
 
@@ -2238,20 +2243,7 @@ class PalabreClient(asynchat.async_chat):
                         raise Exception("Can't find room with id='%d'" % rid)
                     self.server.handlePersonalMessage(self.ids, rid = rid, msgtype = msgtype, text = text, from_name = self.name)
 
-                    # Check that we're in the same room as recepient
-                    s = "select rooms_id from users_rooms where users_id = %d" % self.ids
-                    c.execute(s)
-                    rs = c.fetchall()
-
-                    found = False
-                    for r in rs:
-                        if rid == r[0]:
-                            found = True
-                            break
-
-                    if not found:
-                        raise Exception("User id=%d can't send messages to room id=%d" % (self.ids, rid))
-                    # end check
+                    self.inTheSameRoom(c, uid, rid)
 
                     out = "<message error='0' rid='%d' />" 
                     self.clientSendMessage(out % (rid))
