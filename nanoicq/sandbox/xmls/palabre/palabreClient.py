@@ -1405,6 +1405,15 @@ class PalabreClient(asynchat.async_chat):
         return rc
 
     def inviteUser(self, attrs):
+        """
+        C:
+            Invite user id=33 to room 11
+            <inviteuser uid='33' rid='11' />
+        S:
+            <inviteuser error='0' uid='33' rid='11' />
+            or 
+            <inviteuser error='2' msg='bad' />
+        """
         try:
             c = self.db.cursor()
 
@@ -1427,10 +1436,25 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage( out % Q(str(exc)) )
 
     def joinAsSpectator(self, attrs):
+        """
+            C:
+            <joinasspectator rid='1' /> 
+                or
+            <joinasspectator rid='1' publicPassword='password' />
+
+            S:
+            "<joinasspectator error='0' uid='12' rid='1' />"
+                or
+            "<joinasspectator error='2' msg='something wrong' />"
+        """
         try:
             c = self.db.cursor()
 
             rid = self._getIntAttr("rid", attrs)
+            if attrs.has_attr("publicPassword"):
+                publicPassword = attrs["publicPassword"]
+            else:
+                publicPassword = None
 
             s = "select name, passwordProtected, publicPassword from rooms where id = %d" % rid
             print s

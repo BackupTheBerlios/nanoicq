@@ -2,6 +2,8 @@
 
 #from palabre import config
 
+# joinAsSpectator, invineNewUser, removeAllowedUser, appendNewAllowedUser
+
 import sys, socket, time, select, string
 import xml.dom.minidom as xmldom 
 from threading import Thread
