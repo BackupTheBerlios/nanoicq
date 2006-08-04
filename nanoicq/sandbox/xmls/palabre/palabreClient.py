@@ -2203,21 +2203,13 @@ class PalabreClient(asynchat.async_chat):
 
         """
 
-        # Needs a nickname
-        if not attrs.has_key('nickname'):
-            self.clientSendErrorMessage(msg = "No NickName Attribute")
-            return
+        try:
+            nickName = self._getStrAttr('nickname', attrs)
+        except InnerException, exc:
+            out = "<connect msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
 
-        # Needs a session Id
-        #if not attrs.has_key('sesId'):
-        #    self.clientSendErrorMessage(msg = "No Session Id Attribute")
-        #    return
- 
-        nickName = attrs['nickname']
-
-        #self.sesId = attrs['sesId']
         self.sesId = generateSessionId()
-        print "generated sesId:", self.sesId
         password = ''
 
         # password ?
