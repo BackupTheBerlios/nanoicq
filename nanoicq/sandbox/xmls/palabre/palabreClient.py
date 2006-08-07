@@ -9,6 +9,8 @@ import md5, random
 import cPickle
 from traceback import *
 
+from mx import DateTime
+
 from util import *
 from palabre import config, logging, version, escape_string
 from Message import mtypes
@@ -1451,7 +1453,7 @@ class PalabreClient(asynchat.async_chat):
             c = self.db.cursor()
 
             rid = self._getIntAttr("rid", attrs)
-            if attrs.has_attr("publicPassword"):
+            if attrs.has_key("publicPassword"):
                 publicPassword = attrs["publicPassword"]
             else:
                 publicPassword = None
@@ -1827,8 +1829,14 @@ class PalabreClient(asynchat.async_chat):
             s = "select first 10 userid, last_connected, lastip from connect_history order by last_connected desc"
             c.execute(s)
             rs = c.fetchall()
+
+            delta = DateTime.DateTimeDelta(0, 10, 0, 0)
+
             for r in rs:
-                out.append("\t<entry uid='%d' connected='%s' ip='%s' />" % (r[0], r[1], string.strip(r[2])) )
+                dt = str(r[1])
+                dz = DateTime.mktime(time.strptime(dt, '%Y-%m-%d %H:%M:%S.00'))
+                dz = dz + delta
+                out.append("\t<entry uid='%d' connected='%s' ip='%s' />" % (r[0], dz, string.strip(r[2])) )
             out.append("\t</history>")
 
             out.append("</info>")
