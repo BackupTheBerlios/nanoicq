@@ -220,8 +220,9 @@ class PalabreClient(asynchat.async_chat):
                 out = "<unblockuser error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def silentUser(self, uid, attrs):
+    def silentUser(self, attrs):
         try:
+            uid = self._getIntAttr("id", attrs)
             period = self._getIntAttr("period", attrs)
 
             if period is None or period <= 0:
@@ -246,9 +247,11 @@ class PalabreClient(asynchat.async_chat):
             out = "<silentuser error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def locateUser(self, uid):
+    def locateUser(self, attrs):
         c = self.db.cursor()
         try:
+            uid = self._getIntAttr("id", attrs)
+
             s = 'select r.id, r.name from rooms r where r.id in (select rooms_id from users_rooms where users_id = %d)' % uid
             c.execute(s)
 
@@ -271,7 +274,7 @@ class PalabreClient(asynchat.async_chat):
             out = "<locateuser error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def listGroups(self, sesId = None):
+    def listGroups(self):
         print 'listing groups...'
 
         try:
@@ -296,15 +299,18 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c)
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def createGroup(self, sesId = None, name = None, moderationLevel = None):
-        print 'creating group...', name, moderationLevel
+    def createGroup(self, attrs):
+        print 'creating group...'
 
         out = "<creategroup error='%d' msg=%s />"
         try:
             c = self.db.cursor()
+
+            name = self._getStrAttr("name", attrs)
+            moderationLevel = self._getIntAttr("moderationLevel", attrs)
+
             s = "insert into groups (name, mlevel) values ('%s', %d)" %\
                 (escape_string(name), int(moderationLevel))
-            print s
             c.execute(s)
             self.db.commit()
 
@@ -340,11 +346,13 @@ class PalabreClient(asynchat.async_chat):
                 errorMessage = sexc
             self.clientSendMessage( out % Q(errorMessage) )
 
-    def getGroupProperties(self, sesId = None, gid = None):
-        print 'retrieving group properties...', gid
+    def getGroupProperties(self, attrs):
+        print 'retrieving group properties...'
 
         try:
             c = self.db.cursor()
+            gid = self._getIntAttr("id", attrs)
+
             c.execute("select id, name, mlevel from groups where id=%d" % int(gid))
 
             r = c.fetchone()
@@ -361,14 +369,16 @@ class PalabreClient(asynchat.async_chat):
             out = "<getgroupproperties error='-1' id='%d' msg=%s />"
             self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
 
-    # ® •È• 1 Ø‡Æ°´•¨†. •·´® ™Æ¨≠†‚† password protected, ‚Æ£§† „ ≠•• §Æ´¶•≠ °Î‚Ï property password ® •£Æ ≠†§Æ §Æ°†¢®‚Ï ¢
+    # ® •È• 1 Ø‡Æ°´•¨†. •·´® ™Æ¨≠†‚† password protected, ‚Æ£§† „ ≠•• §Æ´¶•≠ 
+    # °Î‚Ï property password ® •£Æ ≠†§Æ §Æ°†¢®‚Ï ¢
 
-    def groupLookUp(self, sesId = None, name = None):
-        print 'group look up...', name
+    def groupLookUp(self, attrs):
+        print 'group look up...'
 
         try:
-            if name is None:
-                raise InnerException(17, ERRORS[17] % 'name')
+            #if name is None:
+            #    raise InnerException(17, ERRORS[17] % 'name')
+            name = self._getStrAttr("name", attrs)
 
             c = self.db.cursor()
             s = "select id, name, mlevel from groups where name = '%s'" % escape_string(name)
@@ -389,14 +399,16 @@ class PalabreClient(asynchat.async_chat):
             out = "<grouplookup error='-1' name='%s' msg=%s />"
             self.clientSendMessage( out % ( escape_string(str(name)), Q(str(exc)) ) )
 
-    def userLookUp(self, sesId = None, name = None):
-        print 'user look up...', name
+    def userLookUp(self, attrs):
+        print 'user look up...'
 
         try:
-            if name is None:
-                raise InnerException(17, ERRORS[17] % 'name')
+            #if name is None:
+            #    raise InnerException(17, ERRORS[17] % 'name')
 
             c = self.db.cursor()
+            name = self._getStrAttr("name", attrs)
+
             s = "select id, name from users where name = '%s'" % escape_string(name)
             print s
             c.execute(s)
@@ -417,13 +429,13 @@ class PalabreClient(asynchat.async_chat):
             out = "<userlookup error='-1' name='%s' msg=%s />"
             self.clientSendMessage( out % ( escape_string(str(name)), Q(str(exc)) ) )
 
-    def deleteGroup(self, sesId = None, gid = None):
-        print 'delete group...', gid
-
-        gid = int(gid)
+    def deleteGroup(self, attrs):
+        print 'delete group...'
 
         try:
             c = self.db.cursor()
+            gid = self._getIntAttr("id", attrs)
+
             c.execute("select id, name, mlevel from groups where id=%d" % gid)
 
             r = c.fetchone()
@@ -472,7 +484,7 @@ class PalabreClient(asynchat.async_chat):
             out = "<deletegroup error='-1' id='%d' msg=%s />"
             self.clientSendMessage( out % ( int(gid), Q(str(exc)) ) )
 
-    def setGroupProperties(self, sesId = None, gid = None, name = None, moderationLevel = None):
+    def setGroupProperties(self, gid = None, name = None, moderationLevel = None):
         print 'retrieving group properties...', gid
 
         try:
@@ -508,15 +520,17 @@ class PalabreClient(asynchat.async_chat):
             out = "<setgroupproperties error='-1' msg=%s />"
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def listMembers(self, sesId = None, gid = None):
-        print 'retrieving group members...', gid
+    def listMembers(self, attrs):
+        print 'retrieving group members...'
 
         try:
             c = self.db.cursor()
-            s = 'select u.id, u.name from users u where gid = %d' % int(gid)
+            gid = self._getIntAttr("id", attrs)
+            
+            s = 'select u.id, u.name from users u where gid = %d' % gid
             c.execute(s)
 
-            out = ["<listmembers error='0' id='%d' >" % int(gid)]
+            out = ["<listmembers error='0' id='%d' >" % gid]
 
             rs = c.fetchall()
             for r in rs:
@@ -533,11 +547,13 @@ class PalabreClient(asynchat.async_chat):
             out = "<listmembers error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def getUserProperties(self, sesId = None, uid = None):
-        print 'retrieving user properties... %d' % int(uid)
+    def getUserProperties(self, attrs):
+        print 'retrieving user properties... %d'
 
         try:
             c = self.db.cursor()
+            uid = self._getIntAttr("id", attrs)            
+
             s = ''' select 
                         u.id, 
                         u.name, 
@@ -577,16 +593,16 @@ class PalabreClient(asynchat.async_chat):
             out = "<getuserproperties error='-1' id='%d' msg=%s />" 
             self.clientSendMessage( out % ( int(uid), Q(str(exc)) ) )
 
-    def setUserProperties(self, sesId = None, attrs = {}):
-        uid = int(attrs['id'])
-        del attrs['id']
+    def setUserProperties(self, attrs):
 
-        print 'setting user properties... %d' % int(uid)
+        print 'setting user properties...'
 
-        c = None
         try:
-            c = self.db.cursor()
 
+            uid = self._getIntAttr("id", attrs)
+            del attrs['id']
+
+            c = self.db.cursor()
             c.execute("select id from users where id=%d" % int(uid))
 
             r = c.fetchone()
@@ -655,7 +671,7 @@ class PalabreClient(asynchat.async_chat):
             out = "<setuserproperties error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def getRoomList(self, sesId = None):
+    def getRoomList(self):
         print 'retrieving room list...'
 
         c = None
@@ -704,14 +720,12 @@ class PalabreClient(asynchat.async_chat):
             out = "<getroomlist error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def getRoomProperties(self, sesId = None, rid = None):
+    def getRoomProperties(self, attrs):
         print 'retrieving room properties...'
-
-        rid = int(rid)
-        c = None
 
         try:
             c = self.db.cursor()
+            rid = self._getIntAttr("id", attrs)
 
             c.execute("select id from rooms where id=%d" % int(rid))
 
@@ -865,21 +879,19 @@ class PalabreClient(asynchat.async_chat):
             out = "<setroomsecurity error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def setRoomProperties(self, sesId = None, rid = None, attrs = {}):
+    def setRoomProperties(self, attrs):
         print 'setting room properties...'
-
-        rid = int(rid)
-        c = None
 
         try:
             print attrs
             c = self.db.cursor()
+            rid = self._getIntAttr("id", attrs)
 
-            c.execute("select id, pvtPasswordProtected, pvtPassword from rooms where id=%d" % int(rid))
+            c.execute("select id, pvtPasswordProtected, pvtPassword from rooms where id=%d" % rid)
 
             r = c.fetchone()
             if r is None:
-                raise InnerException(4, ERRORS[4] % int(rid))
+                raise InnerException(4, ERRORS[4] % rid)
 
             pvtPasswordProtected = NUL(r[1])
             pvtPassword = string.strip(STRNUL(r[2]))
@@ -978,7 +990,7 @@ class PalabreClient(asynchat.async_chat):
             out = "<setroomproperties error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def removeAllowedUser(self, sesId = None, rid = None, uid = None):
+    def removeAllowedUser(self, rid = None, uid = None):
         print 'removing allowed user'
 
         rid = int(rid)
@@ -1008,7 +1020,7 @@ class PalabreClient(asynchat.async_chat):
             out = "<removealloweduser error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
  
-    def appendNewAllowedUser(self, sesId = None, rid = None, uid = None):
+    def appendNewAllowedUser(self, rid = None, uid = None):
         print 'adding new allowed user'
 
         rid = int(rid)
@@ -1184,12 +1196,12 @@ class PalabreClient(asynchat.async_chat):
 
         except InnerException, exc:
             safeClose(c)
-            out = "<redirectuser from_rid='%d' to_rid='%d' msg=%s />" 
-            self.clientSendMessage( out % (from_rid, to_rid, Q(str(exc))) )
+            out = "<redirectuser msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
         except Exception, exc:
             safeClose(c)
-            out = "<redirectuser error='-1' from_rid='%d' to_rid='%d' msg=%s />" 
-            self.clientSendMessage( out % (from_rid, to_rid, Q(str(exc))) )
+            out = "<redirectuser error='-1' msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
 
 
     def addNewAllowedUser(self, attrs):
@@ -1439,35 +1451,30 @@ class PalabreClient(asynchat.async_chat):
             out = "<createroom error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def delRoom(self, sesId = None, rid = None):
+    def delRoom(self, attrs):
         print 'delete room'
-
-        rid = int(rid)
-        c = None
 
         try:
             c = self.db.cursor()
+            rid = self._getIntAttr("rid", attrs)
 
-            c.execute("select id from rooms where id=%d" % int(rid))
+            c.execute("select id from rooms where id=%d" % rid)
 
             r = c.fetchone()
             if r is None:
-                raise InnerException(4, ERRORS[4] % int(rid))
+                raise InnerException(4, ERRORS[4] % rid)
 
             # FIMXE
-            c.execute("select users.id, users.name from users where users.id in (select users_id from users_rooms where rooms_id = %d)" % int(rid))
+            c.execute("select users.id, users.name from users where users.id in (select users_id from users_rooms where rooms_id = %d)" % rid)
             rs = c.fetchall()
             users = []
             if rs is not None and len(rs) > 0:
                 for r in rs:
-                    print r
                     users.append("#%d (%s)" % (int(r[0]), string.strip(r[1])))
-                raise InnerException(30, ERRORS[30] % (int(rid), ", ".join(users)))
+                raise InnerException(30, ERRORS[30] % (rid, ", ".join(users)))
 
             s = 'delete from rooms where id = %d' % rid
 
-            print s
- 
             c.execute(s)
             self.db.commit()
 
@@ -1598,26 +1605,26 @@ class PalabreClient(asynchat.async_chat):
             out = "<joinasspectator error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def joinRoom(self, sesId = None, rid = None, publicPassword = None):
+    def joinRoom(self, attrs):
         print 'joining room'
-
-        rid = int(rid)
-        c = None
 
         try:
             c = self.db.cursor()
 
+            rid = self._getIntAttr("rid", attrs)
+
+            publicPassword = None
+            if attrs.has_key('password'):
+                publicPassword = attrs['password']
+
             print 'Client #%d attepting to join room #%d' % (self.ids, rid)
 
-            #s = "update users_rooms"
             s = "select name, passwordProtected, publicPassword from rooms where id = %d" % rid
-            print s
             c.execute(s)
             r = c.fetchone()
             if r is None:
                 raise InnerException(4, ERRORS[4] % int(rid))
 
-            print r
             if int(r[1]) == 1:
                 # Check password, room is password protected
                 if publicPassword is None:
@@ -1626,7 +1633,6 @@ class PalabreClient(asynchat.async_chat):
                     raise InnerException(13, ERRORS[13])
 
             s = "select rooms_id from users_rooms where users_id = %d" % self.ids
-            print s
             c.execute(s)
 
             rs = c.fetchall()
@@ -1657,27 +1663,21 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage( out % Q(str(exc)) )
 
                      
-    def leaveRoom(self, sesId = None, rid = None, attrs = None):
-        print 'leaving room'
-
-        rid = int(rid)
-        c = None
+    def leaveRoom(self, attrs):
 
         try:
             c = self.db.cursor()
+            rid = self._getIntAttr("rid", attrs)
 
             print 'Client #%d attepting to leave room #%d' % (self.ids, rid)
 
-            #s = "update users_rooms"
             s = "select name from rooms where id = %d" % rid
-            print s
             c.execute(s)
             r = c.fetchone()
             if r is None:
                 raise InnerException(4, ERRORS[4] % int(rid))
 
             s = "select rooms_id from users_rooms where users_id = %d" % self.ids
-            print s
             c.execute(s)
 
             client_in_room = False
@@ -1705,12 +1705,12 @@ class PalabreClient(asynchat.async_chat):
             safeClose(c) 
         except InnerException, exc:
             safeClose(c)
-            out = "<leaveroom rid='%d' msg=%s />" 
-            self.clientSendMessage( out % (rid, Q(str(exc))) )
+            out = "<leaveroom msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
         except Exception, exc:
             safeClose(c)
-            out = "<leaveroom error='-1' rid='%d' msg=%s />" 
-            self.clientSendMessage( out % (rid, Q(str(exc))) )
+            out = "<leaveroom error='-1' msg=%s />" 
+            self.clientSendMessage( out % (Q(str(exc))) )
 
     def createUser(self, attrs):
         try:
@@ -1797,25 +1797,19 @@ class PalabreClient(asynchat.async_chat):
             out = "<deleteuser error='-1' msg=%s />" 
             self.clientSendMessage( out % (Q(str(exc))) )
     
-    def listUsers(self, sesId = None, rid = None, attrs = None):
-        print 'list room users...'
-
-        rid = int(rid)
-        c = None
+    def listUsers(self, attrs):
 
         try:
             c = self.db.cursor()
+            rid = self._getIntAttr("id", attrs)
 
             s = "select name from rooms where id = %d" % rid
-            print s
             c.execute(s)
             r = c.fetchone()
             if r is None:
                 raise InnerException(4, ERRORS[4] % int(rid))
 
             s = "select id, name, moderationLevel, roomManagementLevel from users where id in (select users_id from users_rooms where rooms_id = %d and spectator = 0)" % rid
-            print s
-
             c.execute(s)
 
             out = ["<listusers error='0' id='%d' >" % rid]
@@ -1885,10 +1879,7 @@ class PalabreClient(asynchat.async_chat):
 
         # On essai
         # If string is not really XML this crash :
-        line = "<?xml version='1.0' encoding='utf-8' ?>"+line
-        #print line
-        #line = unicode(line,'utf-8') #.encode('utf-8')
-        #print line
+        line = "<?xml version='1.0' encoding='utf-8' ?>" + line
 
         try:
             # Trying to parse data
@@ -2030,7 +2021,7 @@ class PalabreClient(asynchat.async_chat):
 
                 # silent user
                 elif node == "silentuser":
-                    self.silentUser(int(attrs["id"]), attrs)
+                    self.silentUser(attrs)
 
                 # 
                 elif node == "blockuser":
@@ -2042,23 +2033,23 @@ class PalabreClient(asynchat.async_chat):
 
                 # locate user
                 elif node == "locateuser":
-                    self.locateUser(int(attrs["id"]))
+                    self.locateUser(attrs)
 
                 # create group
                 elif node == "creategroup":
-                    self.createGroup(name = attrs["name"], moderationLevel = attrs["moderationLevel"])
+                    self.createGroup(attrs)
 
                 # get group properties
                 elif node == "getgroupproperties":
-                    self.getGroupProperties(gid = attrs["id"])
+                    self.getGroupProperties(attrs)
 
                 # get group properties
                 elif node == "grouplookup":
-                    self.groupLookUp(name = attrs["name"])
+                    self.groupLookUp(attrs)
 
                 # delete group
                 elif node == "deletegroup":
-                    self.deleteGroup(gid = attrs["id"])
+                    self.deleteGroup(attrs)
 
                 # set group properties
                 elif node == "setgroupproperties":
@@ -2098,15 +2089,15 @@ class PalabreClient(asynchat.async_chat):
 
                 # get group members
                 elif node == "listmembers":
-                    self.listMembers(gid = attrs["id"])
+                    self.listMembers(attrs)
 
                 # get user properties
                 elif node == "getuserproperties":
-                    self.getUserProperties(uid = attrs["id"])
+                    self.getUserProperties(attrs)
 
                 # set user properties
                 elif node == "setuserproperties":
-                    self.setUserProperties(attrs = attrs)
+                    self.setUserProperties(attrs)
 
                 # get room list
                 elif node == "getroomlist":
@@ -2114,17 +2105,15 @@ class PalabreClient(asynchat.async_chat):
 
                 # 
                 elif node == "userlookup":
-                    self.userLookUp(name = attrs["name"])
+                    self.userLookUp(attrs)
 
                 # get room properties
                 elif node == "getroomproperties":
-                    self.getRoomProperties(rid = attrs['id'])
+                    self.getRoomProperties(attrs)
 
                 # set room properties
                 elif node == "setroomproperties":
-                    rid = attrs['id']
-                    del attrs['id']
-                    self.setRoomProperties(rid = rid, attrs = attrs)
+                    self.setRoomProperties(attrs)
 
                 # create room
                 elif node == "createroom":
@@ -2132,7 +2121,7 @@ class PalabreClient(asynchat.async_chat):
 
                 # delete room
                 elif node == "delroom":
-                    self.delRoom(rid = attrs['id'])
+                    self.delRoom(attrs)
 
                 # join as spectator room
                 elif node == "joinasspectator":
@@ -2140,18 +2129,15 @@ class PalabreClient(asynchat.async_chat):
 
                 # join room
                 elif node == "joinroom":
-                    ppassword = None
-                    if attrs.has_key('password'):
-                        ppassword = attrs['password']
-                    self.joinRoom(rid = attrs['id'], publicPassword = ppassword)
+                    self.joinRoom(attrs)
 
                 # leave room
                 elif node == "leaveroom":
-                    self.leaveRoom(rid = attrs['id'], attrs = attrs)
+                    self.leaveRoom(attrs)
 
                 # list users in room
                 elif node == "listusers":
-                    self.listUsers(rid = attrs['id'], attrs = attrs)
+                    self.listUsers(attrs)
        
                 # sending a ping ... getting a pong
                 elif node == "ping":
@@ -2166,47 +2152,15 @@ class PalabreClient(asynchat.async_chat):
                 #elif node == "join":
                 #    self.clientJoinRoom(attrs)
 
-                # Leaving a room
-                #elif node == "leave":
-                #    self.clientLeaveRoom(attrs)
-
-                # Setting a param for a room
-                #elif node == "setparam":
-                #    self.clientSetRoomParam(attrs)
-                #
-
-                # removing a param from a room
-                #elif node == "removeparam":
-                #    self.clientUnsetRoomParam(attrs)
-
-                # adding a child room
-                #elif node == "addchild":
-                #    self.clientAddChildRoom(attrs)
-
                 # Shutdown server
                 #elif node == "shutdown":
                 #    # Must Be root
                 #    if self.isRoot:
                 #        self.server.serverShutDown()
 
-                # Kick User from entire server !!
-                #elif node == "rmuser":
-                #    # Must be root
-                #    if attrs.has_key('nickName'):
-                #        if self.isRoot:
-                #            self.server.serverRmClient(attrs['nickName'],self)
-
-                # Get Informations about a room
-                #elif node == "getinfo":
-                #                        # Must be root
-                #    if attrs.has_key('room'):
-                #        if self.isRoot:
-                #            self.clientSendMessage(self.server.serverGetRoom(attrs['room']))
-                                        
-                # something else ?
                 # TODO : Implement a method for adding simply other nodes
                 else:
-                    self.clientSendErrorMessage(msg="Not a known node")
+                    self.clientSendErrorMessage(msg = ERRORS[53])
 
             ## Si il se connect ##
             # client is connecting
@@ -2214,7 +2168,7 @@ class PalabreClient(asynchat.async_chat):
                 self.clientConnect(attrs)
             # Client should REALLY connect
             else:
-                self.clientSendErrorMessage(msg="You must login first")
+                self.clientSendErrorMessage(msg = ERRORS[54])
 
     def handle_close (self):
         """Client Just left without telling us (closing browser window, ...)
@@ -2236,89 +2190,9 @@ class PalabreClient(asynchat.async_chat):
         self.close()
 
     def clientQuit(self):
-        """Client told us he was leaving !
-
-            Il a demand√© de partir proprement .... bravo !
-        """
-        # Ca marche d'autant mieux
         self.handle_close()
 
-    def isClientInRoom(self,room):
-        """Method to know if this client is in a specific room
-            @room Room to test
-
-            Permet de savoir si le client est d√©j√† dans la room X
-        """
-
-        # La room est-elle dans mon dico ?
-        if self.allMyRooms.has_key(room):
-            return True
-        else:
-            return False
-
-    def clientAddChildRoom(self,attrs):
-        """Adding a Child Room (sub-room)
-
-            @attrs      XML attributes sent
-
-            Permet √† un client de cr√©er une room fille
-        """
-
-        # Xml node must have parentroom and childroom attributes !!
-        # which room is the mom and which is the little girl
-        #
-        if attrs.has_key('parentroom') and attrs.has_key('childroom'):
-            thisChild = attrs['childroom']
-            thisRoom = attrs['parentroom']
-            # Client Must be in the parentroom
-            # Client must not be in the childroom
-            if self.isClientInRoom(thisRoom) and thisChild != '' and not self.isClientInRoom(thisChild):
-                # Asking the server to join the room
-                self.allMyRooms[thisChild] = self.server.serverAddClientToRoom(client=self,room=thisChild,parentR=thisRoom)
-                # Notifying the parent room
-                # (SHOULD BE IN : server.serverAddClientToRoom) BUT Problem with allMyRooms
-                #
-                self.allMyRooms[thisRoom].roomAddChildRoom(childR=self.allMyRooms[thisChild])
-
-    def clientUnsetRoomParam(self,attrs):
-        """Removing a room parameter
-
-        """
-
-        # Xml node must have a room and a name of param to remove
-        if attrs.has_key('room') and attrs.has_key('name'):
-            Proom = attrs['room']
-            Pname = attrs['name']
-            # Client must be in this room
-            if self.isClientInRoom(Proom) and Proom != "" and Pname != "":
-                # Notifying room
-                self.allMyRooms[Proom].roomRemoveParam(name=Pname,nickName=client.nickName)
-
-
-    def clientSetRoomParam(self,attrs):
-        """Setting a room param
-
-            Permet √† un client +o dans une room de changer des param√®tres
-            La v√©rification du +o se passe dans la room
-        """
-
-        # Xml node must have a room and a name of param to remove and a value for the param
-        if attrs.has_key('room') and attrs.has_key('name') and attrs.has_key('value'):
-            Proom = attrs['room']
-            Pname = attrs['name']
-            Pvalue = attrs['value']
-            # Client must be in this room
-            if self.isClientInRoom(Proom)  and Pname != "" and Pvalue != "":
-                # Notifying room
-                self.allMyRooms[Proom].roomSetParam(name=Pname,value=Pvalue,nickName=self.nickName)
-
     def clientConnect(self, attrs):
-        """Client Just sent the connect node
-
-            <connect nickname='STR1' password='STR2'  />
-
-        """
-
         try:
             nickName = self._getStrAttr('nickname', attrs)
         except InnerException, exc:
@@ -2503,92 +2377,9 @@ class PalabreClient(asynchat.async_chat):
         print msg
         self.clientSendMessage(msg)
 
-    def _clientHandleMessage(self,attrs,texte):
-        """Method to handle classic text messages
-
-            @attrs[back OR b]   Should we send the message back to the user (room messages only)?
-
-
-            Cette m√©thode g√®re les messages classiques
-            priv√©s ou vers une room
-            Client : <msg toclient='STR1'>STR2</msg> OU SHORT VERSION <m c='XXX'>YYY</m>
-            Room   : <msg toroom='STR1' back='BOOL1'>STR2</msg> OU SHORT VERSION <m r='STR1' b='BOOL1'>YYY</m>
-
-        """
-
-        # back d√©finit dans le cas d'un message √† une room si il souhaite √©galement recevoir ce message en retour
-        # Should we send the message back to the user (room messages only)?
-        back = "0"
-        if attrs.has_key('back'):
-            back = attrs['back']
-        elif attrs.has_key('b'):
-            back = attrs['b']
-
-        # Private Message
-        # Un message prive
-        if attrs.has_key('toclient'):
-            # Asking the server to send the message to other client
-            self.server.serverSendMessageToClient(data=texte,sender=self.nickName, dest=attrs['toclient'])
-        # Short Version
-        elif attrs.has_key('c'):
-            self.server.serverSendMessageToClient(data=texte,sender=self.nickName, dest=attrs['c'])
-
-
-        # Un message dans une room
-        # Room message
-        elif attrs.has_key('toroom'):
-            self.clientSendToRoom(data=texte,room=attrs['toroom'],back=back)
-        # Short Version
-        elif attrs.has_key('r'):
-            self.clientSendToRoom(data=texte,room=attrs['r'],back=back)
-
-
-        # Un message a tout le monde
-        # Broadcast Message to everyone
-        # Must Be root
-        elif attrs.has_key('broadcast'):
-            if self.isRoot:
-                self.server.serverSendToAllClients(data=texte,sender=self.nickName)
-
-        # Sinon Ya un probl√®me on sait pas ou l'envoyer
-        # Not a good message node, not enough information
-        else:
-            self.clientSendErrorMessage(msg="No recipient given")
-
-
-
 
     def clientSendPong(self):
-        """Asking a ping getting a pong ...
-            Si on recoit un ping
-            on envoit un pong
-            <ping />
-        """
-
-        # C'est plutot basique
-        # pretty simple
         self.clientSendMessage("<pong />")
-
-    def clientSendToRoom(self,data,room,back):
-        """Sending message to a room
-
-            @data   The message
-            @room   The room
-            @back   Should we send the message back ?
-
-
-            On envoit un message dans une room
-        """
-
-        # suis je dedans ?
-        # Client must be in room
-        if self.isClientInRoom(room):
-            # Alors on envoit ... go go go
-            # Asking the room to send the message
-            self.allMyRooms[room].roomSendToAllClients(msg=data,nickName=self.nickName,back=back)
-        else:
-            # Booooooo
-            self.clientSendErrorMessage(msg="No room by that name")
 
     def close (self):
         """Client Left the server
@@ -2630,8 +2421,6 @@ class PalabreClient(asynchat.async_chat):
 
         self.clientSendMessage("<error>%s</error>" % msg)
 
-
-
     def clientSendInfoMessage(self, msg):
         """Info message
             Permet de formater un message en XML indiquant au client qu'une erreur s'est produite
@@ -2640,47 +2429,7 @@ class PalabreClient(asynchat.async_chat):
 
         self.clientSendMessage("<info>%s</info>" % msg)
 
-
-
-    def clientLeaveRoom(self, attrs):
-        """Client leaves a room
-            Le client quitte une room
-            <leave room='STR1' />
-        """
-
-        # Ya t'il le bon param√®tre ?
-        # XML must have a room param
-        if attrs.has_key('room'):
-            room = attrs['room']
-            # Est-il bien dans cette room (Si oui c'est qu'elle existe)
-            # Client Must be in the room
-            if self.isClientInRoom(room):
-                # On informe la room
-                # Notifying room
-
-                self.allMyRooms[room].roomRemoveClient(nickName=self.nickName)
-
-                # On la suprime
-                # deleting the room
-                del self.allMyRooms[room]
-                # On informe le client que c'est OK
-                # Notifying client
-                self.clientSendMessage(msg="<leaved room='%s' />" % room)
-            else:
-                # arf t'es pas d'dans
-                self.clientSendErrorMessage(msg="Not a known room")
-
-        # Si pas de bon param√®tre ... on fait rien
-        else:
-            self.clientSendErrorMessage(msg="No room specified")
-
-
     def clientSendHelp(self):
-        """
-            Liste des param√®tres possibles
-            √† documenter
-        """
-
-        # A faire , A faire , A faire , A faire , A faire , A faire , A faire , A faire , A faire , ...
         self.clientSendMessage("<help><![[CDATA][First of all send a <connect nickname='XYZ' /> node]]></help>")
 
+# ---

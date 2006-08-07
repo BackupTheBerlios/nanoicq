@@ -37,14 +37,12 @@ else:
 from datetime import datetime
 
 from palabreClient import PalabreClient
-from palabreRoom import PalabreRoom
-
 
 
 class PalabreServer(asyncore.dispatcher):
     channel_class = PalabreClient
 
-    def __init__(self, HOST='', PORT=2468, rootPassword=''):
+    def __init__(self, HOST = '', PORT = 2468, rootPassword = ''):
         """ Constructor of the server
 
         Defines many variables
@@ -216,21 +214,6 @@ class PalabreServer(asyncore.dispatcher):
 
         return False
 
-    def serverRmClient(self, nickName, rootUser):
-        """Method to handle a kick off
-            @nickName : Client to kick !
-            @rootUser : Root user who asked for the kick
-
-        """
-
-        if self.serverClientExists(nickName):
-            self.allNickNames[nickName].clientSendErrorMessage("You have been kicked from the server by an administrator")
-            self.allNickNames[nickName].clientQuit()
-            rootUser.clientSendInfoMessage("Client %s kicked" % nickName);
-        else:
-            rootUser.clientSendErrorMessage("No user connected with nickname: %s" % nickName);
-
-
     def serverClientQuit(self, nickName, uid = None):
         """Method to handle a client deconnection
         @nickName : Nickname of the client to disconnect.
@@ -349,35 +332,6 @@ class PalabreServer(asyncore.dispatcher):
         for p in self.allNickNames.values():
             p.clientSendMessage(msg=data)
 
-    def serverSendToRoom(self, data, sender, room, back):
-        """ Method to send a message from a client to a specific room
-
-         @data Message to send
-         @sender Nickname of the sender
-         @room Name of the room to send the message to
-         @back BOOLEAN Should we send the message back to the sender to ? usefull for debug but use more bandwidth
-
-         Does this room exist ?"""
-
-        if self.allRooms.has_key(room):
-            # We call the room
-            self.allRooms[room].roomSendToAllClients(msg=data, nickName=sender, back=back)
-        else:
-            self.allNickNames[sender].clientSendErrorMessage(msg="No room by that name")
-
-
-        def serverGetRoom(self, room):
-            """
-                Method to get informations about a particular room
-
-                @room : Room to get information about
-            """
-
-            if self.allRooms.has_key(room):
-                return self.allRooms[room].roomGetInfo()
-            else:
-                return "<error>No room by that name</error>"
-
     def checkPassword(self, nickName, password, sesId, ip):
         rc = True
         try:
@@ -437,57 +391,15 @@ class PalabreServer(asyncore.dispatcher):
         """
 
         if nickName == "":
-            return (False, 'Nickname is empty')
+            return (False, ERRORS[55])
         if self.allNickNames.has_key(nickName):
-            return (False, 'Nickname already taken')
+            return (False, ERRORS[56])
 
         # Password check moved to isAuthorized()
         #if not self.checkPassword(nickName, password):
         #    return (False, "Bad password for user '%s'" % nickName)
 
         return True
-
-    def serverAddClientToRoom(self, client, room='', parentR=''):
-        """A client is trying to join a rooms
-
-        This room may not exist, if so, we create it
-
-        @client : Nickname of the client
-        @room : Name of the room to join(create)
-        @parentR : If we want to create a "Sub"Room, name of the ParentRoom (must exist)
-
-        <Returns the instance of the Room
-        """
-
-
-        # La room existe déjà ?
-        if self.allRooms.has_key(room):
-            # On demande à la room de rajouter ce client
-            self.allRooms[room].roomAddClient(client=client)
-        else:
-            # On demande à la room de se créer avec comme opérateur ce client
-            self.allRooms[room] = \
-                PalabreRoom(
-                    rid = 0,
-                    name = room, 
-                    title = '', 
-                    client = client, 
-                    server = self, 
-                    creatorId = 0, 
-                    operatorId = 0, 
-                    allowedUsersGroup = None, 
-                    languageId = 0, 
-                    temporary = 0, 
-                    passwordProtected = 0, 
-                    moderationAllowed = 0,
-                    roomManagementLevel = 0, 
-                    userManagementlevel = 0,
-                    numberOfUsers = 0, 
-                    numberOfSpectators = 0,
-                    parentR = parentR)
-
-        # On retourne l'instance room au client
-        return self.allRooms[room]
 
     def serverAddClient(self,client):
         """When a client connects

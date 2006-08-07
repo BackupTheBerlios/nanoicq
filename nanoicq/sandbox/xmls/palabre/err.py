@@ -1,5 +1,5 @@
 
-# $Id: err.py,v 1.2 2006/08/07 09:50:32 lightdruid Exp $
+# $Id: err.py,v 1.3 2006/08/07 15:08:50 lightdruid Exp $
 
 ERRORS = {
 1 : "Can't find group with id='%d'",
@@ -71,6 +71,11 @@ ERRORS = {
 51 : "User id=%d already blocked",
 
 52 : "User id=%d is not blocked",
+53 : "Not a known node",
+54 : "You must login first",
+
+55 : 'Nickname is empty',
+56 : 'Nickname already taken',
 }
 
 # Reversed version

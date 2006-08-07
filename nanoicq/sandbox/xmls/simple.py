@@ -159,7 +159,7 @@ class Client(Thread):
 
                     #self.sock.xsend('<addalloweduser uid="2" rid="2" />')
 
-                    self.sock.xsend("<joinroom id='1' password='abcde' />")
+                    #self.sock.xsend("<joinroom id='1' password='abcde' />")
                     #self.sock.xsend("<listusers id='1' />")
                     #self.sock.xsend('<redirectuser uid="2" from_rid="1" to_rid="2" />')
                     #self.sock.xsend('<addnewalloweduser rid="2" />')
@@ -169,7 +169,7 @@ class Client(Thread):
                     #self.sock.xsend("<listusers id='1' />")
                     #self.sock.xsend("<leaveroom id='1' />")
 
-                    self.sock.xsend("<addnewalloweduser rid='2' text='welcome' />")
+                    #self.sock.xsend("<addnewalloweduser rid='2' text='welcome' />")
 
                     #self.sock.xsend("<inviteuser uid='1' rid='1' />")
 
@@ -194,7 +194,7 @@ class Client(Thread):
 
                     #self.sock.xsend("<grouplookup name='group 2' />")
                     #self.joinLeave()
-                    #self.sock.xsend("<info/>")
+                    self.sock.xsend("<info/>")
                     #self.sock.xsend("<unblockuser id='3' />")
               
                 for a in node.attributes.items():
