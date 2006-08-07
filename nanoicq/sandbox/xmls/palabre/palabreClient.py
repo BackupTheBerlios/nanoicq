@@ -1192,6 +1192,51 @@ class PalabreClient(asynchat.async_chat):
             self.clientSendMessage( out % (from_rid, to_rid, Q(str(exc))) )
 
 
+    def addNewAllowedUser(self, attrs):
+        # в комнате есть AllowedUser + AllowedGroup
+        # в гуппе есть listMembers
+        # так вот сервер всем кто имеет доступ к этой комнате 
+        # должен присылать приглашений зайти
+
+        c = self.db.cursor()
+
+        try:
+
+            rid = self._getIntAttr("rid", attrs)
+
+            self.db.commit()
+            self.db.begin()
+
+            s = "select id, allowedGroupId from rooms where id = %d" % rid
+            c.execute(s)
+            rs = c.fetchone()
+            if rs is None:
+                raise InnerException(4, ERRORS[4] % rid)
+
+            allowedGroupId = rs[1]
+
+            s = "select id from users where gid = %d union select users_id from allowed_users_rooms where rooms_id = %d" % (allowedGroupId, rid)
+            c.execute(s)
+            rs = c.fetchall()
+            id_set = set()
+
+            for r in rs:
+                id_set.add(r[0])
+
+            self.server.addNewAllowedUser(self.ids, rid, list(id_set))
+
+            self.clientSendMessage("<addnewalloweduser rid='%d' error='0' />" % (rid))
+            safeClose(c) 
+
+        except InnerException, exc:
+            safeClose(c)
+            out = "<addnewalloweduser msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+        except Exception, exc:
+            safeClose(c)
+            out = "<addnewalloweduser error='-1' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
     def addAllowedUser(self, attrs):
         #allowedUsers лучше передавать отдельным чанком как listMembers
         #C: <listAllowedUser roomId="2">
@@ -1753,7 +1798,7 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise InnerException(4, ERRORS[4] % int(rid))
 
-            s = "select id, name, moderationLevel, roomManagementLevel from users where id in (select users_id from users_rooms where rooms_id = %d and isspectator = 0)" % rid
+            s = "select id, name, moderationLevel, roomManagementLevel from users where id in (select users_id from users_rooms where rooms_id = %d and spectator = 0)" % rid
             print s
 
             c.execute(s)
@@ -2019,6 +2064,10 @@ class PalabreClient(asynchat.async_chat):
                 # redirect
                 elif node == "redirectuser":
                     self.redirectUser(attrs)
+
+                # add new allowed user
+                elif node == "addnewalloweduser":
+                    self.addNewAllowedUser(attrs)
 
                 # add allowed user
                 elif node == "addalloweduser":
