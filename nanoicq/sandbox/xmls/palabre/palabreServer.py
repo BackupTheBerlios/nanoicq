@@ -806,15 +806,18 @@ class PalabreServer(asyncore.dispatcher):
             out.append(self._map[ids].ids)
         return out
 
-    def addNewAllowedUser(self, from_uid, rid, id_list):
+    def addNewAllowedUser(self, from_uid, rid, id_list, text):
+
+        invitationText = ""
+        if text is not None:
+            invitationText = "text=%s" % text
+
         for ids in self._map:
             if not isinstance(self._map[ids], PalabreClient):
                 continue
-            #print "ids=%d, uid=%d" % (self._map[ids].ids, uid)
-            #print "notifyList: ", notifyList
 
             targetIds = self._map[ids].ids
-            msg = "<invite from_uid='%d' rid='%d' />" % (from_uid, rid)
+            msg = "<invite from_uid='%d' rid='%d' %s />" % (from_uid, rid, invitationText)
             if targetIds in id_list:
                 self._map[ids].clientSendMessage(msg)
 

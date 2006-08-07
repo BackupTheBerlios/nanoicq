@@ -1198,11 +1198,21 @@ class PalabreClient(asynchat.async_chat):
         # так вот сервер всем кто имеет доступ к этой комнате 
         # должен присылать приглашений зайти
 
+        # C: <addnewalloweduser rid='2' text='welcome' />
+        # S: <addnewalloweduser rid='2' error='0' />
+        # S: to all clients in allowedusers and allowedgroup:
+        #    <invite from_uid='1' rid='2' text='welcome' />
+
         c = self.db.cursor()
 
         try:
 
             rid = self._getIntAttr("rid", attrs)
+
+            # invitation text
+            text = None
+            if attrs.has_key("text"):
+                text = Q(attrs["text"])
 
             self.db.commit()
             self.db.begin()
@@ -1213,17 +1223,22 @@ class PalabreClient(asynchat.async_chat):
             if rs is None:
                 raise InnerException(4, ERRORS[4] % rid)
 
+            s = ""
             allowedGroupId = rs[1]
+            if allowedGroupId is not None:
+                s = "select id from users where gid = %d union" % (allowedGroupId)
+            s += "select users_id from allowed_users_rooms where rooms_id = %d" % (rid)
 
-            s = "select id from users where gid = %d union select users_id from allowed_users_rooms where rooms_id = %d" % (allowedGroupId, rid)
             c.execute(s)
             rs = c.fetchall()
+            print s, rs
             id_set = set()
 
             for r in rs:
                 id_set.add(r[0])
+            print 'ID_SET', id_set
 
-            self.server.addNewAllowedUser(self.ids, rid, list(id_set))
+            self.server.addNewAllowedUser(self.ids, rid, list(id_set), text)
 
             self.clientSendMessage("<addnewalloweduser rid='%d' error='0' />" % (rid))
             safeClose(c) 
