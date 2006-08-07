@@ -46,15 +46,6 @@ def NEGNUL(v):
     return v
 
 
-class InnerException(Exception):
-    def __init__(self, errno, msg):
-        Exception.__init__(self, msg)
-        self.msg = msg
-        self.errno = errno
-
-    def __str__(self):
-        return "'%s' error='%d'" % (self.msg, self.errno)
-
 
 class FakeException(Exception):
     ''' For debug only '''
@@ -185,9 +176,54 @@ class PalabreClient(asynchat.async_chat):
             out = "<listblockedusers error='-1' msg=%s />" 
             self.clientSendMessage( out % Q(str(exc)) )
 
-    def silentUser(self, uid, attrs):
-        period = int(attrs["period"])
+    def blockUser(self, attrs, flag):
         try:
+
+            uid = self._getIntAttr("id", attrs)
+
+            c = self.db.cursor()
+            s = 'select u.id, u.isblocked from users u where id = %d' % uid
+            c.execute(s)
+
+            rs = c.fetchone()
+            if rs is None:
+                raise InnerException(32, ERRORS[32] % uid)
+
+            if flag:
+                out = "<blockuser error='0' id='%d' />" % uid
+                if rs[1] == 1:
+                    raise InnerException(51, ERRORS[51] % uid)
+                blockedValue = 1
+
+                self.server.blockClient(uid, flag)
+            else:
+                out = "<unblockuser error='0' id='%d' />" % uid
+                if rs[1] == 0:
+                    raise InnerException(52, ERRORS[52] % uid)
+                blockedValue = 0
+
+            s = "update users set isblocked = %d where id = %d" % (blockedValue, uid)
+            c.execute(s)
+            self.db.commit()
+ 
+            self.clientSendMessage(out)
+        except InnerException, exc:
+            if flag:
+                out = "<blockuser msg=%s />" 
+            else:
+                out = "<unblockuser msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+        except Exception, exc:
+            if flag:
+                out = "<blockuser error='-1' msg=%s />" 
+            else:
+                out = "<unblockuser error='-1' msg=%s />" 
+            self.clientSendMessage( out % Q(str(exc)) )
+
+    def silentUser(self, uid, attrs):
+        try:
+            period = self._getIntAttr("period", attrs)
+
             if period is None or period <= 0:
                 raise InnerException(29, ERRORS[29])
 
@@ -1093,7 +1129,7 @@ class PalabreClient(asynchat.async_chat):
         try:
 
             uid = self._getIntAttr("uid", attrs)
-            to_rid = self._getIntAttr("ro_rid", attrs)
+            to_rid = self._getIntAttr("to_rid", attrs)
             from_rid = self._getIntAttr("from_rid", attrs)
 
             self.db.commit()
@@ -1717,7 +1753,7 @@ class PalabreClient(asynchat.async_chat):
             if r is None:
                 raise InnerException(4, ERRORS[4] % int(rid))
 
-            s = "select id, name, moderationLevel, roomManagementLevel from users where id in (select users_id from users_rooms where rooms_id = %d)" % rid
+            s = "select id, name, moderationLevel, roomManagementLevel from users where id in (select users_id from users_rooms where rooms_id = %d and isspectator = 0)" % rid
             print s
 
             c.execute(s)
@@ -1935,6 +1971,14 @@ class PalabreClient(asynchat.async_chat):
                 # silent user
                 elif node == "silentuser":
                     self.silentUser(int(attrs["id"]), attrs)
+
+                # 
+                elif node == "blockuser":
+                    self.blockUser(attrs, True)
+
+                # 
+                elif node == "unblockuser":
+                    self.blockUser(attrs, False)
 
                 # locate user
                 elif node == "locateuser":

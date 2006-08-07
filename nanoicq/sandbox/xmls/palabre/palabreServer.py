@@ -16,6 +16,8 @@ from palabre import config, logging, version, escape_string
 from util import *
 from Message import mtypes
 
+from err import ERRORS
+
 SilentCheckInterval = 3 # seconds
 
 DB_MYSQL    = 0

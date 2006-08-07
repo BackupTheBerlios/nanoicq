@@ -1,5 +1,5 @@
 
-# $Id: err.py,v 1.1 2006/08/04 08:10:19 lightdruid Exp $
+# $Id: err.py,v 1.2 2006/08/07 09:50:32 lightdruid Exp $
 
 ERRORS = {
 1 : "Can't find group with id='%d'",
@@ -68,6 +68,9 @@ ERRORS = {
 
 49 : "newPvtPassword is too short",
 50 : "pvtPasswordProtected has invalid value",
+51 : "User id=%d already blocked",
+
+52 : "User id=%d is not blocked",
 }
 
 # Reversed version
