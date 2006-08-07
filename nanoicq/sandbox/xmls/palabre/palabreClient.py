@@ -1238,7 +1238,7 @@ class PalabreClient(asynchat.async_chat):
             s = ""
             allowedGroupId = rs[1]
             if allowedGroupId is not None:
-                s = "select id from users where gid = %d union" % (allowedGroupId)
+                s = "select id from users where gid = %d union " % (allowedGroupId)
             s += "select users_id from allowed_users_rooms where rooms_id = %d" % (rid)
 
             c.execute(s)
