@@ -29,7 +29,7 @@ class Client(Thread):
         self.running = 1
 
     def xml_connect(self):
-        self.sock.xsend('<connect sesId="abcdefgh" nickname="test_' + str(self.ids) + '" password="pass_' + str(self.ids) + '" ></connect>')
+        self.sock.xsend('<connect nickname="test_' + str(self.ids) + '" password="pass_' + str(self.ids) + '" ></connect>')
         print 'connect request has been sent', self.ids
 
     def run(self):
@@ -60,23 +60,21 @@ class Client(Thread):
 
     def genAction(self):
         next_one = randrange(4)
-        return
+        #return
 
         print "From test_%d" % self.ids
         if next_one == 0:
             print 'sending <getrooms />'
-            self.sock.xsend('<getrooms />')
+            self.sock.xsend('<getroomslist />')
         elif next_one == 1:
-            print "sending <join room='XXX' />"
-            self.sock.xsend('<join room="XXX" />')
+            z = randrange(MX)
+            self.sock.xsend('<joinroom rid="%d" />' % z)
         elif next_one == 2:
             z = randrange(MX)
-            print "sending <join room='room_%d' />" % z
-            self.sock.xsend('<join room="room_%d" />' % z)
+            self.sock.xsend('<joinroom rid="%d" />' % z)
         elif next_one == 3:
             z = randrange(MX)
-            print "sending <join room='room_%d' />" % z
-            self.sock.xsend('<join room="room_%d" />' % z)
+            self.sock.xsend('<getroomslist />')
         else:
             raise Exception('wrong seed')
   
@@ -113,8 +111,11 @@ class Client(Thread):
                     print a
 
                 if node.nodeName == 'connect':
-                    self.ping()
-                    return False
+                    #self.ping()
+                    self.genAction()
+                    return True
+
+        self.genAction()
         return True
 
 
@@ -149,7 +150,7 @@ class Bench:
             c.start()
 
         print "Waiting for 3 sec"
-        time.sleep(3)
+        time.sleep(30)
         for c in self.clients:
             c.running = 0
          
