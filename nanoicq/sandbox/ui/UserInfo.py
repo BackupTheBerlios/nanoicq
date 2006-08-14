@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.14 2006/04/17 12:57:45 lightdruid Exp $
+# $Id: UserInfo.py,v 1.15 2006/08/14 15:15:22 lightdruid Exp $
 #
 
 import sys
@@ -56,6 +56,16 @@ def _conv_lang(v):
 class TestNB(wx.Notebook):
     def __init__(self, parent, id):
         wx.Notebook.__init__(self, parent, id, style = wx.NB_MULTILINE )
+
+class TestLB(wx.Listbook):
+    def __init__(self, parent, id):
+        wx.Listbook.__init__(self, parent, id, style=
+                            #wx.LB_DEFAULT
+                            #wxLB_TOP
+                            #wxLB_BOTTOM
+                            wx.LB_LEFT
+                            #wxLB_RIGHT
+                            )
 
 class _Pane_auto:
     _NA = _NA
@@ -474,7 +484,14 @@ class UserInfoPanel(wx.Panel):
         self.iconSet = iconSet
 
         sz = wx.BoxSizer(wx.VERTICAL)
-        self.nb = TestNB(self, -1)
+        self.nb = TestLB(self, -1)
+        lv = self.nb.GetListView()
+        print lv, dir(self.nb)
+        print self.nb.GetListView().GetSize()
+        self.nb.GetListView().SetSize(wx.Size(10, 10))
+        self.nb.GetListView().Layout()
+        self.nb.Layout()
+        print self.nb.GetListView().GetSize()
 
         for h in self._head:
             try:

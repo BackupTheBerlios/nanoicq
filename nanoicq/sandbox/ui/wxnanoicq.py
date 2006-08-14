@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.114 2006/08/09 14:32:04 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.115 2006/08/14 15:15:22 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.114 2006/08/09 14:32:04 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.115 2006/08/14 15:15:22 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -903,35 +903,35 @@ def main(args = []):
 
             return True
 
-    def showExceptionDialog(self, exc_type, exc_value, exc_traceback):
+        def showExceptionDialog(self, exc_type, exc_value, exc_traceback):
 
-        if self.in_exception_dialog:
-            return
-        self.in_exception_dialog = 1
+            if self.in_exception_dialog:
+                return
+            self.in_exception_dialog = 1
 
-        while wxIsBusy():
-            wxEndBusyCursor()
+            while wxIsBusy():
+                wxEndBusyCursor()
 
-        try:
-            lines = traceback.format_exception(exc_type, exc_value,
-                                            exc_traceback)
-            message = _("An unhandled exception occurred:\n%s\n"
-                        "\n\n%s") % (exc_value, "".join(lines))
-            print message
+            try:
+                lines = traceback.format_exception(exc_type, exc_value,
+                                                exc_traceback)
+                message = _("An unhandled exception occurred:\n%s\n"
+                            "\n\n%s") % (exc_value, "".join(lines))
+                print message
 
-            # We don't use an explicit parent here because this method might
-            # be called in circumstances where the main window doesn't exist
-            # anymore.
-            exceptiondialog.run_exception_dialog(None, message)
+                # We don't use an explicit parent here because this method might
+                # be called in circumstances where the main window doesn't exist
+                # anymore.
+                exceptiondialog.run_exception_dialog(None, message)
 
-        finally:
-            self.in_exception_dialog = 0
-            # delete the last exception info that python keeps in
-            # sys.last_* because especially last_traceback keeps
-            # indirect references to all objects bound to local
-            # variables and this might prevent some object from being
-            # collected early enough.
-            sys.last_type = sys.last_value = sys.last_traceback = None
+            finally:
+                self.in_exception_dialog = 0
+                # delete the last exception info that python keeps in
+                # sys.last_* because especially last_traceback keeps
+                # indirect references to all objects bound to local
+                # variables and this might prevent some object from being
+                # collected early enough.
+                sys.last_type = sys.last_value = sys.last_traceback = None
 
 
     wx.InitAllImageHandlers()
