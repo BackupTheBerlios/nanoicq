@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.117 2006/08/15 14:59:27 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.118 2006/08/15 15:27:57 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.117 2006/08/15 14:59:27 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.118 2006/08/15 15:27:57 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -957,12 +957,12 @@ def main(args = []):
             self.frame.Show(True)
 
             self.Bind(wx.EVT_LEFT_DOWN, self.onMouseLeftDown)
-            self.Bind(wx.EVT_LEFT_UP,  self.onMouseLeftUp)
-            self.Bind(wx.EVT_RIGHT_UP, self.onMouseRightUp)
+            #self.Bind(wx.EVT_LEFT_UP,  self.onMouseLeftUp)
+            #self.Bind(wx.EVT_RIGHT_UP, self.onMouseRightUp)
             self.Bind(wx.EVT_MOTION, self.onMotion)
 
-            self.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
-            self.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
+            #self.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
+            #self.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
 
             return True
 
@@ -978,8 +978,8 @@ def main(args = []):
         def onMouseLeftDown(self, evt):
 
             obj = evt.GetEventObject()
+            #print obj
             if isinstance(obj, UserListCtrl):
-                print 'onMouseLeftDown', evt
                 x, y = self.frame.ClientToScreen(evt.GetPosition())
                 originx, originy = self.frame.GetPosition()
                 dx = x - originx
@@ -989,10 +989,10 @@ def main(args = []):
                 evt.Skip()
 
         def onMouseLeftUp(self, evt):
-            pass
+            evt.Skip()
 
         def onMouseRightUp(self, evt):
-            pass
+            evt.Skip()
 
         def onMotion(self, evt):
             if evt.Dragging() and evt.LeftIsDown() and hasattr(self, 'delta'):

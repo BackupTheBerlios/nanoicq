@@ -1,6 +1,6 @@
                                                                                                                                     
 #
-# $Id: AboutDialog.py,v 1.2 2006/08/15 14:59:27 lightdruid Exp $
+# $Id: AboutDialog.py,v 1.3 2006/08/15 15:27:57 lightdruid Exp $
 #
 
 import sys
@@ -42,12 +42,15 @@ class AboutDialog(wx.Dialog):
         sz.Add(wx.StaticText(self, -1, "Copyright (C) 2005-2006 Andrey Sidorenko"), 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sz.Add(wx.Button(self, wx.ID_OK, "Ok"), 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-        #self.Bind(wx.EVT_BUTTON, self.onOk, id = wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.onOk, id = wx.ID_OK)
 
         self.SetSizer(sz)
         self.SetAutoLayout(True)
 
         self.CentreOnParent(wx.BOTH)
+
+    def onOk(self, evt):
+        self.Close()
 
 
 def _test():
