@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.116 2006/08/15 11:29:47 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.117 2006/08/15 14:59:27 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.116 2006/08/15 11:29:47 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.117 2006/08/15 14:59:27 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -164,10 +164,15 @@ class Connector:
 class TopFrame(wx.Frame, PersistenceMixin):
     _BLINK_TIMEOUT = 450
 
+    def onMotion(self, evt):
+        print 'TopFrame.onMotion'
+
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title,
             pos=(150, 150), size=(350, 200) )
         PersistenceMixin.__init__(self, self, "frame.position")
+
+        self.Bind(wx.EVT_MOTION, self.onMotion)
 
         # ---
         self._dialogs = []
@@ -200,8 +205,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.lock = threading.RLock()
 
         #---
+
+        self._showMenuBar = True
         self.createTopMenuBar()
+        mbFlag = self.config.safeGetBool('ui', 'show.window.menu') == True
+        self.showMenuBar(mbFlag)
+
         self.makeStatusbar()
+        sbFlag = self.config.safeGetBool('ui', 'show.window.statusbar') == True
+        self.showStatusBar(sbFlag)
+
+        #---
         self.createTopPanel()
 
         # Setup default position and size, later it will be restored,
@@ -331,6 +345,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.topPanel.userList.sampleFill()
         # ---
+
 
     def easyMove(self, pos):
         if self._easyMove:
@@ -811,9 +826,26 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt.Skip()
 
     def OnAbout(self, evt):
-        evt.Skip()
+        #evt.Skip()
         ad = AboutDialog(self)
         ad.Show()
+
+    def showStatusBar(self, flag):
+        self.sb.Show(flag)
+        evt = wx.SizeEvent(self.GetSize())
+        self.GetEventHandler().ProcessEvent(evt)
+
+    def showMenuBar(self, flag):
+        self.topMenuBar.Show(flag)
+
+        self.topMenuBar = wx.MenuBar()
+        if flag:
+            self.createTopMenuBar()
+
+        self.SetMenuBar(self.topMenuBar)
+
+        evt = wx.SizeEvent(self.GetSize())
+        self.GetEventHandler().ProcessEvent(evt)
 
     def onFindUser(self, evt):
         self.fu = FindUserFrame(None, -1, self.iconSet)
@@ -929,14 +961,32 @@ def main(args = []):
             self.Bind(wx.EVT_RIGHT_UP, self.onMouseRightUp)
             self.Bind(wx.EVT_MOTION, self.onMotion)
 
+            self.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
+            self.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
+
             return True
 
+        def onSetFocus(self, evt):
+            #print "OnSetFocus", evt.GetEventObject()
+            self._focusedObject = evt.GetEventObject()
+            evt.Skip()
+
+        def onKillFocus(self, evt):
+            self._focusedObject = None
+            evt.Skip()
+
         def onMouseLeftDown(self, evt):
-            x, y = self.frame.ClientToScreen(evt.GetPosition())
-            originx, originy = self.frame.GetPosition()
-            dx = x - originx
-            dy = y - originy
-            self.delta = ((dx, dy))
+
+            obj = evt.GetEventObject()
+            if isinstance(obj, UserListCtrl):
+                print 'onMouseLeftDown', evt
+                x, y = self.frame.ClientToScreen(evt.GetPosition())
+                originx, originy = self.frame.GetPosition()
+                dx = x - originx
+                dy = y - originy
+                self.delta = ((dx, dy))
+            else:
+                evt.Skip()
 
         def onMouseLeftUp(self, evt):
             pass
@@ -945,10 +995,14 @@ def main(args = []):
             pass
 
         def onMotion(self, evt):
-            if evt.Dragging() and evt.LeftIsDown():
-                x, y = self.frame.ClientToScreen(evt.GetPosition())
-                fp = (x - self.delta[0], y - self.delta[1])
-                self.frame.easyMove(fp)
+            if evt.Dragging() and evt.LeftIsDown() and hasattr(self, 'delta'):
+                obj = evt.GetEventObject()
+                if isinstance(obj, UserListCtrl):
+                    x, y = self.frame.ClientToScreen(evt.GetPosition())
+                    fp = (x - self.delta[0], y - self.delta[1])
+                    self.frame.easyMove(fp)
+                else:
+                    evt.Skip()
 
         def showExceptionDialog(self, exc_type, exc_value, exc_traceback):
 
