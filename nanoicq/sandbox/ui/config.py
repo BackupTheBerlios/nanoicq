@@ -1,11 +1,11 @@
 
 #
-# $Id: config.py,v 1.6 2006/03/01 16:29:09 lightdruid Exp $
+# $Id: config.py,v 1.7 2006/08/15 11:29:47 lightdruid Exp $
 #
 
 import os
 
-from ConfigParser import SafeConfigParser
+from ConfigParser import *
 
 class Config(SafeConfigParser):
     SUPPORTED_PROXIES = ['socks5', 'http']
@@ -13,6 +13,25 @@ class Config(SafeConfigParser):
 
     def __init__(defaults = None):
         SafeConfigParser.__init__(defaults)
+
+    def safeGet(self, sect, name):
+        try:
+            return self.get(sect, name)
+        except NoSectionError:
+            return None
+
+    def safeGetBool(self, sect, name):
+        try:
+            return self.getboolean(sect, name)
+        except:
+            return None
+
+    def safeSet(self, sect, name, val):
+        try:
+            self.set(sect, name, val)
+        except NoSectionError:
+            self.add_section(sect)
+            self.set(sect, name, val)
 
     def validate(self):
         ''' Some basic checks '''
@@ -34,7 +53,7 @@ class Config(SafeConfigParser):
         if os.name == 'nt':
             dest_dir = os.getcwd()
         else:
-            dest_dir = "~"
+            dest_dir = os.path.expandvars("$HOME") or os.getcwd()
         f1 = open(os.path.join(os.getcwd(), self._DEFAULT_CONFIG), 'rb')
         f2 = open(full_fn, 'wb')
         f2.write(f1.read())
@@ -52,10 +71,10 @@ class Config(SafeConfigParser):
 def _test():
     c = Config()
     c.read('sample.config-1')
-    print c.get('icq', 'uin')
+    print c.safeGet('icq', 'uin')
     print c.validate()
     c.checkFile("nanoicqrc")
-    c.set('icq', 'uin', '123')
+    c.safeSet('icq', 'uin', '123')
     c.write()
 
 if __name__ == '__main__':

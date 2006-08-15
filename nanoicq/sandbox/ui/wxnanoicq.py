@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.115 2006/08/14 15:15:22 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.116 2006/08/15 11:29:47 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.115 2006/08/14 15:15:22 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.116 2006/08/15 11:29:47 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -166,7 +166,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title,
-            pos=(150, 150), size=(350, 200))
+            pos=(150, 150), size=(350, 200) )
         PersistenceMixin.__init__(self, self, "frame.position")
 
         # ---
@@ -174,6 +174,18 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.config = Config()
         self.config.read('sample.config')
+
+        # FIXME: strange effect
+        #if self.config.safeGetBool('ui', 'show.window.in.taskbar') == False:
+        #    style = self.GetWindowStyle()
+        #    style &= wx.FRAME_NO_TASKBAR
+        #    self.SetWindowStyle(style)
+        #    pass
+
+        self._easyMove = self.config.safeGetBool('ui', 'easy.move')
+
+        if self.config.safeGetBool('ui', 'show.window.titlebar') == False:
+            self.SetWindowStyle(self.GetWindowStyle() & wx.RESIZE_BORDER)
 
         if self.config.has_option('ui', 'icon.blink.timeout'):
              self._BLINK_TIMEOUT = self.config.getint('ui', 'icon.blink.timeout')
@@ -221,7 +233,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_SEARCH_BY_UIN, self.onSearchByUin)
         self.Bind(EVT_SEARCH_BY_EMAIL, self.onSearchByEmail)
         self.Bind(EVT_SEARCH_BY_NAME, self.onSearchByName)
-
 
         self.Bind(wx.EVT_MENU, self.onToggleHideOffline, id = ID_HIDE_OFFLINE)
         self.Bind(wx.EVT_MENU, self.onShowHelp, id = ID_HELP)
@@ -320,6 +331,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.topPanel.userList.sampleFill()
         # ---
+
+    def easyMove(self, pos):
+        if self._easyMove:
+            self.Move(pos)
 
     def blinkUserListIcon(self, b):
         self.topPanel.userList.blinkIcon(b)
@@ -895,13 +910,45 @@ def main(args = []):
     class NanoApp(wx.App):
         def OnInit(self):
             self.in_exception_dialog = 0
-            sys.excepthook = self.showExceptionDialog
+            #sys.excepthook = self.showExceptionDialog
 
-            frame = TopFrame(None, "NanoICQ")
-            self.SetTopWindow(frame)
-            frame.Show(True)
+            self.frame = TopFrame(None, "NanoICQ")
+
+            h = self.frame.GetHandle()
+            import win32con, win32api
+            style = win32con.WS_BORDER
+            #win32api.SetWindowLong(h, win32con.GWL_STYLE, style); 
+
+            #frame.SetExtraStyle(win32con.WS_BORDER)
+            self.SetTopWindow(self.frame)
+
+            self.frame.Show(True)
+
+            self.Bind(wx.EVT_LEFT_DOWN, self.onMouseLeftDown)
+            self.Bind(wx.EVT_LEFT_UP,  self.onMouseLeftUp)
+            self.Bind(wx.EVT_RIGHT_UP, self.onMouseRightUp)
+            self.Bind(wx.EVT_MOTION, self.onMotion)
 
             return True
+
+        def onMouseLeftDown(self, evt):
+            x, y = self.frame.ClientToScreen(evt.GetPosition())
+            originx, originy = self.frame.GetPosition()
+            dx = x - originx
+            dy = y - originy
+            self.delta = ((dx, dy))
+
+        def onMouseLeftUp(self, evt):
+            pass
+
+        def onMouseRightUp(self, evt):
+            pass
+
+        def onMotion(self, evt):
+            if evt.Dragging() and evt.LeftIsDown():
+                x, y = self.frame.ClientToScreen(evt.GetPosition())
+                fp = (x - self.delta[0], y - self.delta[1])
+                self.frame.easyMove(fp)
 
         def showExceptionDialog(self, exc_type, exc_value, exc_traceback):
 
