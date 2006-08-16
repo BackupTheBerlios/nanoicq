@@ -1,9 +1,12 @@
 
 #
-# $Id: events.py,v 1.18 2006/04/11 14:14:33 lightdruid Exp $
+# $Id: events.py,v 1.19 2006/08/16 09:59:01 lightdruid Exp $
 #
 
 import wx
+
+nanoEVT_ADD_USER_TO_LIST_BY_NAME = wx.NewEventType()
+EVT_ADD_USER_TO_LIST_BY_NAME = wx.PyEventBinder(nanoEVT_ADD_USER_TO_LIST_BY_NAME, 1)
 
 nanoEVT_OFFLINE_MESSAGES = wx.NewEventType()
 EVT_OFFLINE_MESSAGES = wx.PyEventBinder(nanoEVT_OFFLINE_MESSAGES, 1)

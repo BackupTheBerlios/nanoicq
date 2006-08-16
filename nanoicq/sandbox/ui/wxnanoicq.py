@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.118 2006/08/15 15:27:57 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.119 2006/08/16 09:59:01 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.118 2006/08/15 15:27:57 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.119 2006/08/16 09:59:01 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -254,7 +254,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
         #self.Bind(EVT_GOT_CAPTCHA, self.onGotCaptcha)
         self.Bind(EVT_SEND_CAPTCHA_TEXT, self.onSendCaptchaText)
         self.Bind(EVT_START_REGISTER, self.onStartRegister)
+
         self.Bind(EVT_ADD_USER_TO_LIST, self.onAddUserToList)
+        self.Bind(EVT_ADD_USER_TO_LIST_BY_NAME, self.onAddUserToListByName)
+
         self.Bind(EVT_USER_DELETE, self.onUserDelete)
         self.Bind(EVT_REQUEST_USER_INFO, self.onRequestUserInfo)
         self.Bind(EVT_GOT_USER_INFO, self.onGotUserInfo)
@@ -408,6 +411,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
             log().log('Got exception while deleting user: ' + str(exc))
             raise
 
+    def onAddUserToListByName(self, evt):
+        name = evt.getVal()
+        b = self.connector['icq'].getBuddy(name)
+
+        newEvent = NanoEvent(nanoEVT_ADD_USER_TO_LIST, self.GetId())
+        newEvent.setVal(b)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(newEvent)
+
     def onAddUserToList(self, evt):
         '''
         Add user to user list (after search)
@@ -417,7 +428,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         b = evt.getVal()
 
         try:
-            nb = self.connector['icq'].getBuddyByUin(b.uin)
+            nb = self.connector['icq'].getBuddyByUin(b.uinZ)
             if nb is not None:
                 name = ''
                 if b.name is not None and len(b.name) > 0:
@@ -432,7 +443,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             # Add user to contact list
             self.connector['icq'].addBuddyToList(b)
 
-            # Then start SSI edit strsaction
+            # Then start SSI edit transaction
             self.connector['icq'].sendSSIEditBegin()
             self.connector['icq'].sendSSIAdd(b)
             self.connector['icq'].sendSSIEditEnd()
@@ -708,9 +719,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
                     self._iconTimer.subscribe(self.blinkIcon)
                     self._iconTimer.subscribe((self.blinkUserListIcon, b))
         else:
+            print >> sys.stderr, 'self.lock.acquire...'
             self.lock.acquire()
+            print >> sys.stderr, 'self.lock.acquire done'
             self.showMessage(b, m)
+            print >> sys.stderr, 'self.lock.release()...'
             self.lock.release()
+            print >> sys.stderr, 'self.lock.release() done'
 
     def event_Results(self, kw):
         b = kw['buddy']
@@ -864,9 +879,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
             wx.MessageBox('Error: ' + str(exc), 'Connect error', wx.OK)
 
     def showMessage(self, b, message, hide = False):
-        print 'showMessage()'
-        print "username: '%s'" % b.name
-        #print "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
+        print >> sys.stderr, 'showMessage()'
+        print >> sys.stderr, "username: '%s'" % b.name
+        #print >> sys.stderr, "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
 
         #b = self.connector["icq"].getBuddy(userName)
         colorSet = self.connector["icq"].getColorSet()
@@ -874,29 +889,29 @@ class TopFrame(wx.Frame, PersistenceMixin):
         d.SetIcon(self.mainIcon)
         d.addToHistory(message)
 
-        print 'pass #1'
+        print >> sys.stderr, 'pass #1'
         if not hide:
 
             flag = False
             if self.config.has_option('ui', 'raise.incoming.message'):
                 flag = self.config.getboolean('ui', 'raise.incoming.message')
 
-            print 'pass #2'
+            print >> sys.stderr, 'pass #2'
             if flag or message is None:
                 #wx.YieldIfNeeded()
-                print 'pass #3'
+                print >> sys.stderr, 'pass #3'
                 d.Show(True)
                 d.SetFocus()
                 d.Raise()
             else:
-                print 'pass #4'
+                print >> sys.stderr, 'pass #4'
                 if message is not None:
                     if not d.IsShown():
                         print >> sys.stderr, 'subscribing...'
                         self._iconTimer.subscribe(self.blinkIcon)
                         self._iconTimer.subscribe((self.blinkUserListIcon, b))
 
-        print 'pass #5'
+        print >> sys.stderr, 'pass #5'
         self._dialogs.append(d)
 
 class TopPanel(wx.Panel):
@@ -985,6 +1000,7 @@ def main(args = []):
                 dx = x - originx
                 dy = y - originy
                 self.delta = ((dx, dy))
+                evt.Skip()
             else:
                 evt.Skip()
 

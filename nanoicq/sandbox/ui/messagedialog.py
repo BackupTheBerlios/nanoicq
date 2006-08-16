@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.36 2006/03/22 14:20:25 lightdruid Exp $
+# $Id: messagedialog.py,v 1.37 2006/08/16 09:59:01 lightdruid Exp $
 #
 
 import sys
@@ -148,6 +148,7 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         wx.Frame.__init__(self, None, ID, user.name, size = size,
             style = style, name = 'message_dialog_' + user.name)
+
 
         assert isinstance(user, Buddy)
         self._user = user

@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.21 2006/04/17 11:39:52 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.22 2006/08/16 09:59:01 lightdruid Exp $
 #
 
 import sys
@@ -75,23 +75,26 @@ class NanoTextEditMixin(listmix.TextEditMixin):
             event.Skip()
 
 
-class UserListCtrl(wx.ListCtrl, 
-    listmix.ListCtrlAutoWidthMixin,
-    listmix.ColumnSorterMixin,
-    NanoTextEditMixin):
+class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin,
+        listmix.ColumnSorterMixin, NanoTextEditMixin):
 
-    ID_SEND_MESSAGE = wx.NewId()
-    ID_USER_DETAILS = wx.NewId()
-    ID_USER_RENAME = wx.NewId()
-    ID_USER_DELETE = wx.NewId()
+    ID_SEND_MESSAGE                 = wx.NewId()
+    ID_USER_DETAILS                 = wx.NewId()
+    ID_USER_ADD_TO_SERVER_LIST      = wx.NewId()
+    ID_USER_RENAME                  = wx.NewId()
+    ID_USER_DELETE                  = wx.NewId()
 
     def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
-            size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_SIMPLE):
+            size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_NONE): # wx.BORDER_SIMPLE):
 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         listmix.ColumnSorterMixin.__init__(self, 2)
         NanoTextEditMixin.__init__(self)
+
+        # 212 208 200
+        #self.SetBackgroundColour(parent.GetBackgroundColour())
+        self.SetBackgroundColour(wx.Color(212, 208, 200))
 
         self.itemDataMap = {}
         self.currentItem = -1
@@ -188,6 +191,7 @@ class UserListCtrl(wx.ListCtrl,
             (self.ID_SEND_MESSAGE, "Send message", "self.onSendMessage"),
             (),
             (self.ID_USER_DETAILS, "User details", "self.onUserDetails"),
+            (self.ID_USER_ADD_TO_SERVER_LIST, "Add to server list", "self.onUserAddToServerList"),
             (),
             (self.ID_USER_RENAME, "Rename", "self.onUserRename"),
             (self.ID_USER_DELETE, "Delete", "self.onUserDelete"),
@@ -224,6 +228,15 @@ class UserListCtrl(wx.ListCtrl,
         userName = self.getColumnText(self.currentItem, 1)
 
         newEvent = NanoEvent(nanoEVT_REQUEST_USER_INFO, self.GetId())
+        newEvent.setVal(userName)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(newEvent)
+
+    def onUserAddToServerList(self, evt):
+        evt.Skip()
+
+        userName = self.getColumnText(self.currentItem, 1)
+
+        newEvent = NanoEvent(nanoEVT_ADD_USER_TO_LIST_BY_NAME, self.GetId())
         newEvent.setVal(userName)
         wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(newEvent)
 

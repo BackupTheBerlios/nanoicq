@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.96 2006/04/17 11:39:51 lightdruid Exp $
+# $Id: icq.py,v 1.97 2006/08/16 09:59:01 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1245,7 +1245,7 @@ class Protocol:
         log().log('Current list of groups: %s' % self._groups)
 
         #log().log('Notify server about our buddy list')
-        #self.sendBuddyList()
+        #self.________sendBuddyList()
         self.sendActivateSSIList()
 
     def sendActivateSSIList(self):
@@ -1253,7 +1253,7 @@ class Protocol:
         self.sendSNAC(0x13, 0x07, 0, '')
         log().log('Activation done (SNAC(13,07)')
 
-    def sendBuddyList(self):
+    def ___________sendBuddyList(self):
         '''
         SNAC(03,04)     CLI_BUDDYLIST_ADD   
 
@@ -1360,12 +1360,13 @@ class Protocol:
             self._groups.add(groupID, name)
         # FIXME: 25
         elif flagType == 25:
-            print "### it's buddy???"
-            if len(name) > 0:
-                import re
-                digit = re.compile('^\d+$')
-                if digit.match(name):
-                    self.parseSSIBuddy(groupID, itemID, name, tlvs)
+#            print "### it's buddy???"
+#            if len(name) > 0:
+#                import re
+#                digit = re.compile('^\d+$')
+#                if digit.match(name):
+#                    self.parseSSIBuddy(groupID, itemID, name, tlvs)
+            pass
         elif flagType == SSI_ITEM_BUDDY:
             print "### it's buddy"
             self.parseSSIBuddy(groupID, itemID, name, tlvs)
@@ -2672,8 +2673,8 @@ class Protocol:
 
         while len(data) >= 2:
             code = struct.unpack('!H', data[0:2])
+            print 'CODE:', code, ashex(data[0:2])
             data = data[2:]
-            print 'CODE:', code
 
     def sendAuthorizationRequest(self, b):
         '''
@@ -2751,9 +2752,8 @@ class Protocol:
         data += struct.pack('!H', len(b.uin))
         data += b.uin
 
-        gid = 1
-        #itemid = generateServerId()
-        itemid = 1
+        gid = 0
+        itemid = 99
         itemFlag = 0x0000
         data += struct.pack('!H', gid)
 
@@ -2772,9 +2772,11 @@ class Protocol:
         # FIXME: doesn't work
         #if awaitingAuth:
         #    data2 += tlv(0x0066, '')
+        data2 += tlv(0x0066, '')
 
         # Length of additional data
         dataLen = len(data2)
+        print 'dataLen', dataLen
         data += struct.pack('!H', dataLen)
         data += data2
 
@@ -2837,7 +2839,8 @@ class Protocol:
             data = '\x00\x01\x00\x00'
 
         log().log('Sending SSI edit begin (CLI_SSI_EDIT_BEGIN)')
-        self.sendSNAC(0x13, 0x11, 0x11, data)
+        #self.sendSNAC(0x13, 0x11, 0x11, data)
+        self.sendSNAC(0x13, 0x11, 0, '')
 
     def sendSSIEditEnd(self):
         '''
