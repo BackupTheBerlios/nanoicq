@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.22 2006/08/16 09:59:01 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.23 2006/08/23 15:31:54 lightdruid Exp $
 #
 
 import sys
@@ -85,7 +85,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin,
     ID_USER_DELETE                  = wx.NewId()
 
     def __init__(self, parent, ID, iconSet, pos = wx.DefaultPosition,
-            size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_NONE): # wx.BORDER_SIMPLE):
+            size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER ): # wx.BORDER_SIMPLE):
 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
