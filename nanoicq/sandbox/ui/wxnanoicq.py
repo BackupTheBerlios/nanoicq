@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.119 2006/08/16 09:59:01 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.120 2006/08/23 15:21:41 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.119 2006/08/16 09:59:01 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.120 2006/08/23 15:21:41 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -44,6 +44,12 @@ from FindUser import FindUserFrame
 from Captcha import CaptchaFrame
 from Register import RegisterFrame
 from UserInfo import UserInfoFrame
+
+try:
+    import psyco
+    psyco.full()
+except:
+    pass
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -347,8 +353,49 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self._iconTimer.Start()
 
         #self.topPanel.userList.sampleFill()
+
+        self._pendingWindows = []
+        #self.Bind(wx.EVT_IDLE, self.idleHandler)
         # ---
 
+
+    def idleHandler(self, event):
+
+        plen = len(self._dialogs)
+
+        for ii in range(plen):
+            d = self._dialogs[ii]
+            print 'idle dialog:', ii, d
+            if hasattr(d, 'must_be_shown') and d.must_be_shown == True:
+                print 'raise:', self._dialogs[ii]
+                print self._dialogs[ii].Show()
+                print self._dialogs[ii].SetFocus()
+                print self._dialogs[ii].Raise()
+                self._dialogs[ii].must_be_shown = False
+
+        return
+
+        plen = len(self._pendingWindows)
+
+        newPendingWindows = []
+        for ii in range(plen):
+            if hasattr(self._pendingWindows[ii], 'must_be_deleted'):
+                if self._pendingWindows[ii].must_be_deleted == True:
+                    pass
+                else:
+                    newPendingWindows.append(self._pendingWindows[ii])
+            else:
+                newPendingWindows.append(self._pendingWindows[ii])
+
+        self._pendingWindows = newPendingWindows
+
+        for ii in range(plen):
+            print 'idle:', self._pendingWindows[ii]
+            self._pendingWindows[ii].Show()
+            self._pendingWindows[ii].Focus()
+            self._pendingWindows[ii].Raise()
+            self._pendingWindows[ii].must_be_deleted = True
+            
 
     def easyMove(self, pos):
         if self._easyMove:
@@ -684,7 +731,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'onIncomingMessage()'
 
         b, m = evt.getVal()
-        evt.Skip()
+        #evt.Skip()
 
         for k in self._plugins:
             print 'Applying plugin ' + k
@@ -719,13 +766,13 @@ class TopFrame(wx.Frame, PersistenceMixin):
                     self._iconTimer.subscribe(self.blinkIcon)
                     self._iconTimer.subscribe((self.blinkUserListIcon, b))
         else:
-            print >> sys.stderr, 'self.lock.acquire...'
+            print 'self.lock.acquire...'
             self.lock.acquire()
-            print >> sys.stderr, 'self.lock.acquire done'
+            print 'self.lock.acquire done'
             self.showMessage(b, m)
-            print >> sys.stderr, 'self.lock.release()...'
+            print 'self.lock.release()...'
             self.lock.release()
-            print >> sys.stderr, 'self.lock.release() done'
+            print 'self.lock.release() done'
 
     def event_Results(self, kw):
         b = kw['buddy']
@@ -879,39 +926,42 @@ class TopFrame(wx.Frame, PersistenceMixin):
             wx.MessageBox('Error: ' + str(exc), 'Connect error', wx.OK)
 
     def showMessage(self, b, message, hide = False):
-        print >> sys.stderr, 'showMessage()'
-        print >> sys.stderr, "username: '%s'" % b.name
-        #print >> sys.stderr, "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
+
+        print 'showMessage()'
+        print "username: '%s'" % b.name
+        #print "buddy is '%s'" % (str(self.connector["icq"].getBuddy(userName)))
 
         #b = self.connector["icq"].getBuddy(userName)
         colorSet = self.connector["icq"].getColorSet()
-        d = MessageDialog(self, -1, b, message, colorSet)
+        d = MessageDialog(None, -1, b, message, colorSet)
+        return
+
         d.SetIcon(self.mainIcon)
         d.addToHistory(message)
 
-        print >> sys.stderr, 'pass #1'
+        print 'pass #1'
         if not hide:
 
             flag = False
             if self.config.has_option('ui', 'raise.incoming.message'):
                 flag = self.config.getboolean('ui', 'raise.incoming.message')
 
-            print >> sys.stderr, 'pass #2'
+            print 'pass #2'
+            we_have_dialog = False
             if flag or message is None:
-                #wx.YieldIfNeeded()
-                print >> sys.stderr, 'pass #3'
-                d.Show(True)
+                print 'pass #3'
+                d.Show()
                 d.SetFocus()
                 d.Raise()
             else:
-                print >> sys.stderr, 'pass #4'
+                print 'pass #4'
                 if message is not None:
                     if not d.IsShown():
-                        print >> sys.stderr, 'subscribing...'
+                        print 'subscribing...'
                         self._iconTimer.subscribe(self.blinkIcon)
                         self._iconTimer.subscribe((self.blinkUserListIcon, b))
 
-        print >> sys.stderr, 'pass #5'
+        print 'pass #5'
         self._dialogs.append(d)
 
 class TopPanel(wx.Panel):
@@ -1050,12 +1100,17 @@ def main(args = []):
                 # collected early enough.
                 sys.last_type = sys.last_value = sys.last_traceback = None
 
+    #wx.Log_SetActiveTarget(wx.LogStderr())
+    #wx.Log_SetTraceMask(wx.TraceMessages | wx.TraceMemAlloc | wx.TraceResAlloc | wx.TraceRefCount)
 
     wx.InitAllImageHandlers()
     app = NanoApp(redirect = False)
     app.MainLoop()
 
 if __name__ == '__main__':
+    wx.Log_SetActiveTarget(wx.LogStderr())
+    wx.Log_SetTraceMask(wx.TraceMessages | wx.TraceMemAlloc | wx.TraceResAlloc | wx.TraceRefCount)
+
     main(sys.argv[1:])
 
 # ---
