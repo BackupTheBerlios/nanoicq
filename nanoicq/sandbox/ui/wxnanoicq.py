@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.120 2006/08/23 15:21:41 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.121 2006/08/23 15:26:01 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.120 2006/08/23 15:21:41 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.121 2006/08/23 15:26:01 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -48,7 +48,9 @@ from UserInfo import UserInfoFrame
 try:
     import psyco
     psyco.full()
+    log().log("psycho loaded")
 except:
+    log().log("psycho not loaded")
     pass
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
