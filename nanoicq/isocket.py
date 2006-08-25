@@ -1,6 +1,6 @@
 
 #
-# $Id: isocket.py,v 1.16 2006/03/30 10:36:00 lightdruid Exp $
+# $Id: isocket.py,v 1.17 2006/08/25 10:10:30 lightdruid Exp $
 #
 
 import socket
@@ -105,6 +105,11 @@ class ISocket:
                         _fake_log('Got %d bytes in %d attempt' % (len(buf2), attempt))
 
                         if len(buf) != length:
+
+                            if attempt > max_attempts:
+                                _fake_log('Unable to recover after %d attempts' % max_attempts)
+                                break
+
                             _fake_log('Even after retrying len(buf) = %d bytes' % (len(buf)))
                             time.sleep(sleep_timout)
                         else:

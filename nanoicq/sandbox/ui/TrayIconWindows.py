@@ -1,6 +1,6 @@
 
 #
-# $Id: TrayIconWindows.py,v 1.14 2006/04/12 13:45:58 lightdruid Exp $
+# $Id: TrayIconWindows.py,v 1.15 2006/08/25 10:10:31 lightdruid Exp $
 #
 
 # The piece stolen from wxPython demo
@@ -122,7 +122,8 @@ class TrayIcon(wx.TaskBarIcon):
             if getattr(self, ids) == eds:
                 evt = NanoEvent(nanoEVT_MY_STATUS_CHANGED, eds)
                 evt.setVal(alias)
-                self.frame.GetEventHandler().AddPendingEvent(evt)
+                #self.frame.GetEventHandler().AddPendingEvent(evt)
+                wx.PostEvent(self.parent, evt)
                 return
 
         assert 1 == 2

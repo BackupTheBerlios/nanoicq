@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.37 2006/08/16 09:59:01 lightdruid Exp $
+# $Id: messagedialog.py,v 1.38 2006/08/25 10:10:31 lightdruid Exp $
 #
 
 import sys
@@ -251,7 +251,8 @@ class MessageDialog(wx.Frame, PersistenceMixin):
 
         evt = NanoEvent(nanoEVT_DIALOG_CLOSE, self.GetId())
         evt.setVal(self.GetId())
-        self._parentFrame.GetEventHandler().AddPendingEvent(evt)
+        print self._parentFrame
+        wx.PostEvent(self._parentFrame, evt)
 
     def onCancel(self, evt):
         self.storeWidgets()

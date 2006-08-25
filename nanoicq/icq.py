@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.97 2006/08/16 09:59:01 lightdruid Exp $
+# $Id: icq.py,v 1.98 2006/08/25 10:10:30 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -573,7 +573,25 @@ class Protocol:
         func = getattr(self, tmp)
 
         func(snac[5], flag2)
-        
+
+    def proc_2_23_1(self, data, flag):
+        '''
+        SNAC(17,01)     SRV_REGISTRATION_ERROR  
+
+        Server replies with this SNAC to SNAC(17,04) - client 
+        registration request. This snac mean that registration failed for 
+        some reason. 
+        '''
+        log().log("Got SNAC(17,01)     SRV_REGISTRATION_ERROR")
+        errorCode = struct.unpack('!H', data[0:2])
+        try:
+            errorString = _msg_error_codes[errorCode]
+        except:
+            errorString = "Unknown error code: %d" % errorCode
+        log().log(errorString)
+
+        self.react("Registration error", err = errorString)
+
     def proc_2_23_5(self, data, flag):
         '''
         SNAC(17,05), Server confirms CAPTCHA picture text is valid
@@ -1005,7 +1023,7 @@ class Protocol:
         self.sendIdleTime(0)
 
         log().log('{SKIPPED} Getting offline messages...')
-        #self.getOfflineMessages(self._config.get('icq', 'uin'))
+        self.getOfflineMessages(self._config.get('icq', 'uin'))
 
     def sendClientReady(self):
         '''

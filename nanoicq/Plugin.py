@@ -1,6 +1,6 @@
 
 #
-# $Id: Plugin.py,v 1.6 2006/03/19 19:56:44 lightdruid Exp $
+# $Id: Plugin.py,v 1.7 2006/08/25 10:10:30 lightdruid Exp $
 #
 
 import os
@@ -80,9 +80,9 @@ def _test():
     p = load_plugins(connector = None)
     log().log(p)
 
-    m = messageFactory("icq", 'user', '177033621', 'text', Outgoing)
+    m = messageFactory("icq", 'user', '12121212', 'text', Outgoing)
     b = Buddy()
-    b.uin = '177033621'
+    b.uin = '12121212'
 
     for k in p:
         p[k].onIncomingMessage(buddy = b, message = m)

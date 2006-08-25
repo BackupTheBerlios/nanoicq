@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.121 2006/08/23 15:26:01 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.122 2006/08/25 10:10:31 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.121 2006/08/23 15:26:01 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.122 2006/08/25 10:10:31 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -29,13 +29,16 @@ from icq import log
 
 from StatusBar import *
 from config import Config
+
 import guidebug
+import HistoryDirection
+
 from logger import log, LogException
 from messagedialog import MessageDialog
 from persistence import PersistenceMixin
 from utils import *
 from events import *
-from message import Message
+from message import Message, messageFactory
 from history import History
 from userlistctrl import UserListCtrl
 from iconset import *
@@ -44,6 +47,9 @@ from FindUser import FindUserFrame
 from Captcha import CaptchaFrame
 from Register import RegisterFrame
 from UserInfo import UserInfoFrame
+
+from wxPython.lib import newevent
+FakeEvent, EVT_FAKE = newevent.NewEvent()
 
 try:
     import psyco
@@ -272,14 +278,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_AUTHENTIFICATION_REQUEST, self.onAuthentificationRequest)
         self.Bind(EVT_OFFLINE_MESSAGES, self.onOfflineMessages)
 
+        self.keepAliveTimerVal = None
         self._keepAliveTimer = wx.Timer(self)
+
         if self.config.has_option('icq', 'keep.alive.interval'):
             try:
-                timerVal = self.config.getint('icq', 'keep.alive.interval')
-                self._keepAliveTimer.Start(timerVal * 1000)
-                log().log('Started keep alive timer (%d seconds)' % timerVal)
+                self.keepAliveTimerVal = self.config.getint('icq', 'keep.alive.interval')
             except Exception, exc:
-                log().log('Unable to start keep alive timer: ' + str(exc))
+                log().log('Unable to get information about keep alive timer: ' + str(exc))
         self.Bind(wx.EVT_TIMER, self.onKeepAliveTimer)
 
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
@@ -630,6 +636,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         func(kw[1:][0])
 
+    def event_Registration_error(self, kw):
+        err = kw['err']
+        print err
+
     def event_Offline_messages(self, kw):
         q = kw['queue']
         print q
@@ -804,6 +814,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.updateStatusBar('Online')
         self.trayIcon.setToolTip('ICQ online')
 
+        if self.keepAliveTimerVal is not None:
+            self._keepAliveTimer.Start(self.keepAliveTimerVal * 1000)
+            log().log('Started keep alive timer (%d seconds)' % self.keepAliveTimerVal)
+
     @dtrace
     def event_Login(self, kw):
         self.updateStatusBar('Logging in...')
@@ -891,8 +905,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def OnAbout(self, evt):
         #evt.Skip()
-        ad = AboutDialog(self)
-        ad.Show()
+        #ad = AboutDialog(self)
+        #ad.Show()
+
+        b = Buddy()
+        b.name = "user name"
+        b.uin = "12345"
+        m = messageFactory("icq", 'user', '12345', 'text', HistoryDirection.Incoming)
+        evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
+        evt.setVal((b, m))
+
+        wx.PostEvent(self, evt)
 
     def showStatusBar(self, flag):
         self.sb.Show(flag)
@@ -935,8 +958,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #b = self.connector["icq"].getBuddy(userName)
         colorSet = self.connector["icq"].getColorSet()
-        d = MessageDialog(None, -1, b, message, colorSet)
-        return
+        d = MessageDialog(self, -1, b, message, colorSet)
 
         d.SetIcon(self.mainIcon)
         d.addToHistory(message)
