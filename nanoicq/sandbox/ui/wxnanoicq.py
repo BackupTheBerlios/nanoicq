@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.122 2006/08/25 10:10:31 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.123 2006/08/25 10:29:07 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.122 2006/08/25 10:10:31 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.123 2006/08/25 10:29:07 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -905,17 +905,17 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def OnAbout(self, evt):
         #evt.Skip()
-        #ad = AboutDialog(self)
-        #ad.Show()
+        ad = AboutDialog(self)
+        ad.Show()
 
-        b = Buddy()
-        b.name = "user name"
-        b.uin = "12345"
-        m = messageFactory("icq", 'user', '12345', 'text', HistoryDirection.Incoming)
-        evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
-        evt.setVal((b, m))
+        #b = Buddy()
+        #b.name = "user name"
+        #b.uin = "12345"
+        #m = messageFactory("icq", 'user', '12345', 'text', HistoryDirection.Incoming)
+        #evt = NanoEvent(nanoEVT_INCOMING_MESSAGE, self.GetId())
+        #evt.setVal((b, m))
 
-        wx.PostEvent(self, evt)
+        #wx.PostEvent(self, evt)
 
     def showStatusBar(self, flag):
         self.sb.Show(flag)
