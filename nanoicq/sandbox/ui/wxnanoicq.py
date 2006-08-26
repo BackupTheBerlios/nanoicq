@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.123 2006/08/25 10:29:07 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.124 2006/08/26 20:57:17 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.123 2006/08/25 10:29:07 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.124 2006/08/26 20:57:17 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -57,7 +57,6 @@ try:
     log().log("psycho loaded")
 except:
     log().log("psycho not loaded")
-    pass
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -250,7 +249,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         # Events
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.Bind(wx.EVT_ICONIZE, self.onIconfiy)
+        self.Bind(wx.EVT_ICONIZE, self.onIconify)
         self.Bind(EVT_DIALOG_CLOSE, self.dialogClose)
         self.Bind(EVT_MESSAGE_PREPARE, self.onMessagePrepare)
         self.Bind(EVT_SEND_MESSAGE, self.onSendMessage)
@@ -533,7 +532,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.connector[proto].sendHelloServer()
 
     def onNewUser(self, evt):
-        evt.Skip()
 
         self.registerFrame = RegisterFrame(self, -1, self.connector["icq"], self.iconSet, self.config)
         self.registerFrame.CentreOnParent(wx.BOTH)
@@ -570,7 +568,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             dlg.ShowModal()
             dlg.Destroy()
 
-    def onIconfiy(self, evt):
+    def onIconify(self, evt):
         if self.config.getboolean('ui', 'minimize.to.tray'):
             self.Hide()
         evt.Skip()
@@ -638,7 +636,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def event_Registration_error(self, kw):
         err = kw['err']
-        print err
+        wx.MessageBox("New UIN registration error:\n" + err, "Error", wx.OK)
 
     def event_Offline_messages(self, kw):
         q = kw['queue']
@@ -828,20 +826,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.trayIcon.setToolTip('ICQ offline')
 
     def onDisconnect(self, evt):
-        b = restoreFromFile('buddy.dump')
-        #b.name = 'Light Druid'
-
-        self.connector['icq'].connect()
-        self.connector['icq'].login()
-        self.connector['icq'].Start()
-
-        _userInfoFrame = UserInfoFrame(None, -1, self.iconSet, b)
-        _userInfoFrame.CentreOnParent(wx.BOTH)
-        _userInfoFrame.Show(True)
-
         #evt.Skip()
-        #self.connector['icq'].disconnect()
-        #self.connector['icq'].Stop()
+        self.connector['icq'].disconnect()
+        self.connector['icq'].Stop()
 
     @dtrace
     def event_Disconnected(self, kw):
@@ -1074,7 +1061,7 @@ def main(args = []):
                 dx = x - originx
                 dy = y - originy
                 self.delta = ((dx, dy))
-                evt.Skip()
+                #evt.Skip()
             else:
                 evt.Skip()
 
@@ -1085,6 +1072,10 @@ def main(args = []):
             evt.Skip()
 
         def onMotion(self, evt):
+            #print evt.Dragging() 
+            #print evt.LeftIsDown() 
+            #print hasattr(self, 'delta'), "\n"
+
             if evt.Dragging() and evt.LeftIsDown() and hasattr(self, 'delta'):
                 obj = evt.GetEventObject()
                 if isinstance(obj, UserListCtrl):

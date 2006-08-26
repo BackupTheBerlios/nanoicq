@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.11 2006/03/06 19:29:54 lightdruid Exp $
+# $Id: Captcha.py,v 1.12 2006/08/26 20:57:16 lightdruid Exp $
 #
 
 import sys
@@ -163,6 +163,12 @@ class CaptchaPanel(wx.Panel):
         self.Bind(wx.EVT_TEXT_ENTER, self.postPictureText, id = self.ID_TEXT)
         self.Bind(wx.EVT_BUTTON, self.onButton)
 
+        self.Bind(wx.EVT_TIMER, self.onTimer)
+
+    def onTimer(self, evt):
+        del self.busy
+        self.timer.Stop()
+
     def onButton(self, evt):
         evt.Skip()
 
@@ -175,7 +181,12 @@ class CaptchaPanel(wx.Panel):
         self.button2.Enable(False)
         self.Layout()
 
-        busy = wx.BusyInfo("One moment ...")
+        # This is gust a guard, so if we didn't receive any response
+        # from server in 5 secs, just give up
+        self.timer = wx.Timer(self)
+        self.timer.Start(5000)
+
+        self.busy = wx.BusyInfo("One moment ...")
         wx.Yield()
 
         self.connector.registrationImageResponse(self.text.GetValue(),
