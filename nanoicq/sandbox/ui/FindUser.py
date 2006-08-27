@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.20 2006/05/08 12:41:38 lightdruid Exp $
+# $Id: FindUser.py,v 1.21 2006/08/27 11:45:48 lightdruid Exp $
 #
 
 import sys
@@ -168,7 +168,9 @@ class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
             (self.ID_SEND_MESSAGE, _("Send message"), "self.onSendMessage"),
         )
 
-        #if self.currentItem == -1: return
+        # If user clicked outside of filled list
+        if self.currentItem == -1:
+            return
 
         self.popUpMenu = wx.Menu()
 

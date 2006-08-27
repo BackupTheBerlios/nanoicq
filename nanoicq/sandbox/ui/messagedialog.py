@@ -1,6 +1,6 @@
 
 #
-# $Id: messagedialog.py,v 1.38 2006/08/25 10:10:31 lightdruid Exp $
+# $Id: messagedialog.py,v 1.39 2006/08/27 11:45:48 lightdruid Exp $
 #
 
 import sys
@@ -51,6 +51,8 @@ class NanoTextDropTarget(wx.TextDropTarget):
 class MessagePanel(wx.Panel):
     def __init__(self, parent, userName):
         wx.Panel.__init__(self, parent, -1)
+
+        self._showSendButton = False
 
         self._parent = parent
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -112,12 +114,13 @@ class MessagePanel(wx.Panel):
 
         self.boxSizer2.Add(self._pane, 1, wx.EXPAND)
 
-        # 3rd
-        box3 = wx.StaticBox(self, -1)
-        self.boxSizer3 = wx.StaticBoxSizer(box3, wx.HORIZONTAL)
-        self.buttonOk = wx.Button(self, ID_BUTTON_SEND, 'Send',
-            name = 'buttonOk_' + userName)
-        self.boxSizer3.Add(self.buttonOk, 0, wx.ALIGN_RIGHT)
+        if self._showSendButton:
+            # 3rd
+            box3 = wx.StaticBox(self, -1)
+            self.boxSizer3 = wx.StaticBoxSizer(box3, wx.HORIZONTAL)
+            self.buttonOk = wx.Button(self, ID_BUTTON_SEND, 'Send',
+                name = 'buttonOk_' + userName)
+            self.boxSizer3.Add(self.buttonOk, 0, wx.ALIGN_RIGHT)
 
         # 4th
         box4 = wx.StaticBox(self, -1)
@@ -128,7 +131,8 @@ class MessagePanel(wx.Panel):
         #
         self.sizer.Add(self.boxSizer1, 0, wx.EXPAND)
         self.sizer.Add(self.boxSizer2, 4, wx.EXPAND)
-        self.sizer.Add(self.boxSizer3, 0, wx.EXPAND)
+        if self._showSendButton:
+            self.sizer.Add(self.boxSizer3, 0, wx.EXPAND)
         self.sizer.Add(self.boxSizer4, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
@@ -137,7 +141,8 @@ class MessagePanel(wx.Panel):
         # Bug fix for [ wxwindows-Bugs-1428169 ] wx.StaticBox seems to be interfering  with DnD
         box1.Lower()
         box2.Lower()
-        box3.Lower()
+        if self._showSendButton:
+            box3.Lower()
 
 
 class MessageDialog(wx.Frame, PersistenceMixin):
@@ -244,7 +249,11 @@ class MessageDialog(wx.Frame, PersistenceMixin):
         return self._user
 
     def storeWidgets(self):
-        self.storeObjects([self, self.topPanel.buttonOk, self.topPanel.splitter],
+        objs = [self, self.topPanel.splitter]
+        if self.topPanel._showSendButton:
+            objs.append(self.topPanel.buttonOk)
+
+        self.storeObjects(objs,
             name = self._user.name)
 
         self.storeHistory()

@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.98 2006/08/25 10:10:30 lightdruid Exp $
+# $Id: icq.py,v 1.99 2006/08/27 11:45:48 lightdruid Exp $
 #
 
 #username = '264025324'
@@ -1378,7 +1378,7 @@ class Protocol:
             self._groups.add(groupID, name)
         # FIXME: 25
         elif flagType == 25:
-#            print "### it's buddy???"
+            print "### it's buddy???"
 #            if len(name) > 0:
 #                import re
 #                digit = re.compile('^\d+$')
@@ -1743,6 +1743,26 @@ class Protocol:
         Server should reply via SNAC(13,0E).     
         '''
         log().log('Got (13,08) CLI_SSIxADD')
+ 
+    def proc_2_19_21(self, data, flag):
+        '''
+        SNAC(13,15)     SRV_SSI_FUTURExAUTHxGRANTED 
+
+        You'll receive this when somebody grants future authorization to you. 
+        You can use SNAC(13,14) to send such authorization grant.
+        '''
+        log().log('Got SNAC(13,15) SRV_SSI_FUTURExAUTHxGRANTED ')
+
+        uinLen = int(struct.unpack('!B', data[0])[0]) 
+        uin = data[1 : uinLen + 1]
+        log().log("Authorization granted by '%s'" % uin)
+
+        data = data[uinLen + 1:]
+        reasonLen = int(struct.unpack('!B', data[0])[0]) 
+        reason = data[1 : reasonLen + 1]
+        log().log("Authorization reason '%s'" % reason)
+
+        self.react("Authorization granted", uin = uin, reason = reason)
  
     def proc_2_19_10(self, data, flag):
         '''

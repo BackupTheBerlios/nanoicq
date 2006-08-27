@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.15 2006/08/14 15:15:22 lightdruid Exp $
+# $Id: UserInfo.py,v 1.16 2006/08/27 11:45:48 lightdruid Exp $
 #
 
 import sys
@@ -53,11 +53,11 @@ def _conv_lang(v):
     except:
         return _NA
 
-class TestNB(wx.Notebook):
+class UserInfoNoteBook(wx.Notebook):
     def __init__(self, parent, id):
         wx.Notebook.__init__(self, parent, id, style = wx.NB_MULTILINE )
 
-class TestLB(wx.Listbook):
+class UserInfoListBook(wx.Listbook):
     def __init__(self, parent, id):
         wx.Listbook.__init__(self, parent, id, style=
                             #wx.LB_DEFAULT
@@ -484,14 +484,9 @@ class UserInfoPanel(wx.Panel):
         self.iconSet = iconSet
 
         sz = wx.BoxSizer(wx.VERTICAL)
-        self.nb = TestLB(self, -1)
-        lv = self.nb.GetListView()
-        print lv, dir(self.nb)
-        print self.nb.GetListView().GetSize()
-        self.nb.GetListView().SetSize(wx.Size(10, 10))
-        self.nb.GetListView().Layout()
+        self.nb = UserInfoNoteBook(self, -1)
+
         self.nb.Layout()
-        print self.nb.GetListView().GetSize()
 
         for h in self._head:
             try:
@@ -528,12 +523,6 @@ class UserInfoPanel(wx.Panel):
 
     def makePanel(self, h, b):
         p = eval("Pane_%s(self.nb, b)" % h)
-        #p.win = win
-        #
-        #def OnCPSize(evt, win=win):
-        #    win.SetSize(evt.GetSize())
-        #
-        #p.Bind(wx.EVT_SIZE, OnCPSize)
         return p
 
 

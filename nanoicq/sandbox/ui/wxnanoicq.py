@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.124 2006/08/26 20:57:17 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.125 2006/08/27 11:45:48 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.124 2006/08/26 20:57:17 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.125 2006/08/27 11:45:48 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -276,6 +276,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_GOT_USER_INFO, self.onGotUserInfo)
         self.Bind(EVT_AUTHENTIFICATION_REQUEST, self.onAuthentificationRequest)
         self.Bind(EVT_OFFLINE_MESSAGES, self.onOfflineMessages)
+        self.Bind(EVT_AUTHORIZATION_GRANTED, self.onAuthorizationGranted)
 
         self.keepAliveTimerVal = None
         self._keepAliveTimer = wx.Timer(self)
@@ -359,7 +360,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self._iconTimer = NanoTimer(self._BLINK_TIMEOUT, [])
         self._iconTimer.Start()
 
-        #self.topPanel.userList.sampleFill()
+        self.topPanel.userList.sampleFill()
 
         self._pendingWindows = []
         #self.Bind(wx.EVT_IDLE, self.idleHandler)
@@ -414,6 +415,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
     def blinkIcon(self):
         self.trayIcon.blinkIcon()
         self._iconTimer.restart()
+
+    def onAuthorizationGranted(self, evt):
+        uin, reason = evt.getVal()
+        wx.MessageBox("Authorization granted from user '%s'" % uin,
+            "Authorization granted", wx.OK)
 
     def onOfflineMessages(self, evt):
         mq = evt.getVal()
@@ -841,6 +847,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt.setVal(kw['buddy'])
         self.GetEventHandler().AddPendingEvent(evt)
 
+    def event_Authorization_granted(self, kw):
+        evt = NanoEvent(nanoEVT_AUTHORIZATION_GRANTED, self.GetId())
+        evt.setVal( (kw['uin'], kw['reason']) )
+        self.GetEventHandler().AddPendingEvent(evt)
+
     def addBuddy(self, b):
         self.topPanel.userList.addBuddy(b)
 
@@ -1056,6 +1067,18 @@ def main(args = []):
             obj = evt.GetEventObject()
             #print obj
             if isinstance(obj, UserListCtrl):
+
+                ox = evt.GetX()
+                oy = evt.GetY()
+
+                item, flags = obj.HitTest((ox, oy))
+
+                if flags & wx.LIST_HITTEST_ONITEM:
+                    evt.Skip()
+                    if hasattr(self, 'delta'):
+                        del self.delta
+                    return
+
                 x, y = self.frame.ClientToScreen(evt.GetPosition())
                 originx, originy = self.frame.GetPosition()
                 dx = x - originx

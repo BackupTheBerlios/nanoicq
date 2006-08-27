@@ -1,9 +1,12 @@
 
 #
-# $Id: events.py,v 1.19 2006/08/16 09:59:01 lightdruid Exp $
+# $Id: events.py,v 1.20 2006/08/27 11:45:48 lightdruid Exp $
 #
 
 import wx
+
+nanoEVT_AUTHORIZATION_GRANTED = wx.NewEventType()
+EVT_AUTHORIZATION_GRANTED = wx.PyEventBinder(nanoEVT_AUTHORIZATION_GRANTED, 1)
 
 nanoEVT_ADD_USER_TO_LIST_BY_NAME = wx.NewEventType()
 EVT_ADD_USER_TO_LIST_BY_NAME = wx.PyEventBinder(nanoEVT_ADD_USER_TO_LIST_BY_NAME, 1)

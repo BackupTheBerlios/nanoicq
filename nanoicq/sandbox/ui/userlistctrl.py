@@ -1,6 +1,6 @@
 
 #
-# $Id: userlistctrl.py,v 1.23 2006/08/23 15:31:54 lightdruid Exp $
+# $Id: userlistctrl.py,v 1.24 2006/08/27 11:45:48 lightdruid Exp $
 #
 
 import sys
@@ -75,8 +75,10 @@ class NanoTextEditMixin(listmix.TextEditMixin):
             event.Skip()
 
 
-class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin,
+class UserListCtrl(wx.ListCtrl,
         listmix.ColumnSorterMixin, NanoTextEditMixin):
+#class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin,
+#        listmix.ColumnSorterMixin, NanoTextEditMixin):
 
     ID_SEND_MESSAGE                 = wx.NewId()
     ID_USER_DETAILS                 = wx.NewId()
@@ -88,7 +90,7 @@ class UserListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin,
             size = wx.DefaultSize, style = wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER ): # wx.BORDER_SIMPLE):
 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
+        #listmix.ListCtrlAutoWidthMixin.__init__(self)
         listmix.ColumnSorterMixin.__init__(self, 2)
         NanoTextEditMixin.__init__(self)
 
