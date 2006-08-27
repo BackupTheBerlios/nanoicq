@@ -1,6 +1,6 @@
 
 #
-# $Id: Plugin.py,v 1.7 2006/08/25 10:10:30 lightdruid Exp $
+# $Id: Plugin.py,v 1.8 2006/08/27 13:33:45 lightdruid Exp $
 #
 
 import os
@@ -19,7 +19,23 @@ class PluginException(Exception):
     pass
 
 
+_plugin_categories = [
+    "ui",
+    "service",
+    "remote"
+]
+
+def checkPluginCategory(cat):
+    for c in _plugin_categories:
+        if cat == c:
+            return
+    raise PluginException("Unknown plugin category: '%s'" % str(cat))
+
+
 class Plugin(wx.EvtHandler):
+    # Must be overloaded in plugin module
+    _category = None
+
     def __init__(self):
         wx.EvtHandler.__init__(self)
 
@@ -29,6 +45,9 @@ class Plugin(wx.EvtHandler):
     def sendMessage(self, buddy = None, message = None):
         raise NotImplementedError('sendMessage')
 
+    def getCategory(self):
+        return self._category
+        
 
 def __my_path():
     try:
@@ -52,6 +71,7 @@ def __load_plugins(plugin_dir, connector):
 
         try:
             b = __import__(module).init_plugin(connector)
+            checkPluginCategory(b.getCategory())
         except PluginException, exc:
             log().log("Error loading plugin '%s'" % module)
             log().log(str(exc))

@@ -1,6 +1,6 @@
 
 #
-# $Id: remote.py,v 1.1 2006/08/21 22:19:21 lightdruid Exp $
+# $Id: remote.py,v 1.2 2006/08/27 13:33:45 lightdruid Exp $
 #
 
 import sys
@@ -14,6 +14,8 @@ _loaded = True
 
 class Remote(Plugin):
     _trusted_uin = []
+
+    _category = "remote"
 
     def isLoaded(self):
         return _loaded

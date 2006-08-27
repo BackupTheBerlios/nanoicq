@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.126 2006/08/27 12:42:39 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.127 2006/08/27 13:33:45 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.126 2006/08/27 12:42:39 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.127 2006/08/27 13:33:45 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -56,7 +56,7 @@ try:
     psyco.full()
     log().log("psycho loaded")
 except:
-    log().log("psycho not loaded")
+    pass
 
 # System-dependent handling of TrayIcon is in the TrayIcon.py
 # When running on system other than win32, this class is simple
@@ -986,6 +986,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
         print 'pass #5'
         self._dialogs.append(d)
 
+    def getUserList(self):
+        return self.topPanel.userList
+
+
 class TopPanel(wx.Panel):
     def __init__(self, parent, iconSet):
         wx.Panel.__init__(self, parent, -1)
@@ -1028,8 +1032,8 @@ class TopPanel(wx.Panel):
 def main(args = []):
     class NanoApp(wx.App):
         def OnInit(self):
-            self.in_exception_dialog = 0
-            #sys.excepthook = self.showExceptionDialog
+            self.in_exception_dialog = False
+            sys.excepthook = self.showExceptionDialog
 
             self.frame = TopFrame(None, "NanoICQ")
 
@@ -1048,7 +1052,7 @@ def main(args = []):
             #self.Bind(wx.EVT_RIGHT_UP, self.onMouseRightUp)
             self.Bind(wx.EVT_MOTION, self.onMotion)
 
-            self._focusedObject = None
+            self._focusedObject = self.frame.getUserList()
             self.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
             self.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
 
@@ -1060,6 +1064,8 @@ def main(args = []):
             evt.Skip()
 
         def onKillFocus(self, evt):
+            i = 1/0
+
             self._focusedObject = None
             evt.Skip()
 
@@ -1116,25 +1122,24 @@ def main(args = []):
 
             if self.in_exception_dialog:
                 return
-            self.in_exception_dialog = 1
+            self.in_exception_dialog = True
 
-            while wxIsBusy():
-                wxEndBusyCursor()
+            while wx.IsBusy():
+                wx.EndBusyCursor()
 
             try:
                 lines = traceback.format_exception(exc_type, exc_value,
                                                 exc_traceback)
-                message = _("An unhandled exception occurred:\n%s\n"
-                            "\n\n%s") % (exc_value, "".join(lines))
+                message = "An unhandled exception occurred:\n%s\n\n\n%s" % (exc_value, "".join(lines))
                 print message
 
                 # We don't use an explicit parent here because this method might
                 # be called in circumstances where the main window doesn't exist
                 # anymore.
-                exceptiondialog.run_exception_dialog(None, message)
+                wx.MessageBox(message, "Exception", wx.OK | wx.ICON_ERROR)
 
             finally:
-                self.in_exception_dialog = 0
+                self.in_exception_dialog = False
                 # delete the last exception info that python keeps in
                 # sys.last_* because especially last_traceback keeps
                 # indirect references to all objects bound to local
