@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.125 2006/08/27 11:45:48 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.126 2006/08/27 12:42:39 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.125 2006/08/27 11:45:48 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.126 2006/08/27 12:42:39 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -1048,13 +1048,14 @@ def main(args = []):
             #self.Bind(wx.EVT_RIGHT_UP, self.onMouseRightUp)
             self.Bind(wx.EVT_MOTION, self.onMotion)
 
-            #self.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
-            #self.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
+            self._focusedObject = None
+            self.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
+            self.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
 
             return True
 
         def onSetFocus(self, evt):
-            #print "OnSetFocus", evt.GetEventObject()
+            print "OnSetFocus", evt.GetEventObject()
             self._focusedObject = evt.GetEventObject()
             evt.Skip()
 
@@ -1065,12 +1066,12 @@ def main(args = []):
         def onMouseLeftDown(self, evt):
 
             obj = evt.GetEventObject()
-            #print obj
             if isinstance(obj, UserListCtrl):
 
                 ox = evt.GetX()
                 oy = evt.GetY()
 
+                # If we're over a user name, just skip it
                 item, flags = obj.HitTest((ox, oy))
 
                 if flags & wx.LIST_HITTEST_ONITEM:
@@ -1084,7 +1085,6 @@ def main(args = []):
                 dx = x - originx
                 dy = y - originy
                 self.delta = ((dx, dy))
-                #evt.Skip()
             else:
                 evt.Skip()
 
@@ -1098,6 +1098,10 @@ def main(args = []):
             #print evt.Dragging() 
             #print evt.LeftIsDown() 
             #print hasattr(self, 'delta'), "\n"
+
+            if not isinstance(self._focusedObject, UserListCtrl):
+                evt.Skip()
+                return
 
             if evt.Dragging() and evt.LeftIsDown() and hasattr(self, 'delta'):
                 obj = evt.GetEventObject()
