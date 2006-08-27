@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.127 2006/08/27 13:33:45 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.128 2006/08/27 14:09:30 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.127 2006/08/27 13:33:45 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.128 2006/08/27 14:09:30 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -32,6 +32,7 @@ from config import Config
 
 import guidebug
 import HistoryDirection
+import errordialog
 
 from logger import log, LogException
 from messagedialog import MessageDialog
@@ -1133,18 +1134,10 @@ def main(args = []):
                 message = "An unhandled exception occurred:\n%s\n\n\n%s" % (exc_value, "".join(lines))
                 print message
 
-                # We don't use an explicit parent here because this method might
-                # be called in circumstances where the main window doesn't exist
-                # anymore.
-                wx.MessageBox(message, "Exception", wx.OK | wx.ICON_ERROR)
+                errordialog.ErrorDialog(None, message, "Exception")
 
             finally:
                 self.in_exception_dialog = False
-                # delete the last exception info that python keeps in
-                # sys.last_* because especially last_traceback keeps
-                # indirect references to all objects bound to local
-                # variables and this might prevent some object from being
-                # collected early enough.
                 sys.last_type = sys.last_value = sys.last_traceback = None
 
     #wx.Log_SetActiveTarget(wx.LogStderr())
