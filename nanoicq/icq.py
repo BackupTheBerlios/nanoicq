@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.100 2006/08/28 10:03:56 lightdruid Exp $
+# $Id: icq.py,v 1.101 2006/08/28 15:25:51 lightdruid Exp $
 #
 
 import sys
@@ -586,7 +586,7 @@ class Protocol:
         errorCode = struct.unpack('!H', data[0:2])
         try:
             errorString = _msg_error_codes[errorCode]
-        except:
+        except Exception, msg:
             errorString = "Unknown error code: %d" % errorCode
         log().log(errorString)
 
@@ -605,8 +605,6 @@ class Protocol:
             return
 
         d = tlvs[0x01]
-        #dump2file('new-uin.data', d)
-        #print coldump(d)
 
         d = d[10:]
         port = int(struct.unpack('!L', d[0:4])[0])

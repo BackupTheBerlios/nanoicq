@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.129 2006/08/28 10:03:56 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.130 2006/08/28 15:25:52 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.129 2006/08/28 10:03:56 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.130 2006/08/28 15:25:52 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -643,6 +643,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def event_Registration_error(self, kw):
         err = kw['err']
+
+        evt = NanoEvent(nanoEVT_REGISTRATION_ERROR, self.GetId())
+        evt.setVal(err)
+        wx.GetApp().GetTopWindow().GetEventHandler().AddPendingEvent(evt)
+
         wx.MessageBox("New UIN registration error:\n" + err, "Error", wx.OK)
 
     def event_Offline_messages(self, kw):

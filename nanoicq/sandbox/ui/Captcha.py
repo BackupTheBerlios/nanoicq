@@ -1,6 +1,6 @@
 
 #
-# $Id: Captcha.py,v 1.12 2006/08/26 20:57:16 lightdruid Exp $
+# $Id: Captcha.py,v 1.13 2006/08/28 15:25:52 lightdruid Exp $
 #
 
 import sys
@@ -163,7 +163,12 @@ class CaptchaPanel(wx.Panel):
         self.Bind(wx.EVT_TEXT_ENTER, self.postPictureText, id = self.ID_TEXT)
         self.Bind(wx.EVT_BUTTON, self.onButton)
 
+        self.Bind(EVT_REGISTRATION_ERROR, self.onRegistrationError)
+
         self.Bind(wx.EVT_TIMER, self.onTimer)
+
+    def onRegistrationError(self, evt):
+        print 'onRegistrationError'
 
     def onTimer(self, evt):
         del self.busy
@@ -314,3 +319,4 @@ if __name__ == '__main__':
     _test()
 
 # ---
+

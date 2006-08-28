@@ -1,9 +1,12 @@
 
 #
-# $Id: events.py,v 1.20 2006/08/27 11:45:48 lightdruid Exp $
+# $Id: events.py,v 1.21 2006/08/28 15:25:51 lightdruid Exp $
 #
 
 import wx
+
+nanoEVT_REGISTRATION_ERROR = wx.NewEventType()
+EVT_REGISTRATION_ERROR = wx.PyEventBinder(nanoEVT_REGISTRATION_ERROR, 1)
 
 nanoEVT_AUTHORIZATION_GRANTED = wx.NewEventType()
 EVT_AUTHORIZATION_GRANTED = wx.PyEventBinder(nanoEVT_AUTHORIZATION_GRANTED, 1)
