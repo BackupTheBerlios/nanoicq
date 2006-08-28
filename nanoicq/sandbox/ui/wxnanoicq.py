@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.128 2006/08/27 14:09:30 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.129 2006/08/28 10:03:56 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.128 2006/08/27 14:09:30 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.129 2006/08/28 10:03:56 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -192,7 +192,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self._dialogs = []
 
         self.config = Config()
-        self.config.read('sample.config')
+        self.config.read('nanoicq.config')
 
         # FIXME: strange effect
         #if self.config.safeGetBool('ui', 'show.window.in.taskbar') == False:
@@ -361,7 +361,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self._iconTimer = NanoTimer(self._BLINK_TIMEOUT, [])
         self._iconTimer.Start()
 
-        self.topPanel.userList.sampleFill()
+        #self.topPanel.userList.sampleFill()
 
         self._pendingWindows = []
         #self.Bind(wx.EVT_IDLE, self.idleHandler)
@@ -696,7 +696,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         for v in b.__dict__.keys():
             print v, b.__dict__[v]
 
-        dump2file('buddy.dump', b)
+        #dump2file('buddy.dump', b)
 
         evt = NanoEvent(nanoEVT_GOT_USER_INFO, self.GetId())
         evt.setVal(b)
@@ -1065,7 +1065,6 @@ def main(args = []):
             evt.Skip()
 
         def onKillFocus(self, evt):
-            i = 1/0
 
             self._focusedObject = None
             evt.Skip()

@@ -1,12 +1,8 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.99 2006/08/27 11:45:48 lightdruid Exp $
+# $Id: icq.py,v 1.100 2006/08/28 10:03:56 lightdruid Exp $
 #
-
-#username = '264025324'
-username = '223606200'
-#username = '177033621'
 
 import sys
 import os
@@ -457,7 +453,11 @@ class Protocol:
         if username is None:
             username = self._config.get('icq', 'uin')
         self.username = username
-        encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
+
+        if 0:
+            encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
+        else:
+            encpass = encryptPasswordICQ(self._config.get('icq', 'password'))
 
         #print "[%s] [%s] " % (self.username, os.getenv("TEST_ICQ_PASS"))
 
@@ -2210,7 +2210,7 @@ class Protocol:
 
         tmp = "userFound_%s_%s" % (dataTypeX, dataSubTypeX)
 
-        dump2file(tmp, d[12:])
+        #dump2file(tmp, d[12:])
 
         try:
             func = getattr(self, tmp)

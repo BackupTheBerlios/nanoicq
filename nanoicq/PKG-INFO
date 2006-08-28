@@ -1,0 +1,17 @@
+Metadata-Version: 1.1
+Name: nanoicq
+Version: 0.1.2a
+Author: Andrey Sidorenko
+Author-email: sidorenko at gmail com
+Home-page: http://nanoicq.berlios.de
+Download-url: http://prdownload.berlios.de/nanoicq/nanoicq-0.1.2.tar.gz
+Summary: NanoICQ is ICQ client
+License: MIT
+Description: NanoICQ is a small and highly portable ICQ library and client written in pure
+        Python. Current version of GUI uses wxPython, based on wxWidgets C++ library.
+Keywords: icq
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
