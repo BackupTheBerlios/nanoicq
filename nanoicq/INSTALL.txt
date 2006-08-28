@@ -1,0 +1,13 @@
+
+#
+# $Id: INSTALL.txt,v 1.1 2006/08/28 15:00:34 lightdruid Exp $
+#
+
+At this moment (version 0.1.2) it's impossible to install nanoicq
+using standart Python way - using 'setup.py'. The only way to
+setup it right now is to simply unpack somewhere in directory, for
+example in '$HOME/nanoicq' and run it using '$HOME/nanoicq/nanoicq.py'.
+
+This is quite unnatural and must be fixed in near future.
+
+--andrey
