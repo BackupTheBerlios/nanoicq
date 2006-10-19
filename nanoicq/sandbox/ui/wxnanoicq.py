@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.130 2006/08/28 15:25:52 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.131 2006/10/19 10:17:03 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.130 2006/08/28 15:25:52 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.131 2006/10/19 10:17:03 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -1039,7 +1039,7 @@ def main(args = []):
     class NanoApp(wx.App):
         def OnInit(self):
             self.in_exception_dialog = False
-            sys.excepthook = self.showExceptionDialog
+            #sys.excepthook = self.showExceptionDialog
 
             self.frame = TopFrame(None, "NanoICQ")
 
