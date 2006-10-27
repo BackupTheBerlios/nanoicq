@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.131 2006/10/19 10:17:03 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.132 2006/10/27 12:07:22 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.131 2006/10/19 10:17:03 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.132 2006/10/27 12:07:22 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -208,6 +208,9 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         if self.config.has_option('ui', 'icon.blink.timeout'):
              self._BLINK_TIMEOUT = self.config.getint('ui', 'icon.blink.timeout')
+
+        if self.config.has_option('ui', 'title'):
+            self.SetTitle(self.config.get('ui', 'title'))
 
         iconSetName = self.config.get('ui', 'iconset')
         self.iconSet = IconSet()
