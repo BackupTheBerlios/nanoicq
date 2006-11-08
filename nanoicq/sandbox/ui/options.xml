@@ -2,8 +2,8 @@
 <options>
 
 <General Prefedined="1" >
-    <UI Prefedined="1" >
-    </UI>
+    <ContactList Prefedined="1" >
+    </ContactList>
 </General>
 
 <Network Prefedined="1">

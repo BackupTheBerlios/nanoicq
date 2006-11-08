@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.5 2006/11/08 16:08:22 lightdruid Exp $
+# $Id: Options.py,v 1.6 2006/11/08 16:29:41 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -58,7 +58,7 @@ class Pane_General(wx.Panel, _Pane_Core):
         self.SetSizer(sz)
         self.SetAutoLayout(True)
 
-class Pane_UI(wx.Panel, _Pane_Core):
+class Pane_ContactList(wx.Panel, _Pane_Core):
     _HIDE_OFFLINE_USERS = wx.NewId()
     _HIDE_EMPTY_GROUPS = wx.NewId()
     _DISABLE_GROUPS = wx.NewId()
@@ -92,8 +92,21 @@ class Pane_UI(wx.Panel, _Pane_Core):
 
         ssz2 = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Contact list sorting'), wx.VERTICAL)
         self.rbByName = wx.RadioButton(self, self._BY_NAME, "Sort contacts by name", style = wx.RB_GROUP)
-        self.rbByStatus = wx.RadioButton(self, self._BY_STATUS, "Sort contacts by status", style = wx.RB_GROUP)
-        self.rbByProtocol = wx.RadioButton(self, self._BY_PROTOCOL, "Sort contacts by protocol", style = wx.RB_GROUP)
+        self.rbByStatus = wx.RadioButton(self, self._BY_STATUS, "Sort contacts by status")
+        self.rbByProtocol = wx.RadioButton(self, self._BY_PROTOCOL, "Sort contacts by protocol")
+
+        self.rbByName.SetValue(1)
+        self.rbByStatus.SetValue(0)
+        self.rbByProtocol.SetValue(0)
+
+        self.rbSortGroup = [
+            self.rbByName,
+            self.rbByStatus,
+            self.rbByProtocol,
+        ]
+
+        for radio in self.rbSortGroup:
+            self.Bind(wx.EVT_RADIOBUTTON, self.onGroupSortSelect, radio)
 
         ssz2.Add(self.rbByName, 1, wx.ALIGN_LEFT|wx.ALL, 5)
         ssz2.Add(self.rbByStatus, 1, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -125,6 +138,10 @@ class Pane_UI(wx.Panel, _Pane_Core):
         self.SetSizer(sz)
         self.SetAutoLayout(True)
 
+    def onGroupSortSelect(self, evt):
+        rs = evt.GetEventObject()
+        evt.Skip()
+
 
 class Pane_Network(wx.Panel, _Pane_Core):
     def __init__(self, parent, domain, name):
@@ -137,6 +154,7 @@ class Pane_Network(wx.Panel, _Pane_Core):
         # ---
         self.SetSizer(sz)
         self.SetAutoLayout(True)
+
 
 class Pane_ICQ(wx.Panel, _Pane_Core):
     _DEFAULT_LOGIN_SERVER = wx.NewId()
