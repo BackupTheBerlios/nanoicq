@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.3 2006/11/08 12:55:04 lightdruid Exp $
+# $Id: Options.py,v 1.4 2006/11/08 13:12:52 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -288,8 +288,13 @@ class OptionsPanel(wx.Panel):
         self._currentData = None
 
     def onOkButton(self, evt):
+        f = open("options-new.xml", "wb")
+        r = ET.Element("nanoicq")
+        o = ET.SubElement(r, "options")
         for p in self.panes:
-            print ET.tostring(self.panes[p].store())
+            o.append(self.panes[p].store())
+        ET.dump(r)
+        f.close()
 
     def onCancelButton(self, evt):
         self._parent.Close()
