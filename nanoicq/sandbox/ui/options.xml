@@ -1,0 +1,15 @@
+<nanoicq>
+<options>
+
+<General Prefedined="1" >
+    <UI Prefedined="1" >
+    </UI>
+</General>
+
+<Network Prefedined="1">
+    <ICQ Prefedined="1" >
+    </ICQ>
+</Network>
+
+</options>
+</nanoicq>
