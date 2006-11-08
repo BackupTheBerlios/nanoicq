@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.132 2006/10/27 12:07:22 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.133 2006/11/08 09:58:54 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.132 2006/10/27 12:07:22 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.133 2006/11/08 09:58:54 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -82,6 +82,8 @@ _topMenu = (
             (ID_HIDE_OFFLINE, "Hide offline users\tF4", "Hide offline users", "self.onToggleHideOffline", wx.ITEM_CHECK),
             (ID_FIND_USER, "Find/Add Contacts...\tF7", "Find/Add Contacts...", "self.onFindUser", 0),
             (ID_NEW_USER, "Register new UIN...\tCtrl-F12", "Register new UIN...", "self.onNewUser", 0),
+            (),
+            (ID_OPTIONS, "Options...\tCtrl-O", "Options...", "self.onOptions", 0),
             (),
             (ID_DISCONNECT, "Disconnect", "Disconnect", "self.onDisconnect", 0),
             (),
@@ -902,6 +904,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self.connector['icq'].saveState()
         self.trayIcon.Destroy()
+
+    def onOptions(self, evt):
 
     def OnExit(self, *evts):
         self.storeGeometry()

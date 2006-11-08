@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.16 2006/08/27 11:45:48 lightdruid Exp $
+# $Id: UserInfo.py,v 1.17 2006/11/08 09:58:54 lightdruid Exp $
 #
 
 import sys
@@ -520,10 +520,6 @@ class UserInfoPanel(wx.Panel):
     def onButton(self, evt):
         evt.Skip()
         self._parent.Close()
-
-    def makePanel(self, h, b):
-        p = eval("Pane_%s(self.nb, b)" % h)
-        return p
 
 
 class UserInfoFrame(wx.Frame):
