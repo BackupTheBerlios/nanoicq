@@ -1,12 +1,13 @@
 
 #
-# $Id: Options.py,v 1.4 2006/11/08 13:12:52 lightdruid Exp $
+# $Id: Options.py,v 1.5 2006/11/08 16:08:22 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
 
 import sys
 import string
+import copy
 
 import wx
 import wx.lib.rcsizer as rcs
@@ -34,8 +35,9 @@ class OptionsNB(wx.Notebook):
                              )
 
 class _Pane_Core:
-    def __init__(self):
-        pass
+    def __init__(self, domain, name):
+        self._domainName = domain
+        self._panelName = name
 
     def store(self):
         return ET.Element("_Pane_Core")
@@ -45,9 +47,9 @@ class _Pane_Core:
 
 
 class Pane_General(wx.Panel, _Pane_Core):
-    def __init__(self, parent):
+    def __init__(self, parent, domain, name):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self)
+        _Pane_Core.__init__(self, domain, name)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
@@ -57,12 +59,67 @@ class Pane_General(wx.Panel, _Pane_Core):
         self.SetAutoLayout(True)
 
 class Pane_UI(wx.Panel, _Pane_Core):
-    def __init__(self, parent):
+    _HIDE_OFFLINE_USERS = wx.NewId()
+    _HIDE_EMPTY_GROUPS = wx.NewId()
+    _DISABLE_GROUPS = wx.NewId()
+    _ASK_BEFORE_DELETING = wx.NewId()
+
+    _SINGLE_CLICK_INTERFACE = wx.NewId()
+    _ALWAYS_SHOW_STATUS = wx.NewId()
+    _DISABLE_ICON_BLINKING = wx.NewId()
+
+    _BY_NAME = wx.NewId()
+    _BY_STATUS = wx.NewId()
+    _BY_PROTOCOL = wx.NewId()
+
+    def __init__(self, parent, domain, name):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self)
+        _Pane_Core.__init__(self, domain, name)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
+
+        ssz1 = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Contact list'), wx.VERTICAL)
+        self.cbHideOfflineUsers = wx.CheckBox(self, self._HIDE_OFFLINE_USERS, "Hide offline users")
+        self.cbHideEmptyGroups = wx.CheckBox(self, self._HIDE_EMPTY_GROUPS, "Hide empty groups")
+        self.cbDisableGroups = wx.CheckBox(self, self._DISABLE_GROUPS, "Disable groups")
+        self.cbAskBeforeDeleting = wx.CheckBox(self, self._ASK_BEFORE_DELETING, "Disable groups")
+
+        ssz1.Add(self.cbHideOfflineUsers, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        ssz1.Add(self.cbHideEmptyGroups, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        ssz1.Add(self.cbDisableGroups, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        ssz1.Add(self.cbAskBeforeDeleting, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        ssz2 = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Contact list sorting'), wx.VERTICAL)
+        self.rbByName = wx.RadioButton(self, self._BY_NAME, "Sort contacts by name", style = wx.RB_GROUP)
+        self.rbByStatus = wx.RadioButton(self, self._BY_STATUS, "Sort contacts by status", style = wx.RB_GROUP)
+        self.rbByProtocol = wx.RadioButton(self, self._BY_PROTOCOL, "Sort contacts by protocol", style = wx.RB_GROUP)
+
+        ssz2.Add(self.rbByName, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+        ssz2.Add(self.rbByStatus, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+        ssz2.Add(self.rbByProtocol, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        f = 1
+
+        if f:
+            ssz3 = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'System tray icon'), wx.VERTICAL)
+            self.cbSingleClickInterface = wx.CheckBox(self, self._SINGLE_CLICK_INTERFACE, "Hide offline users")
+            self.cbAlwaysShowStatusInTooltip = wx.CheckBox(self, self._ALWAYS_SHOW_STATUS, "Hide empty groups")
+            self.cbDisableIconBlinking = wx.CheckBox(self, self._DISABLE_ICON_BLINKING, "Disable groups")
+
+            ssz3.Add(self.cbSingleClickInterface, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+            ssz3.Add(self.cbAlwaysShowStatusInTooltip, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+            ssz3.Add(self.cbDisableIconBlinking, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+
+
+        rc = rcs.RowColSizer()
+        rc.Add(ssz1, row=0, col=0, flag=wx.EXPAND, rowspan=2)
+        rc.Add(ssz2, row=0, col=1)
+
+        if f:
+            rc.Add(ssz3, row=1, col=1)
+
+        sz.Add(rc)
 
         # ---
         self.SetSizer(sz)
@@ -70,9 +127,9 @@ class Pane_UI(wx.Panel, _Pane_Core):
 
 
 class Pane_Network(wx.Panel, _Pane_Core):
-    def __init__(self, parent):
+    def __init__(self, parent, domain, name):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self)
+        _Pane_Core.__init__(self, domain, name)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
@@ -84,11 +141,9 @@ class Pane_Network(wx.Panel, _Pane_Core):
 class Pane_ICQ(wx.Panel, _Pane_Core):
     _DEFAULT_LOGIN_SERVER = wx.NewId()
 
-    def __init__(self, parent):
+    def __init__(self, parent, domain, name):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self)
-
-        self._panelName = "ICQ"
+        _Pane_Core.__init__(self, domain, name)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
@@ -187,6 +242,7 @@ class OptionsTree(wx.TreeCtrl):
         self.root = self.AddRoot("/")
         self.SetPyData(self.root, None)
 
+        self._domains = {}
         self._panes = {}
 
         if 1:
@@ -201,7 +257,6 @@ class OptionsTree(wx.TreeCtrl):
                 if predef:
                     ch = self.AppendItem(self.root, c.tag)
                     self.SetPyData(ch, c.tag)
-                    self._panes[c.tag] = None
 
                     for d in c.getchildren():
                         predef = False
@@ -212,29 +267,18 @@ class OptionsTree(wx.TreeCtrl):
 
                         if predef:
                             dh = self.AppendItem(ch, d.tag)
-                            self.SetPyData(dh, d.tag)
+                            self.SetPyData(dh, (c.tag, d.tag))
                             self._panes[d.tag] = None
+
+                self._domains[c.tag] = copy.copy(self._panes)
+                self._panes = {}
 
                 self.Expand(ch)
 
         self.Expand(self.root)
-        return
 
-        for x in range(15):
-            child = self.AppendItem(self.root, "Item %d" % x)
-            self.SetPyData(child, None)
-            break
-
-            for y in range(5):
-                last = self.AppendItem(child, "item %d-%s" % (x, chr(ord("a")+y)))
-                self.SetPyData(last, None)
-
-                for z in range(5):
-                    item = self.AppendItem(last,  "item %d-%s-%d" % (x, chr(ord("a")+y), z))
-                    self.SetPyData(item, None)
-
-    def getPanes(self):
-        return self._panes
+    def getDomains(self):
+        return self._domains
 
 
 class OptionsPanel(wx.Panel):
@@ -278,12 +322,13 @@ class OptionsPanel(wx.Panel):
         self.SetAutoLayout(True)
 
         # Create panes
-        panes_t = self.tree.getPanes()
-        self.panes = {}
-        for p in panes_t:
-            self.panes[p] = self.createPane(p)
-            self.panes[p].Hide()
-            print self.panes[p], p
+        domains = self.tree.getDomains()
+        self.domains = copy.copy(domains)
+
+        for d in domains:
+            for p in domains[d]:
+                self.domains[d][p] = self.createPane(d, p)
+                self.domains[d][p].Hide()
 
         self._currentData = None
 
@@ -304,8 +349,8 @@ class OptionsPanel(wx.Panel):
             self._dirty = flag
         self.okButton.Enable(self._dirty == True)
 
-    def createPane(self, name):
-        return eval("Pane_%s(self)" % name)
+    def createPane(self, domain, name):
+        return eval("Pane_%s(self, '%s', '%s')" % (name, domain, name))
 
     def onSelChanged(self, evt):
         print evt
@@ -313,30 +358,27 @@ class OptionsPanel(wx.Panel):
         data = self.tree.GetPyData(item)
         print 'data', data
 
-        if data is None:
-            if self.pane is not None:
-                self.pane.Hide()
-                self.tz.Detach(self.pane)
-                #self.panes[data].Hide()
-                pass
-            return
+        if 1:
+            if data is None:
+                if self.pane is not None:
+                    self.pane.Hide()
+                    self.tz.Detach(self.pane)
+                    pass
+                return
 
-        if self.pane is not None:
-            if self._currentData is None:
-            #self.pane.Close()
-                self.tz.Detach(self.pane)
-                self.pane.Hide()
-            else:
-                self.tz.Detach(self.panes[self._currentData])
-                self.panes[self._currentData].Hide()
+        if self._currentData is not None:
+            domain, paneName = self._currentData
+            self.tz.Detach(self.domains[domain][paneName])
+            self.domains[domain][paneName].Hide()
 
-
+        domain, paneName = data
         self._currentData = data
         
-        self.tz.Add(self.panes[data], 3, wx.ALL | wx.EXPAND, 5)
-        self.panes[data].Show()
+        self.tz.Add(self.domains[domain][paneName], 3, wx.ALL | wx.EXPAND, 5)
+        self.domains[domain][paneName].Show()
         self.tz.Layout()
         self.Layout()
+
 
 class OptionsPanel1(wx.Panel):
     _head = [
