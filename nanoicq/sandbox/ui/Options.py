@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.8 2006/11/10 15:46:52 lightdruid Exp $
+# $Id: Options.py,v 1.9 2006/11/10 16:22:15 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -19,9 +19,11 @@ from events import *
 from buddy import Buddy
 from iconset import IconSet
 from utils import *
+from validator import *
 
 _ID_OK_BUTTON = wx.NewId()
 _ID_CANCEL_BUTTON = wx.NewId()
+
 
 def dump(elem, f):
     # debugging
@@ -37,11 +39,7 @@ def dump(elem, f):
 class OptionsNB(wx.Notebook):
     def __init__(self, parent, id):
         wx.Notebook.__init__(self, parent, id,
-                             style=
-                             wx.NB_TOP | wx.NB_MULTILINE
-                             #wx.NB_BOTTOM
-                             #wx.NB_LEFT
-                             #wx.NB_RIGHT
+                             style = wx.NB_TOP | wx.NB_MULTILINE
                              )
 
 class _Pane_Core:
@@ -54,14 +52,31 @@ class _Pane_Core:
 
     def restore(self, xml):
         for c in [x for x in xml.getchildren() if x.text is not None]:
-            self.FindWindowById(self.x[c.tag]).SetValue(c.text)
+            w = self.FindWindowById(self.x[c.tag])
+            if type(w) == wx.TextCtrl:
+                w.SetValue(c.text)
+            elif type(w) == wx.CheckBox:
+                w.SetValue(bool(int(c.text)))
+            elif type(w) == wx.RadioButton:
+                w.SetValue(bool(int(c.text)))
+            else:
+                raise Exception("Unknown element type: " + str(type(w)))
 
     def store(self):
         root = ET.Element(self._panelName)
         root.set("Internal", "1")
         for k in self.x:
             e = ET.Element(k)
-            e.text = self.FindWindowById(self.x[k]).GetValue()
+            w = self.FindWindowById(self.x[k])
+            if type(w) == wx.TextCtrl:
+                v = w.GetValue()
+            elif type(w) == wx.CheckBox:
+                v = str(int(w.GetValue()))
+            elif type(w) == wx.RadioButton:
+                v = str(int(w.GetValue()))
+            else:
+                raise Exception("Unknown element type: " + str(type(w)))
+            e.text = v
             root.append(e)
 
         return root
@@ -149,6 +164,21 @@ class Pane_ContactList(wx.Panel, _Pane_Core):
 
         sz.Add(rc)
 
+        self.x["HideOfflineUsers"] = self.cbHideOfflineUsers.GetId()
+        self.x["HideEmptyGroups"] = self.cbHideEmptyGroups.GetId()
+        self.x["DisableGroups"] = self.cbDisableGroups.GetId()
+        self.x["AskBeforeDeleting"] = self.cbAskBeforeDeleting.GetId()
+
+        self.x["SingleClickInterface"] = self.cbSingleClickInterface.GetId()
+        self.x["AlwaysShowStatusInTooltip"] = self.cbAlwaysShowStatusInTooltip.GetId()
+        self.x["DisableIconBlinking"] = self.cbDisableIconBlinking.GetId()
+
+        self.x["SortByName"] = self.rbByName.GetId()
+        self.x["SortByStatus"] = self.rbByStatus.GetId()
+        self.x["SortByProtocol"] = self.rbByProtocol.GetId()
+
+        self.restore(self._xmlChunk)
+
         # ---
         self.SetSizer(sz)
         self.SetAutoLayout(True)
@@ -205,7 +235,7 @@ class Pane_ICQ(wx.Panel, _Pane_Core):
         hs = wx.BoxSizer(wx.HORIZONTAL)
 
         self.loginServer = wx.TextCtrl(self, -1, "")
-        self.port = wx.TextCtrl(self, -1, "")
+        self.port = wx.TextCtrl(self, -1, "", validator = DigitLengthValidator(maxLen = 5))
         self.setDefaultLoginServer = wx.Button(self, self._DEFAULT_LOGIN_SERVER, "Default")
 
         hs.Add(wx.StaticText(self, -1, "Login Server:"), 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
@@ -387,10 +417,8 @@ class OptionsPanel(wx.Panel):
         return eval("Pane_%s(self, '%s', '%s', xmlChunk)" % (name, domain, name))
 
     def onSelChanged(self, evt):
-        print evt
         item = evt.GetItem()
         data = self.tree.GetPyData(item)
-        print 'data', data
 
         if 1:
             if data is None:

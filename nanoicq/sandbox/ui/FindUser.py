@@ -1,6 +1,6 @@
 
 #
-# $Id: FindUser.py,v 1.21 2006/08/27 11:45:48 lightdruid Exp $
+# $Id: FindUser.py,v 1.22 2006/11/10 16:22:15 lightdruid Exp $
 #
 
 import sys
@@ -17,6 +17,7 @@ from events import *
 from buddy import Buddy
 from iconset import IconSet
 from persistence import PersistenceMixin
+from validator import DigitValidator
 
 ID_RESULTS_LIST = wx.NewId()
 ID_ADVANCED = wx.NewId()
@@ -54,44 +55,6 @@ class SearchStatusBar(wx.StatusBar):
         self.g.SetSize((rect.width-4, rect.height-4))
         self.sizeChanged = False
 
-
-_DIGIT_ONLY = 2
-
-class DigitValidator(wx.PyValidator):
-    def __init__(self, flag = _DIGIT_ONLY, pyVar = None):
-        wx.PyValidator.__init__(self)
-        self.flag = flag
-        self.Bind(wx.EVT_CHAR, self.OnChar)
-
-    def Clone(self):
-        return DigitValidator(self.flag)
-
-    def Validate(self, win):
-        tc = self.GetWindow()
-        val = tc.GetValue()
-        
-        if self.flag == _DIGIT_ONLY:
-            for x in val:
-                if x not in string.digits:
-                    return False
-
-        return True
-
-    def OnChar(self, event):
-        key = event.KeyCode()
-
-        if key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255:
-            event.Skip()
-            return
-
-        if self.flag == _DIGIT_ONLY and chr(key) in string.digits:
-            event.Skip()
-            return
-
-        if not wx.Validator_IsSilent():
-            wx.Bell()
-
-        return
 
 
 class ResultsList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
