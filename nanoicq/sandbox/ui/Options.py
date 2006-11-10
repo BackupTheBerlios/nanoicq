@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.7 2006/11/10 15:17:01 lightdruid Exp $
+# $Id: Options.py,v 1.8 2006/11/10 15:46:52 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -50,11 +50,21 @@ class _Pane_Core:
         self._panelName = name
         self._xmlChunk = xmlChunk
 
-    def store(self):
-        return self._xmlChunk
+        self.x = {}
 
     def restore(self, xml):
-        return
+        for c in [x for x in xml.getchildren() if x.text is not None]:
+            self.FindWindowById(self.x[c.tag]).SetValue(c.text)
+
+    def store(self):
+        root = ET.Element(self._panelName)
+        root.set("Internal", "1")
+        for k in self.x:
+            e = ET.Element(k)
+            e.text = self.FindWindowById(self.x[k]).GetValue()
+            root.append(e)
+
+        return root
 
 
 class Pane_General(wx.Panel, _Pane_Core):
@@ -123,25 +133,19 @@ class Pane_ContactList(wx.Panel, _Pane_Core):
         ssz2.Add(self.rbByStatus, 1, wx.ALIGN_LEFT|wx.ALL, 5)
         ssz2.Add(self.rbByProtocol, 1, wx.ALIGN_LEFT|wx.ALL, 5)
 
-        f = 1
+        ssz3 = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'System tray icon'), wx.VERTICAL)
+        self.cbSingleClickInterface = wx.CheckBox(self, self._SINGLE_CLICK_INTERFACE, "Hide offline users")
+        self.cbAlwaysShowStatusInTooltip = wx.CheckBox(self, self._ALWAYS_SHOW_STATUS, "Hide empty groups")
+        self.cbDisableIconBlinking = wx.CheckBox(self, self._DISABLE_ICON_BLINKING, "Disable groups")
 
-        if f:
-            ssz3 = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'System tray icon'), wx.VERTICAL)
-            self.cbSingleClickInterface = wx.CheckBox(self, self._SINGLE_CLICK_INTERFACE, "Hide offline users")
-            self.cbAlwaysShowStatusInTooltip = wx.CheckBox(self, self._ALWAYS_SHOW_STATUS, "Hide empty groups")
-            self.cbDisableIconBlinking = wx.CheckBox(self, self._DISABLE_ICON_BLINKING, "Disable groups")
-
-            ssz3.Add(self.cbSingleClickInterface, 1, wx.ALIGN_LEFT|wx.ALL, 5)
-            ssz3.Add(self.cbAlwaysShowStatusInTooltip, 1, wx.ALIGN_LEFT|wx.ALL, 5)
-            ssz3.Add(self.cbDisableIconBlinking, 1, wx.ALIGN_LEFT|wx.ALL, 5)
-
+        ssz3.Add(self.cbSingleClickInterface, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+        ssz3.Add(self.cbAlwaysShowStatusInTooltip, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+        ssz3.Add(self.cbDisableIconBlinking, 1, wx.ALIGN_LEFT|wx.ALL, 5)
 
         rc = rcs.RowColSizer()
         rc.Add(ssz1, row=0, col=0, flag=wx.EXPAND, rowspan=2)
-        rc.Add(ssz2, row=0, col=1)
-
-        if f:
-            rc.Add(ssz3, row=1, col=1)
+        rc.Add(ssz2, row=0, col=1, flag=wx.EXPAND)
+        rc.Add(ssz3, row=1, col=1, flag=wx.EXPAND)
 
         sz.Add(rc)
 
@@ -217,11 +221,12 @@ class Pane_ICQ(wx.Panel, _Pane_Core):
         sz.Add(ssz1)
         sz.Add(ssz2)
 
-        self.x = {}
         self.x["ICQNumber"] = self.icqNumber.GetId()
         self.x["ICQPassword"] = self.icqPassword.GetId()
         self.x["LoginServer"] = self.loginServer.GetId()
         self.x["Port"] = self.port.GetId()
+
+        self.restore(self._xmlChunk)
 
         # ---
         self.SetSizer(sz)
@@ -233,21 +238,6 @@ class Pane_ICQ(wx.Panel, _Pane_Core):
 
         xml = self.store()
         self.restore(xml)
-
-    def restore(self, xml):
-        for c in xml.getchildren():
-            self.FindWindowById(self.x[c.tag]).SetValue(c.text)
-
-    def store(self):
-        root = ET.Element(self._panelName)
-        root.set("Internal", "1")
-        for k in self.x:
-            e = ET.Element(k)
-            e.text = self.FindWindowById(self.x[k]).GetValue()
-            print k, e.text
-            root.append(e)
-
-        return root
 
 class OptionsTree(wx.TreeCtrl):
     def __init__(self, parent, id):

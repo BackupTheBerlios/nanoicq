@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.133 2006/11/08 09:58:54 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.134 2006/11/10 15:46:52 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.133 2006/11/08 09:58:54 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.134 2006/11/10 15:46:52 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -74,6 +74,7 @@ ID_FIND_USER = wx.NewId()
 ID_HIDE_OFFLINE = wx.NewId()
 ID_NEW_USER = wx.NewId()
 ID_DISCONNECT = wx.NewId()
+ID_OPTIONS = wx.NewId()
 
 _topMenu = (
     ("File",
@@ -906,6 +907,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.trayIcon.Destroy()
 
     def onOptions(self, evt):
+        from Options import OptionsFrame
+        o = OptionsFrame(self, -1)
+        #o.MakeModal()
+        o.Show()
 
     def OnExit(self, *evts):
         self.storeGeometry()
