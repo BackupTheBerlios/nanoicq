@@ -1,15 +1,3 @@
-<nanoicq>
-<options>
-
-<General Prefedined="1" >
-    <ContactList Prefedined="1" >
+<Nanoicq><Options><Network Internal="1"><ICQ Internal="1"><LoginServer>login.icq.com</LoginServer><Port>5190</Port><ICQPassword /><ICQNumber /></ICQ></Network><General Internal="1"><ContactList Internal="1">
     </ContactList>
-</General>
-
-<Network Prefedined="1">
-    <ICQ Prefedined="1" >
-    </ICQ>
-</Network>
-
-</options>
-</nanoicq>
+</General></Options></Nanoicq>

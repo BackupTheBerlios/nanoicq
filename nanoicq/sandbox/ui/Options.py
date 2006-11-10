@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.6 2006/11/08 16:29:41 lightdruid Exp $
+# $Id: Options.py,v 1.7 2006/11/10 15:17:01 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -23,6 +23,16 @@ from utils import *
 _ID_OK_BUTTON = wx.NewId()
 _ID_CANCEL_BUTTON = wx.NewId()
 
+def dump(elem, f):
+    # debugging
+    if not isinstance(elem, ET.ElementTree):
+        elem = ET.ElementTree(elem)
+    elem.write(f)
+    tail = elem.getroot().tail
+    if not tail or tail[-1] != "\n":
+        f.write("\n")
+
+
 
 class OptionsNB(wx.Notebook):
     def __init__(self, parent, id):
@@ -35,21 +45,22 @@ class OptionsNB(wx.Notebook):
                              )
 
 class _Pane_Core:
-    def __init__(self, domain, name):
+    def __init__(self, domain, name, xmlChunk):
         self._domainName = domain
         self._panelName = name
+        self._xmlChunk = xmlChunk
 
     def store(self):
-        return ET.Element("_Pane_Core")
+        return self._xmlChunk
 
     def restore(self, xml):
         return
 
 
 class Pane_General(wx.Panel, _Pane_Core):
-    def __init__(self, parent, domain, name):
+    def __init__(self, parent, domain, name, xmlChunk):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self, domain, name)
+        _Pane_Core.__init__(self, domain, name, xmlChunk)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
@@ -72,9 +83,9 @@ class Pane_ContactList(wx.Panel, _Pane_Core):
     _BY_STATUS = wx.NewId()
     _BY_PROTOCOL = wx.NewId()
 
-    def __init__(self, parent, domain, name):
+    def __init__(self, parent, domain, name, xmlChunk):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self, domain, name)
+        _Pane_Core.__init__(self, domain, name, xmlChunk)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
@@ -144,9 +155,9 @@ class Pane_ContactList(wx.Panel, _Pane_Core):
 
 
 class Pane_Network(wx.Panel, _Pane_Core):
-    def __init__(self, parent, domain, name):
+    def __init__(self, parent, domain, name, xmlChunk):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self, domain, name)
+        _Pane_Core.__init__(self, domain, name, xmlChunk)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
@@ -159,9 +170,9 @@ class Pane_Network(wx.Panel, _Pane_Core):
 class Pane_ICQ(wx.Panel, _Pane_Core):
     _DEFAULT_LOGIN_SERVER = wx.NewId()
 
-    def __init__(self, parent, domain, name):
+    def __init__(self, parent, domain, name, xmlChunk):
         wx.Panel.__init__(self, parent, -1)
-        _Pane_Core.__init__(self, domain, name)
+        _Pane_Core.__init__(self, domain, name, xmlChunk)
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
@@ -229,9 +240,11 @@ class Pane_ICQ(wx.Panel, _Pane_Core):
 
     def store(self):
         root = ET.Element(self._panelName)
+        root.set("Internal", "1")
         for k in self.x:
             e = ET.Element(k)
             e.text = self.FindWindowById(self.x[k]).GetValue()
+            print k, e.text
             root.append(e)
 
         return root
@@ -245,11 +258,11 @@ class OptionsTree(wx.TreeCtrl):
         root = tree.getroot()
         print dir(root), root.tag
 
-        if root.tag != "nanoicq":
+        if root.tag != "Nanoicq":
             raise Exception("Wrong XML format in '%d'" % fn)
 
         child = root.getchildren()[0]
-        if child.tag != "options":
+        if child.tag != "Options":
             raise Exception("Wrong XML format in '%d'" % fn)
 
         #parent_map = dict((c, p) for p in children.getiterator() for c in p)
@@ -263,35 +276,35 @@ class OptionsTree(wx.TreeCtrl):
         self._domains = {}
         self._panes = {}
 
-        if 1:
-            for c in child.getchildren():
-                print c.tag, c.attrib
-                predef = False
-                try:
-                    predef = int(c.attrib["Prefedined"]) == 1
-                except KeyError:
-                    pass
+        for c in child.getchildren():
 
-                if predef:
-                    ch = self.AppendItem(self.root, c.tag)
-                    self.SetPyData(ch, c.tag)
+            predef = False
+            try:
+                predef = int(c.attrib["Internal"]) == 1
+            except KeyError:
+                pass
 
-                    for d in c.getchildren():
-                        predef = False
-                        try:
-                            predef = int(d.attrib["Prefedined"]) == 1
-                        except KeyError:
-                            pass
+            if predef:
+                ch = self.AppendItem(self.root, c.tag)
+                self.SetPyData(ch, (c.tag, c.tag))
+                self._panes[c.tag] = copy.copy(c)
 
-                        if predef:
-                            dh = self.AppendItem(ch, d.tag)
-                            self.SetPyData(dh, (c.tag, d.tag))
-                            self._panes[d.tag] = None
+                for d in c.getchildren():
+                    predef = False
+                    try:
+                        predef = int(d.attrib["Internal"]) == 1
+                    except KeyError:
+                        pass
 
-                self._domains[c.tag] = copy.copy(self._panes)
-                self._panes = {}
+                    if predef:
+                        dh = self.AppendItem(ch, d.tag)
+                        self.SetPyData(dh, (c.tag, d.tag))
+                        self._panes[d.tag] = copy.copy(d)
 
-                self.Expand(ch)
+            self._domains[c.tag] = copy.copy(self._panes)
+            self._panes = {}
+
+            self.Expand(ch)
 
         self.Expand(self.root)
 
@@ -345,19 +358,32 @@ class OptionsPanel(wx.Panel):
 
         for d in domains:
             for p in domains[d]:
-                self.domains[d][p] = self.createPane(d, p)
+                xmlChunk = self.domains[d][p]
+                self.domains[d][p] = self.createPane(d, p, xmlChunk)
                 self.domains[d][p].Hide()
 
         self._currentData = None
 
     def onOkButton(self, evt):
-        f = open("options-new.xml", "wb")
-        r = ET.Element("nanoicq")
-        o = ET.SubElement(r, "options")
-        for p in self.panes:
-            o.append(self.panes[p].store())
-        ET.dump(r)
+        import os, shutil
+        from tempfile import mkstemp
+
+        fn = mkstemp()[1]
+        f = open(fn, "wb")
+
+        r = ET.Element("Nanoicq")
+        o = ET.SubElement(r, "Options")
+        for d in self.domains:
+            top = ET.SubElement(o, d)
+            top.set("Internal", "1")
+            for p in self.domains[d]:
+                if p == d:
+                    continue
+                top.append(self.domains[d][p].store())
+        dump(r, f)
         f.close()
+
+        shutil.copy(fn, "options.xml")
 
     def onCancelButton(self, evt):
         self._parent.Close()
@@ -367,8 +393,8 @@ class OptionsPanel(wx.Panel):
             self._dirty = flag
         self.okButton.Enable(self._dirty == True)
 
-    def createPane(self, domain, name):
-        return eval("Pane_%s(self, '%s', '%s')" % (name, domain, name))
+    def createPane(self, domain, name, xmlChunk):
+        return eval("Pane_%s(self, '%s', '%s', xmlChunk)" % (name, domain, name))
 
     def onSelChanged(self, evt):
         print evt
@@ -464,8 +490,14 @@ class OptionsFrame(wx.Frame):
         wx.Frame.__init__(self, parentFrame, ID, size = size, style = style,
             title = title)
 
+        tz = wx.BoxSizer(wx.VERTICAL)
+
         self.panel = OptionsPanel(self)
 
+        tz.Add(self.panel, 1, wx.ALL | wx.EXPAND, 0)
+
+        self.SetSizer(tz)
+        self.SetAutoLayout(True)
 
 def _test():
     class NanoApp(wx.App):
