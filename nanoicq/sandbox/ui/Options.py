@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.9 2006/11/10 16:22:15 lightdruid Exp $
+# $Id: Options.py,v 1.10 2006/11/15 16:24:34 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -93,6 +93,7 @@ class Pane_General(wx.Panel, _Pane_Core):
         # ---
         self.SetSizer(sz)
         self.SetAutoLayout(True)
+
 
 class Pane_ContactList(wx.Panel, _Pane_Core):
     _HIDE_OFFLINE_USERS = wx.NewId()
@@ -364,13 +365,11 @@ class OptionsPanel(wx.Panel):
 
         #self.okButton.Enable(False)
 
-        self.Bind(wx.EVT_BUTTON, self.onOkButton, id = _ID_OK_BUTTON)
-        self.Bind(wx.EVT_BUTTON, self.onCancelButton, id = _ID_CANCEL_BUTTON)
-
-        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelChanged, self.tree)
-
         self.SetSizer(sz)
         self.SetAutoLayout(True)
+
+        self.tz.Layout()
+        self.Layout()
 
         # Create panes
         domains = self.tree.getDomains()
@@ -383,6 +382,13 @@ class OptionsPanel(wx.Panel):
                 self.domains[d][p].Hide()
 
         self._currentData = None
+
+        # Events
+        self.Bind(wx.EVT_BUTTON, self.onOkButton, id = _ID_OK_BUTTON)
+        self.Bind(wx.EVT_BUTTON, self.onCancelButton, id = _ID_CANCEL_BUTTON)
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelChanged, self.tree)
+
+        self.first_time = True
 
     def onOkButton(self, evt):
         import os, shutil
@@ -417,25 +423,28 @@ class OptionsPanel(wx.Panel):
         return eval("Pane_%s(self, '%s', '%s', xmlChunk)" % (name, domain, name))
 
     def onSelChanged(self, evt):
+
         item = evt.GetItem()
         data = self.tree.GetPyData(item)
 
-        if 1:
-            if data is None:
-                if self.pane is not None:
-                    self.pane.Hide()
-                    self.tz.Detach(self.pane)
-                    pass
-                return
+        if data is None:
+            print "point 1"
+            if self.pane is not None:
+                print "point 1-1"
+                self.pane.Hide()
+                self.tz.Detach(self.pane)
+                #pass
+            return
 
         if self._currentData is not None:
+            print "point 2"
             domain, paneName = self._currentData
             self.tz.Detach(self.domains[domain][paneName])
             self.domains[domain][paneName].Hide()
 
         domain, paneName = data
         self._currentData = data
-        
+
         self.tz.Add(self.domains[domain][paneName], 3, wx.ALL | wx.EXPAND, 5)
         self.domains[domain][paneName].Show()
         self.tz.Layout()
