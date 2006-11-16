@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.10 2006/11/15 16:24:34 lightdruid Exp $
+# $Id: Options.py,v 1.11 2006/11/16 14:57:40 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -89,6 +89,21 @@ class Pane_General(wx.Panel, _Pane_Core):
 
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
+
+        # ---
+        self.SetSizer(sz)
+        self.SetAutoLayout(True)
+
+
+class Pane_Root(wx.Panel, _Pane_Core):
+    def __init__(self, parent, domain, name, xmlChunk):
+        wx.Panel.__init__(self, parent, -1)
+        _Pane_Core.__init__(self, domain, name, xmlChunk)
+
+        self.sz = wx.BoxSizer(wx.VERTICAL)
+        sz = self.sz
+
+        self.sz.Add(wx.StaticText(self, -1, "NanoICQ options\n\nPlease choose specific group of options"))
 
         # ---
         self.SetSizer(sz)
@@ -291,11 +306,21 @@ class OptionsTree(wx.TreeCtrl):
 
         #self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onActivate, self)
 
-        self.root = self.AddRoot("/")
-        self.SetPyData(self.root, None)
+
+        # Setup root pane
 
         self._domains = {}
         self._panes = {}
+
+        self.root = self.AddRoot("/")
+        self.SetPyData(self.root, ("/", "Root"))
+
+        self._panes["Root"] = None
+        self._domains["/"] = copy.copy(self._panes)
+
+        self._panes = {}
+
+        # Setup other panes from XML
 
         for c in child.getchildren():
 
@@ -348,11 +373,9 @@ class OptionsPanel(wx.Panel):
 
         sz = wx.BoxSizer(wx.VERTICAL)
         self.tree = OptionsTree(self, -1)
-        self.pane = wx.Panel(self, -1)
 
         self.tz = wx.BoxSizer(wx.HORIZONTAL)
         self.tz.Add(self.tree, 1, wx.ALL | wx.EXPAND, 5)
-        self.tz.Add(self.pane, 3, wx.ALL | wx.EXPAND, 5)
 
         hz = wx.BoxSizer(wx.HORIZONTAL)
         self.cancelButton = wx.Button(self, _ID_CANCEL_BUTTON, 'Cancel')

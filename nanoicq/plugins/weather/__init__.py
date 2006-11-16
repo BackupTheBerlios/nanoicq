@@ -1,10 +1,10 @@
 
 #
-# $Id: __init__.py,v 1.2 2006/03/09 15:36:01 lightdruid Exp $
+# $Id: __init__.py,v 1.3 2006/11/16 14:57:40 lightdruid Exp $
 #
 
 def init_plugin(connector):
-    from weather import Weather
-    return Weather(station = 'UMMS', connector = connector)
+    from weather import Weather, BOOTED
+    return (Weather(station = 'UMMS', connector = connector), BOOTED)
 
 # ---

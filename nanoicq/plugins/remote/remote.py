@@ -1,6 +1,6 @@
 
 #
-# $Id: remote.py,v 1.2 2006/08/27 13:33:45 lightdruid Exp $
+# $Id: remote.py,v 1.3 2006/11/16 14:57:40 lightdruid Exp $
 #
 
 import sys
@@ -9,16 +9,21 @@ from Plugin import Plugin, PluginException
 from message import *
 from icq import log
 
-_loaded = True
+BOOTED = True
 
 
 class Remote(Plugin):
     _trusted_uin = []
 
     _category = "remote"
+    _domain = "misc"
+    _name = "remote"
 
-    def isLoaded(self):
-        return _loaded
+    def drawOptions(self, parent):
+        import wx
+        p = wx.Panel(parent, -1)
+        wx.StaticText(p, -1, "Remote plugin settings")
+        return p
 
     def onIncomingMessage(self, buddy, message):
         return message

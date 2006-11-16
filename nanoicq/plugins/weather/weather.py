@@ -1,6 +1,6 @@
 
 #
-# $Id: weather.py,v 1.9 2006/08/27 13:33:45 lightdruid Exp $
+# $Id: weather.py,v 1.10 2006/11/16 14:57:40 lightdruid Exp $
 #
 
 import sys
@@ -9,22 +9,33 @@ from Plugin import Plugin, PluginException
 from message import *
 from icq import log
 
-_loaded = True
+BOOTED = True
 
 try:
     import pymetar
 except ImportError, exc:
     raise PluginException("Unable to initialize 'weather' plugin: " + str(exc))
-    _loaded = False
+    BOOTED = False
 
 
 class Weather(Plugin):
     _trusted_uin = []
 
     _category = "service"
+    _domain = "network"
+    _name = "weather"
 
-    def isLoaded(self):
-        return _loaded
+    def hasOptions(self):
+        return True
+
+    def getName(self):
+        return self._name
+
+    def drawOptions(self, parent):
+        import wx
+        p = wx.Panel(parent, -1)
+        wx.StaticText(p, -1, "Weather plugin settings")
+        return p
 
     def onIncomingMessage(self, buddy, message):
 

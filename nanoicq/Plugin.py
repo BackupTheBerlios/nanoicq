@@ -1,6 +1,6 @@
 
 #
-# $Id: Plugin.py,v 1.8 2006/08/27 13:33:45 lightdruid Exp $
+# $Id: Plugin.py,v 1.9 2006/11/16 14:57:40 lightdruid Exp $
 #
 
 import os
@@ -22,7 +22,8 @@ class PluginException(Exception):
 _plugin_categories = [
     "ui",
     "service",
-    "remote"
+    "remote",
+    "transport",
 ]
 
 def checkPluginCategory(cat):
@@ -34,10 +35,27 @@ def checkPluginCategory(cat):
 
 class Plugin(wx.EvtHandler):
     # Must be overloaded in plugin module
-    _category = None
 
     def __init__(self):
         wx.EvtHandler.__init__(self)
+        self._loaded = False
+        self.BOOTED = False
+
+    def setLoaded(self, flag):
+        self._loaded = flag
+
+    def isLoaded(self):
+        return self._loaded
+
+    def hasOptions(self):
+        return False
+
+    def drawOptions(self, p):
+        print self
+        raise NotImplementedError("drawOptions")
+
+    def getName(self):
+        return self._name
 
     def onIncomingMessage(self, buddy = None, message = None):
         raise NotImplementedError('onIncomingMessage')
@@ -46,7 +64,12 @@ class Plugin(wx.EvtHandler):
         raise NotImplementedError('sendMessage')
 
     def getCategory(self):
+        assert self._category is not None
         return self._category
+        
+    def getDomain(self):
+        assert self._domain is not None
+        return self._domain
         
 
 def __my_path():
@@ -70,8 +93,7 @@ def __load_plugins(plugin_dir, connector):
         if module == 'CVS': continue
 
         try:
-            b = __import__(module).init_plugin(connector)
-            checkPluginCategory(b.getCategory())
+            b, booted = __import__(module).init_plugin(connector)
         except PluginException, exc:
             log().log("Error loading plugin '%s'" % module)
             log().log(str(exc))
@@ -79,7 +101,7 @@ def __load_plugins(plugin_dir, connector):
             log().log("Error loading plugin '%s'" % module)
             traceback.print_exc()
         else:
-            if module is None or b.isLoaded() == False:
+            if module is None or booted == False:
                 log().log("Plugin '%s', not loaded" % module)
             else:
                 log().log("Loaded '%s' plugin" % module)

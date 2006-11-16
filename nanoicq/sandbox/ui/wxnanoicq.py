@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.134 2006/11/10 15:46:52 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.135 2006/11/16 14:57:40 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.134 2006/11/10 15:46:52 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.135 2006/11/16 14:57:40 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -33,6 +33,8 @@ from config import Config
 import guidebug
 import HistoryDirection
 import errordialog
+
+import Plugin
 
 from logger import log, LogException
 from messagedialog import MessageDialog
@@ -297,7 +299,6 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
-        import Plugin
         self._plugins = Plugin.load_plugins('../../plugins', '../plugins',
             connector = self.connector)
 
@@ -908,7 +909,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onOptions(self, evt):
         from Options import OptionsFrame
-        o = OptionsFrame(self, -1)
+        o = OptionsFrame(self, -1, self._plugins)
         #o.MakeModal()
         o.Show()
 

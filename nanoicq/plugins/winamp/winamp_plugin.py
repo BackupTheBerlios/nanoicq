@@ -1,6 +1,6 @@
 
 #
-# $Id: winamp_plugin.py,v 1.1 2006/10/19 10:17:03 lightdruid Exp $
+# $Id: winamp_plugin.py,v 1.2 2006/11/16 14:57:40 lightdruid Exp $
 #
 
 import sys
@@ -14,25 +14,40 @@ from icq import log
 
 import winamp
 
-_loaded = True
+BOOTED = True
 
 try:
     import winamp
 except ImportError, exc:
     raise PluginException("Unable to initialize 'winamp' plugin: " + str(exc))
-    _loaded = False
+    BOOTED = False
 
 
 class Winamp(Plugin):
-    _category = "service"
     _trusted_uin = [ "177033621" ]
+
+    _category = "service"
+    _domain = "misc"
+    _name = "winamp"
+
+    def hasOptions(self):
+        return True
+
+    def getName(self):
+        return self._name
+
+    def drawOptions(self, parent):
+        import wx
+        p = wx.Panel(parent, -1)
+        wx.StaticText(p, -1, "Winamp plugin settings")
+        return p
 
     def __init__(self, connector):
         Plugin.__init__(self)
         self._connector = connector
 
     def isLoaded(self):
-        return _loaded
+        return self._loaded
 
     def onIncomingMessage(self, buddy, message):
 

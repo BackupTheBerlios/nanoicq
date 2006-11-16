@@ -1,11 +1,11 @@
 
 #
-# $Id: __init__.py,v 1.1 2006/10/19 10:17:03 lightdruid Exp $
+# $Id: __init__.py,v 1.2 2006/11/16 14:57:40 lightdruid Exp $
 #
 
-from winamp_plugin import Winamp
+from winamp_plugin import Winamp, BOOTED
 
 def init_plugin(connector):
-    return Winamp(connector)
+    return (Winamp(connector), BOOTED)
 
 # ---

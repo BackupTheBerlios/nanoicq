@@ -1,10 +1,10 @@
 
 #
-# $Id: __init__.py,v 1.1 2006/08/21 22:19:21 lightdruid Exp $
+# $Id: __init__.py,v 1.2 2006/11/16 14:57:40 lightdruid Exp $
 #
 
 def init_plugin(connector):
-    from remote import Remote
-    return Remote()
+    from remote import Remote, BOOTED
+    return (Remote(), BOOTED)
 
 # ---
