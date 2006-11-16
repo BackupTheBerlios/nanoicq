@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.101 2006/08/28 15:25:51 lightdruid Exp $
+# $Id: icq.py,v 1.102 2006/11/16 18:28:14 lightdruid Exp $
 #
 
 import sys
@@ -458,8 +458,7 @@ class Protocol:
             encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
         else:
             encpass = encryptPasswordICQ(self._config.get('icq', 'password'))
-
-        #print "[%s] [%s] " % (self.username, os.getenv("TEST_ICQ_PASS"))
+            print "[%s] [%s] " % (self.username, self._config.get('icq', 'password'))
 
         self.sendFLAP(0x01, '\000\000\000\001'+
             tlv(0x01, self.username)+

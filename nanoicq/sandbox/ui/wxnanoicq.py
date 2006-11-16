@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.136 2006/11/16 16:20:02 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.137 2006/11/16 18:28:14 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.136 2006/11/16 16:20:02 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.137 2006/11/16 18:28:14 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -962,10 +962,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
             self.connector['icq'].connect()
             self.connector['icq'].login()
             self.connector['icq'].Start()
-        except Exception, exc:
-        #except:
+        #except Exception, exc:
+        except:
+            raise
             self.updateStatusBar('Disconnected')
-            wx.MessageBox('Error: ' + str(exc), 'Connect error', wx.OK)
+            #wx.MessageBox('Error: ' + str(exc), 'Connect error', wx.OK)
 
     def showMessage(self, b, message, hide = False):
 
