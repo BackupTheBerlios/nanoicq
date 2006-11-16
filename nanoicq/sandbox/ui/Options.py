@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.12 2006/11/16 15:37:52 lightdruid Exp $
+# $Id: Options.py,v 1.13 2006/11/16 16:20:01 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -350,6 +350,12 @@ class OptionsTree(wx.TreeCtrl):
                         dh = self.AppendItem(ch, d.tag)
                         self.SetPyData(dh, (c.tag, d.tag))
                         self._panes[d.tag] = copy.copy(d)
+            else:
+                ch = self.AppendItem(self.root, c.tag)
+                self.SetPyData(ch, (c.tag, c.tag))
+                #self._panes[c.tag] = copy.copy(c)
+                #self._domains[c.tag] = copy.copy(c)
+                pass
 
             self._domains[c.tag] = copy.copy(self._panes)
             self._panes = {}
@@ -495,6 +501,7 @@ class OptionsPanel(wx.Panel):
         if self._plugins.has_key(name.lower()):
             return self._plugins[name.lower()].drawOptions(self)
 
+        #print 'name, domain', name, domain, self.domains[domain][domain]
         if name == domain:        
             d = domain
             if self.domains[d][d] is None:
@@ -523,7 +530,7 @@ class OptionsPanel(wx.Panel):
 
 
 class OptionsFrame(wx.Frame):
-    def __init__(self, parentFrame, ID, plugins, title = 'Options',
+    def __init__(self, parentFrame, ID, icon, plugins, title = 'Options',
             size = (620, 280), pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE 
                 | wx.MAXIMIZE_BOX 
@@ -533,6 +540,8 @@ class OptionsFrame(wx.Frame):
 
         wx.Frame.__init__(self, parentFrame, ID, size = size, style = style,
             title = title)
+
+        self.SetIcon(icon)
 
         tz = wx.BoxSizer(wx.VERTICAL)
 
@@ -552,7 +561,7 @@ def _test():
             p = Plugin.load_plugins('../../plugins', '../plugins',
                 connector = c)
 
-            frame = OptionsFrame(None, -1, p)
+            frame = OptionsFrame(None, -1, wx.EmptyIcon(), p)
             self.SetTopWindow(frame)
             frame.CentreOnParent()
             frame.Show(True)
