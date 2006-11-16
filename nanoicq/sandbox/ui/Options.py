@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.11 2006/11/16 14:57:40 lightdruid Exp $
+# $Id: Options.py,v 1.12 2006/11/16 15:37:52 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -20,6 +20,8 @@ from buddy import Buddy
 from iconset import IconSet
 from utils import *
 from validator import *
+
+import Plugin
 
 _ID_OK_BUTTON = wx.NewId()
 _ID_CANCEL_BUTTON = wx.NewId()
@@ -286,8 +288,10 @@ class Pane_ICQ(wx.Panel, _Pane_Core):
         self.restore(xml)
 
 class OptionsTree(wx.TreeCtrl):
-    def __init__(self, parent, id):
+    def __init__(self, parent, id, plugins):
         wx.TreeCtrl.__init__(self, parent, id)
+
+        self._plugins = plugins
 
         fn = "options.xml"
         tree = ET.parse(fn)
@@ -354,6 +358,49 @@ class OptionsTree(wx.TreeCtrl):
 
         self.Expand(self.root)
 
+        # Load the rest of plugins
+        c = self.GetRootItem()
+
+        for pl in [px for px in self._plugins.values() if not px.isLoaded()]:
+            domain = pl.getDomain().capitalize()
+            name = pl.getName().capitalize()
+
+            domainRoot = self.haveDomain(self.root, domain)
+            print '>', domain, name, domainRoot
+
+            if domainRoot:
+                domainPanes = self._domains[domain]
+                domainPanes[name] = None
+
+                dh = self.AppendItem(domainRoot, name)
+                self.SetPyData(dh, (domain, name))
+                self._domains[domain] = domainPanes
+            else:
+                ch = self.AppendItem(self.root, domain)
+                dh = self.AppendItem(ch, name)
+                self.SetPyData(ch, (domain, domain))
+                self.SetPyData(dh, (domain, name))
+
+                self._panes = {}
+                self._panes[domain] = None
+                self._panes[name] = None
+
+                self._domains[domain] = self._panes
+
+            self.Expand(ch)
+
+    def haveDomain(self, root, d):
+        found = None
+
+        (child, cookie) = self.GetFirstChild(root)
+        while child.IsOk():
+            if d == self.GetItemText(child):
+                found = child
+                break
+            (child, cookie) = self.GetNextChild(root, cookie)
+
+        return found
+
     def getDomains(self):
         return self._domains
 
@@ -366,13 +413,14 @@ class OptionsPanel(wx.Panel):
     _dirty = False
     _activePane = None
 
-    def __init__(self, parent):
+    def __init__(self, parent, plugins):
         wx.Panel.__init__(self, parent, -1)
 
         self._parent = parent
+        self._plugins = plugins
 
         sz = wx.BoxSizer(wx.VERTICAL)
-        self.tree = OptionsTree(self, -1)
+        self.tree = OptionsTree(self, -1, plugins)
 
         self.tz = wx.BoxSizer(wx.HORIZONTAL)
         self.tz.Add(self.tree, 1, wx.ALL | wx.EXPAND, 5)
@@ -443,6 +491,16 @@ class OptionsPanel(wx.Panel):
         self.okButton.Enable(self._dirty == True)
 
     def createPane(self, domain, name, xmlChunk):
+        # If it's plugin pane - let plugin to create it
+        if self._plugins.has_key(name.lower()):
+            return self._plugins[name.lower()].drawOptions(self)
+
+        if name == domain:        
+            d = domain
+            if self.domains[d][d] is None:
+                p = Pane_General(self, domain, name, None)
+                return p
+
         return eval("Pane_%s(self, '%s', '%s', xmlChunk)" % (name, domain, name))
 
     def onSelChanged(self, evt):
@@ -450,17 +508,7 @@ class OptionsPanel(wx.Panel):
         item = evt.GetItem()
         data = self.tree.GetPyData(item)
 
-        if data is None:
-            print "point 1"
-            if self.pane is not None:
-                print "point 1-1"
-                self.pane.Hide()
-                self.tz.Detach(self.pane)
-                #pass
-            return
-
         if self._currentData is not None:
-            print "point 2"
             domain, paneName = self._currentData
             self.tz.Detach(self.domains[domain][paneName])
             self.domains[domain][paneName].Hide()
@@ -474,62 +522,8 @@ class OptionsPanel(wx.Panel):
         self.Layout()
 
 
-class OptionsPanel1(wx.Panel):
-    _head = [
-        'General', 'ICQ'
-    ]
-
-    _dirty = False
-
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, -1)
-
-        self._parent = parent
-
-        sz = wx.BoxSizer(wx.VERTICAL)
-        self.nb = OptionsNB(self, -1)
-
-        for h in self._head:
-            try:
-                win = eval("Pane_%s(self.nb)" % h)
-                self.nb.AddPage(win, h)
-            except NameError, msg:
-                print msg
-                raise
-
-        self.nb.Layout()
-
-        hz = wx.BoxSizer(wx.HORIZONTAL)
-        self.cancelButton = wx.Button(self, _ID_CANCEL_BUTTON, 'Cancel')
-        self.okButton = wx.Button(self, _ID_OK_BUTTON, 'Ok')
-        hz.Add(self.cancelButton, 0, wx.ALL, 1)
-        hz.Add(self.okButton, 0, wx.ALL | wx.ALIGN_RIGHT, 1)
-
-        sz.Add(self.nb, 7, wx.EXPAND | wx.ALL, 5)
-        sz.Add(hz, 0, wx.ALL | wx.ALIGN_RIGHT | wx.ALIGN_BOTTOM, 5)
-
-        self.okButton.Enable(False)
-
-        self.Bind(wx.EVT_BUTTON, self.onOkButton, id = _ID_OK_BUTTON)
-        self.Bind(wx.EVT_BUTTON, self.onCancelButton, id = _ID_CANCEL_BUTTON)
-
-        self.SetSizer(sz)
-        self.SetAutoLayout(True)
-
-    def onOkButton(self, evt):
-        pass
-
-    def onCancelButton(self, evt):
-        self._parent.Close()
-
-    def updateDirty(self, flag = None):
-        if flag is not None:
-            self._dirty = flag
-        self.okButton.Enable(self._dirty == True)
-
-
 class OptionsFrame(wx.Frame):
-    def __init__(self, parentFrame, ID, title = 'Options',
+    def __init__(self, parentFrame, ID, plugins, title = 'Options',
             size = (620, 280), pos = wx.DefaultPosition,
             style = wx.DEFAULT_DIALOG_STYLE 
                 | wx.MAXIMIZE_BOX 
@@ -542,7 +536,7 @@ class OptionsFrame(wx.Frame):
 
         tz = wx.BoxSizer(wx.VERTICAL)
 
-        self.panel = OptionsPanel(self)
+        self.panel = OptionsPanel(self, plugins)
 
         tz.Add(self.panel, 1, wx.ALL | wx.EXPAND, 0)
 
@@ -553,7 +547,12 @@ def _test():
     class NanoApp(wx.App):
         def OnInit(self):
 
-            frame = OptionsFrame(None, -1)
+            c = {}
+            c['icq'] = None
+            p = Plugin.load_plugins('../../plugins', '../plugins',
+                connector = c)
+
+            frame = OptionsFrame(None, -1, p)
             self.SetTopWindow(frame)
             frame.CentreOnParent()
             frame.Show(True)
