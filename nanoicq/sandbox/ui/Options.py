@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.13 2006/11/16 16:20:01 lightdruid Exp $
+# $Id: Options.py,v 1.14 2006/11/16 16:20:36 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -351,8 +351,8 @@ class OptionsTree(wx.TreeCtrl):
                         self.SetPyData(dh, (c.tag, d.tag))
                         self._panes[d.tag] = copy.copy(d)
             else:
-                ch = self.AppendItem(self.root, c.tag)
-                self.SetPyData(ch, (c.tag, c.tag))
+                #ch = self.AppendItem(self.root, c.tag)
+                #self.SetPyData(ch, (c.tag, c.tag))
                 #self._panes[c.tag] = copy.copy(c)
                 #self._domains[c.tag] = copy.copy(c)
                 pass

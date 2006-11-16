@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.135 2006/11/16 14:57:40 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.136 2006/11/16 16:20:02 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.135 2006/11/16 14:57:40 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.136 2006/11/16 16:20:02 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -909,7 +909,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onOptions(self, evt):
         from Options import OptionsFrame
-        o = OptionsFrame(self, -1, self._plugins)
+        o = OptionsFrame(self, -1, self.mainIcon, self._plugins)
         #o.MakeModal()
         o.Show()
 
