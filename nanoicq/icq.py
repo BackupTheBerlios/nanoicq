@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.102 2006/11/16 18:28:14 lightdruid Exp $
+# $Id: icq.py,v 1.103 2006/11/22 10:49:35 lightdruid Exp $
 #
 
 import sys
@@ -2572,7 +2572,9 @@ class Protocol:
         except Exception, exc:
             log().log("Got exception while disconnection: " + str(exc))
 
-        self.connect('ibucp-vip-d.blue.aol.com', 5190)
+        self._host = 'ibucp-vip-d.blue.aol.com'
+        self._port = 5190
+        self.connect(self._host, self._port)
         #self.connect(self._host, self._port)
         log().log('Sending HELLO to server (%s:%d)...' % (self._host, self._port))
 
@@ -2616,10 +2618,15 @@ class Protocol:
         log().packetin(buf)
 
         snac = self.readSNAC(buf)
-        i=snac[5].find("\000")
-        snac[5]=snac[5][i:]
+        #i=snac[5].find("\000")
+        #snac[5]=snac[5][i:]
         tlvs=readTLVs(snac[5])
         log().log(tlvs)
+
+        import cPickle
+        f = open('chunk.dump', 'wb')
+        cPickle.dump(buf, f)
+        f.close()
 
         if tlvs.has_key(TLV_ErrorCode):
             xerror = explainError(tlvs[TLV_ErrorCode])
@@ -2632,6 +2639,8 @@ class Protocol:
             log().log("Redirecting to: " + server)
 
         self._sock.disconnect()
+
+        print tlvs.keys(), tlvs.values()
 
         # Was:
         #self._host, self._port = server.split(':')
@@ -2953,7 +2962,7 @@ def _test():
     buf = p.read()
     log().packetin(buf)
 
-    p.sendAuth(username)
+    p.sendAuth("203153632")
     buf = p.read()
     log().packetin(buf)
 
@@ -3031,8 +3040,8 @@ def _test_new_uin():
     func(snac[5])
 
 if __name__ == '__main__':
-    #_test()
-    _test_new_uin()
+    _test()
+    #_test_new_uin()
 
     if 0:
         p = Protocol()

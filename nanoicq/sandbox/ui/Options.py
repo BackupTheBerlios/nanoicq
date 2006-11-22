@@ -1,6 +1,6 @@
 
 #
-# $Id: Options.py,v 1.14 2006/11/16 16:20:36 lightdruid Exp $
+# $Id: Options.py,v 1.15 2006/11/22 10:49:35 lightdruid Exp $
 #
 
 import elementtree.ElementTree as ET
@@ -26,6 +26,12 @@ import Plugin
 _ID_OK_BUTTON = wx.NewId()
 _ID_CANCEL_BUTTON = wx.NewId()
 
+def isInternal(o):
+    try:
+        o.keys().index("Internal")
+    except:
+        return False
+    return True
 
 def dump(elem, f):
     # debugging
@@ -38,17 +44,32 @@ def dump(elem, f):
 
 
 
-class OptionsNB(wx.Notebook):
-    def __init__(self, parent, id):
+class OptionsICQNB(wx.Notebook):
+    def __init__(self, parent, id, domain, name, xmlChunk,):
         wx.Notebook.__init__(self, parent, id,
-                             style = wx.NB_TOP | wx.NB_MULTILINE
-                             )
+            style = wx.NB_TOP | wx.NB_MULTILINE)
+
+        self._domain = domain
+        self._name = name
+        self._xmlChunk = xmlChunk
+
+class OptionsJabberNB(wx.Notebook):
+    def __init__(self, parent, id, domain, name, xmlChunk,):
+        wx.Notebook.__init__(self, parent, id,
+            style = wx.NB_TOP | wx.NB_MULTILINE)
+
+        self.AddPage(wx.Panel(self, -1), "1")
+        self.AddPage(wx.Panel(self, -1), "2")
+        self.AddPage(wx.Panel(self, -1), "3")
+
 
 class _Pane_Core:
     def __init__(self, domain, name, xmlChunk):
         self._domainName = domain
         self._panelName = name
         self._xmlChunk = xmlChunk
+
+        self.serializable = True
 
         self.x = {}
 
@@ -61,6 +82,8 @@ class _Pane_Core:
                 w.SetValue(bool(int(c.text)))
             elif type(w) == wx.RadioButton:
                 w.SetValue(bool(int(c.text)))
+            elif type(w) == wx.SpinCtrl:
+                w.SetValue(int(c.text))
             else:
                 raise Exception("Unknown element type: " + str(type(w)))
 
@@ -75,6 +98,8 @@ class _Pane_Core:
             elif type(w) == wx.CheckBox:
                 v = str(int(w.GetValue()))
             elif type(w) == wx.RadioButton:
+                v = str(int(w.GetValue()))
+            elif type(w) == wx.SpinCtrl:
                 v = str(int(w.GetValue()))
             else:
                 raise Exception("Unknown element type: " + str(type(w)))
@@ -214,6 +239,47 @@ class Pane_Network(wx.Panel, _Pane_Core):
         self.sz = wx.BoxSizer(wx.VERTICAL)
         sz = self.sz
 
+        ssz1 = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Network settings'), wx.VERTICAL)
+
+        self.defaultCharset = wx.TextCtrl(self, -1, "")
+        self.keepAliveInterval = wx.SpinCtrl(self, -1, "", size=(50,-1))
+        self.keepAliveInterval.SetRange(0, 360)
+        self.keepAliveInterval.SetValue(0)
+
+        hs1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        hs1.Add(wx.StaticText(self, -1, "Default charset:"), 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        hs1.Add(self.defaultCharset, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        hs2 = wx.BoxSizer(wx.HORIZONTAL)
+        hs2.Add(wx.StaticText(self, -1, "Keep alive interval:"), 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        hs2.Add(self.keepAliveInterval, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        ssz1.Add(hs1, 1, wx.ALIGN_CENTRE | wx.EXPAND | wx.ALL, 0)
+        ssz1.Add(hs2, 1, wx.ALIGN_CENTRE | wx.EXPAND | wx.ALL, 0)
+
+        sz.Add(ssz1, 0, wx.EXPAND | wx.ALL, 0)
+
+        self.x["DefaultCharset"] = self.defaultCharset.GetId()
+        self.x["KeepAliveInterval"] = self.keepAliveInterval.GetId()
+
+        self.restore(self._xmlChunk)
+
+        # ---
+        self.SetSizer(sz)
+        self.SetAutoLayout(True)
+
+class Pane_Jabber(wx.Panel, _Pane_Core):
+    def __init__(self, parent, domain, name, xmlChunk):
+        wx.Panel.__init__(self, parent, -1)
+        _Pane_Core.__init__(self, domain, name, xmlChunk)
+
+        self.sz = wx.BoxSizer(wx.VERTICAL)
+        sz = self.sz
+
+        #self.nb = OptionsJabberNB(self, -1)
+        #sz.Add(self.nb, 1, wx.ALL | wx.EXPAND, 5)
+
         # ---
         self.SetSizer(sz)
         self.SetAutoLayout(True)
@@ -316,11 +382,15 @@ class OptionsTree(wx.TreeCtrl):
         self._domains = {}
         self._panes = {}
 
-        self.root = self.AddRoot("/")
-        self.SetPyData(self.root, ("/", "Root"))
+        domain = "/"
+        name = "Root"
 
-        self._panes["Root"] = None
-        self._domains["/"] = copy.copy(self._panes)
+        self.root = self.AddRoot(domain)
+        self.SetPyData(self.root, (domain, name))
+
+        self._panes[name] = None # Pane_General(self, domain, name, None)
+        #self._panes[name].serializable = False
+        self._domains[domain] = copy.copy(self._panes)
 
         self._panes = {}
 
@@ -455,8 +525,20 @@ class OptionsPanel(wx.Panel):
         for d in domains:
             for p in domains[d]:
                 xmlChunk = self.domains[d][p]
-                self.domains[d][p] = self.createPane(d, p, xmlChunk)
+                if d == p and xmlChunk is not None:
+                    x = copy.copy(xmlChunk)
+                    ii = 0
+                    for el in x.getchildren():
+                        if isInternal(el):
+                            del x[ii]
+                        ii += 1
+                    xmlChunk = x
+                if self.domains[d][p] is not wx.Panel:
+                    self.domains[d][p] = self.createPane(d, p, xmlChunk)
                 self.domains[d][p].Hide()
+
+        # Hack
+        self.domains["/"]["Root"].serializable = False
 
         self._currentData = None
 
@@ -480,9 +562,16 @@ class OptionsPanel(wx.Panel):
             top = ET.SubElement(o, d)
             top.set("Internal", "1")
             for p in self.domains[d]:
-                if p == d:
-                    continue
-                top.append(self.domains[d][p].store())
+                try:
+                    print self.domains[d][p]
+                    if self.domains[d][p].serializable:
+                        if p == d:
+                            for el in self.domains[d][p].store().getchildren():
+                                top.append(el)
+                        else:
+                            top.append(self.domains[d][p].store())
+                except AttributeError, e:
+                    print e
         dump(r, f)
         f.close()
 
