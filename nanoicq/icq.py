@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.103 2006/11/22 10:49:35 lightdruid Exp $
+# $Id: icq.py,v 1.104 2006/11/23 15:42:11 lightdruid Exp $
 #
 
 import sys
@@ -2618,8 +2618,14 @@ class Protocol:
         log().packetin(buf)
 
         snac = self.readSNAC(buf)
+
         #i=snac[5].find("\000")
+        #print i
         #snac[5]=snac[5][i:]
+
+        # FIXME: why we need to skip first char?
+        snac[5]=snac[5][1:]
+
         tlvs=readTLVs(snac[5])
         log().log(tlvs)
 
