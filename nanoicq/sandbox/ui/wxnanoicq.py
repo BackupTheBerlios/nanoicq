@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.137 2006/11/16 18:28:14 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.138 2006/11/23 16:25:57 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.137 2006/11/16 18:28:14 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.138 2006/11/23 16:25:57 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -35,6 +35,8 @@ import HistoryDirection
 import errordialog
 
 import Plugin
+
+from nqueue import nqueue
 
 from logger import log, LogException
 from messagedialog import MessageDialog
@@ -77,6 +79,9 @@ ID_HIDE_OFFLINE = wx.NewId()
 ID_NEW_USER = wx.NewId()
 ID_DISCONNECT = wx.NewId()
 ID_OPTIONS = wx.NewId()
+
+NQUEUE_TIMER_ID = wx.NewId()
+KEEP_ALIVE_TIMER_ID = wx.NewId()
 
 _topMenu = (
     ("File",
@@ -288,14 +293,18 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(EVT_AUTHORIZATION_GRANTED, self.onAuthorizationGranted)
 
         self.keepAliveTimerVal = None
-        self._keepAliveTimer = wx.Timer(self)
+        self._keepAliveTimer = wx.Timer(self, KEEP_ALIVE_TIMER_ID)
+
+        self._nqueueTimer = wx.Timer(self, NQUEUE_TIMER_ID)
+        self.Bind(wx.EVT_TIMER, self.onNQueueTimer, self._nqueueTimer)
+        self._nqueueTimer.Start(10)
 
         if self.config.has_option('icq', 'keep.alive.interval'):
             try:
                 self.keepAliveTimerVal = self.config.getint('icq', 'keep.alive.interval')
+                self.Bind(wx.EVT_TIMER, self.onKeepAliveTimer, self._keepAliveTimer)
             except Exception, exc:
                 log().log('Unable to get information about keep alive timer: ' + str(exc))
-        self.Bind(wx.EVT_TIMER, self.onKeepAliveTimer)
 
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
@@ -527,8 +536,21 @@ class TopFrame(wx.Frame, PersistenceMixin):
 #        '''
 #        evt.Skip()
 
+    def onNQueueTimer(self, evt):
+        #evt.Skip()
+        #print 'onNQueueTimer'
+        if not nqueue().empty():
+            while not nqueue().empty():
+                kw, kws = nqueue().get()
+                print 'Pulled:', kw, kws
+                self.dispatch(kw, kws)
+
     def onKeepAliveTimer(self, evt):
-        evt.Skip()
+        #evt.Skip()
+        if evt.GetId() == self._nqueueTimer.GetId():
+            self.onNQueueTimer(evt)
+            return
+
         try:
             self.connector['icq'].sendKeepAlive()
         except Exception, exc:

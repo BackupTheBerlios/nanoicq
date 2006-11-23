@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.104 2006/11/23 15:42:11 lightdruid Exp $
+# $Id: icq.py,v 1.105 2006/11/23 16:25:56 lightdruid Exp $
 #
 
 import sys
@@ -29,6 +29,7 @@ import caps
 from logger import log, init_log, LogException
 from message import messageFactory, MessageQueue
 from proxy import *
+from nqueue import nqueue
 
 _default_reject_reason = 'Your authorization request is rejected, reason unknown'
 
@@ -319,8 +320,9 @@ class Protocol:
         pass
 
     def react(self, *kw, **kws):
-        if self._gui is not None:
-            self._gui.dispatch(kw, kws)
+        nqueue().put( (kw, kws) )
+        #if self._gui is not None:
+        #    self._gui.dispatch(kw, kws)
 
     def readConfig(self, config):
         self._config = config
