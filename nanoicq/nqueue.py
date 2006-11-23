@@ -1,6 +1,6 @@
 
 #
-# $Id: nqueue.py,v 1.1 2006/11/23 16:25:57 lightdruid Exp $
+# $Id: nqueue.py,v 1.2 2006/11/23 16:36:56 lightdruid Exp $
 #
 
 from Queue import Queue
@@ -26,6 +26,6 @@ def nqueue():
 if __name__ == '__main__':
     n1 = nqueue()
     n2 = nqueue()
-    print n1, n2
+    assert n1 == n2
 
 # ---

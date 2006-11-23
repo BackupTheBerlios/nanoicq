@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.138 2006/11/23 16:25:57 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.139 2006/11/23 16:36:56 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.138 2006/11/23 16:25:57 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.139 2006/11/23 16:36:56 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -537,16 +537,16 @@ class TopFrame(wx.Frame, PersistenceMixin):
 #        evt.Skip()
 
     def onNQueueTimer(self, evt):
-        #evt.Skip()
-        #print 'onNQueueTimer'
         if not nqueue().empty():
             while not nqueue().empty():
                 kw, kws = nqueue().get()
-                print 'Pulled:', kw, kws
+                log().log('QUEUE: ' + str(kw) + str(kws))
                 self.dispatch(kw, kws)
 
     def onKeepAliveTimer(self, evt):
-        #evt.Skip()
+        # FIXME: looks like a bug in wxPython, this one works for
+        # both keep alive timer and nqueue timer timers, but
+        # we're passing right object in Bind(wx.TIMER, ...)
         if evt.GetId() == self._nqueueTimer.GetId():
             self.onNQueueTimer(evt)
             return
