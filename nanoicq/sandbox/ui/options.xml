@@ -1,44 +1,28 @@
-
-<!-- $Id: options.xml,v 1.10 2006/11/24 13:36:03 lightdruid Exp $
--->
-
 <Nanoicq>
-    <Options>
-        <Network Internal="1">
-            <ICQ Internal="1">
-                <LoginServer>login.icq.com</LoginServer>
-                <Port>5190</Port>
-                <ICQNumberz>203153632</ICQNumberz>
-
-                <ICQNumber>441197122</ICQNumber>
-                <ICQPassword>q</ICQPassword>
-            </ICQ>
-            <KeepAliveInterval>60</KeepAliveInterval>
-            <DefaultCharset>cp1251</DefaultCharset>
-        </Network>
-        <General Internal="1">
-            <EasyMove>True</EasyMove>
-            <ShowWindowTitleBar>True</ShowWindowTitleBar>
-            <IconBlinkTimeOut>1</IconBlinkTimeOut>
-            <Title>$</Title>
-            <IconSet>aox</IconSet>
-            <ShowMainMenu>True</ShowMainMenu>
-            <ShowWindowStatusBar>True</ShowWindowStatusBar>
-            <MinimizeToTray>False</MinimizeToTray>
-            <RaiseIncomingMessage>True</RaiseIncomingMessage>
-
-            <ContactList Internal="1">
-                <HideEmptyGroups>1</HideEmptyGroups>
-                <AskBeforeDeleting>1</AskBeforeDeleting>
-                <SortByName>0</SortByName>
-                <AlwaysShowStatusInTooltip>1</AlwaysShowStatusInTooltip>
-                <DisableGroups>0</DisableGroups>
-                <SortByStatus>1</SortByStatus>
-                <DisableIconBlinking>0</DisableIconBlinking>
-                <HideOfflineUsers>0</HideOfflineUsers>
-                <SingleClickInterface>0</SingleClickInterface>
-                <SortByProtocol>0</SortByProtocol>
-            </ContactList>
-        </General>
-    </Options>
+	<Options>
+		<Network Internal="1">
+			<ICQ Internal="1">
+				<LoginServer>login.icq.com</LoginServer>
+				<Port>5190</Port>
+				<ICQPassword>q</ICQPassword>
+				<ICQNumber>441197122</ICQNumber>
+			</ICQ>
+			<KeepAliveInterval>60</KeepAliveInterval>
+			<DefaultCharset>cp1251</DefaultCharset>
+		</Network>
+		<General Internal="1">
+			<ContactList Internal="1">
+				<HideEmptyGroups>1</HideEmptyGroups>
+				<AskBeforeDeleting>1</AskBeforeDeleting>
+				<SortByName>0</SortByName>
+				<AlwaysShowStatusInTooltip>1</AlwaysShowStatusInTooltip>
+				<DisableGroups>0</DisableGroups>
+				<SortByStatus>1</SortByStatus>
+				<DisableIconBlinking>0</DisableIconBlinking>
+				<HideOfflineUsers>0</HideOfflineUsers>
+				<SingleClickInterface>0</SingleClickInterface>
+				<SortByProtocol>0</SortByProtocol>
+			</ContactList>
+		</General>
+	</Options>
 </Nanoicq>

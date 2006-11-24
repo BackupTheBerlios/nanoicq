@@ -1,9 +1,9 @@
 
 #
-# $Id: Options.py,v 1.15 2006/11/22 10:49:35 lightdruid Exp $
+# $Id: Options.py,v 1.16 2006/11/24 16:14:59 lightdruid Exp $
 #
 
-import elementtree.ElementTree as ET
+from lxml import etree as E
 
 import sys
 import string
@@ -32,16 +32,6 @@ def isInternal(o):
     except:
         return False
     return True
-
-def dump(elem, f):
-    # debugging
-    if not isinstance(elem, ET.ElementTree):
-        elem = ET.ElementTree(elem)
-    elem.write(f)
-    tail = elem.getroot().tail
-    if not tail or tail[-1] != "\n":
-        f.write("\n")
-
 
 
 class OptionsICQNB(wx.Notebook):
@@ -73,6 +63,9 @@ class _Pane_Core:
 
         self.x = {}
 
+    def getPaneName(self):
+        return self._panelName
+
     def restore(self, xml):
         for c in [x for x in xml.getchildren() if x.text is not None]:
             w = self.FindWindowById(self.x[c.tag])
@@ -88,10 +81,11 @@ class _Pane_Core:
                 raise Exception("Unknown element type: " + str(type(w)))
 
     def store(self):
-        root = ET.Element(self._panelName)
+
+        root = E.Element(self._panelName)
         root.set("Internal", "1")
         for k in self.x:
-            e = ET.Element(k)
+            e = E.Element(k)
             w = self.FindWindowById(self.x[k])
             if type(w) == wx.TextCtrl:
                 v = w.GetValue()
@@ -105,6 +99,8 @@ class _Pane_Core:
                 raise Exception("Unknown element type: " + str(type(w)))
             e.text = v
             root.append(e)
+
+        print 'saving:', self._panelName, E.tostring(root, pretty_print=True)
 
         return root
 
@@ -360,7 +356,7 @@ class OptionsTree(wx.TreeCtrl):
         self._plugins = plugins
 
         fn = "options.xml"
-        tree = ET.parse(fn)
+        tree = E.parse(fn)
         root = tree.getroot()
         print dir(root), root.tag
 
@@ -556,14 +552,28 @@ class OptionsPanel(wx.Panel):
         fn = mkstemp()[1]
         f = open(fn, "wb")
 
-        r = ET.Element("Nanoicq")
-        o = ET.SubElement(r, "Options")
+        r = E.Element("Nanoicq")
+        o = E.SubElement(r, "Options")
         for d in self.domains:
-            top = ET.SubElement(o, d)
+            top = E.SubElement(o, d)
             top.set("Internal", "1")
+
+           
             for p in self.domains[d]:
                 try:
-                    print self.domains[d][p]
+                    print "\n===================="
+                    print self.domains[d][p].getPaneName()
+                    print 'TOP:', E.tostring(top, pretty_print=True)
+                    print 'R:', E.tostring(r, pretty_print=True)
+                    print "====================\n"
+
+                    # Nothing to do with root pane
+                    if self.domains[d][p].getPaneName() == "Root":
+                        print 'Root found, continue'
+                        del o[len(o.getchildren()) - 1]
+                        top = None
+                        continue
+
                     if self.domains[d][p].serializable:
                         if p == d:
                             for el in self.domains[d][p].store().getchildren():
@@ -572,7 +582,7 @@ class OptionsPanel(wx.Panel):
                             top.append(self.domains[d][p].store())
                 except AttributeError, e:
                     print e
-        dump(r, f)
+        print >> f, E.tostring(r)
         f.close()
 
         shutil.copy(fn, "options.xml")
