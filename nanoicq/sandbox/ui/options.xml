@@ -4,13 +4,25 @@
             <ICQ Internal="1">
                 <LoginServer>login.icq.com</LoginServer>
                 <Port>5190</Port>
-                <ICQPassword>123</ICQPassword>
-                <ICQNumber>24234</ICQNumber>
+                <ICQNumberz>203153632</ICQNumberz>
+
+                <ICQNumber>441197122</ICQNumber>
+                <ICQPassword>q</ICQPassword>
             </ICQ>
             <KeepAliveInterval>60</KeepAliveInterval>
-            <DefaultCharset>123</DefaultCharset>
+            <DefaultCharset>cp1251</DefaultCharset>
         </Network>
         <General Internal="1">
+            <EasyMove>True</EasyMove>
+            <ShowWindowTitleBar>True</ShowWindowTitleBar>
+            <IconBlinkTimeOut>1</IconBlinkTimeOut>
+            <Title>$</Title>
+            <IconSet>aox</IconSet>
+            <ShowMainMenu>True</ShowMainMenu>
+            <ShowWindowStatusBar>True</ShowWindowStatusBar>
+            <MinimizeToTray>False</MinimizeToTray>
+            <RaiseIncomingMessage>True</RaiseIncomingMessage>
+
             <ContactList Internal="1">
                 <HideEmptyGroups>1</HideEmptyGroups>
                 <AskBeforeDeleting>1</AskBeforeDeleting>
