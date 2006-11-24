@@ -1,6 +1,6 @@
 
 #
-# $Id: UserInfo.py,v 1.17 2006/11/08 09:58:54 lightdruid Exp $
+# $Id: UserInfo.py,v 1.18 2006/11/24 14:05:27 lightdruid Exp $
 #
 
 import sys
@@ -35,6 +35,12 @@ _gender = {
 }
 
 _NA = '<not specified>'
+
+def _conv_work_occupation_code(c):
+    try:
+        return codes.work_occupation_code[c]
+    except:
+        return _NA
 
 def _conv_gender(v):
     if v in _gender.keys():
@@ -81,21 +87,15 @@ class _Pane_auto:
         self.sz.Add(self.FindWindowByName(name), row = self.r, col = self.c + 2)
         self.FindWindowByName(name).SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_MENU))
 
-        #if proc is not None:
-        #    print proc, name, val
-
         if hasattr(self.b, name):
             v = eval('self.b.%s' % name)
-            #print name, v
             if v is not None:
                 if proc is not None:
-                    #print v
                     v = proc(v)
                 self.FindWindowByName(name).SetValue(_safe_to_str(v))
         elif val is not None:
             self.FindWindowByName(name).SetValue(val)
         else:
-            #print 'NOT FOUND', name
             self.FindWindowByName(name).SetValue(self._NA)
 
         if self.FindWindowByName(name).GetValue() == self._NA:
@@ -192,7 +192,7 @@ class Pane_Work(wx.Panel, _Pane_auto):
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Position:'), row = self.r, col = self.c)
-        g('work_occupation_code')
+        g('work_occupation_code', proc=_conv_work_occupation_code)
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Street:'), row = self.r, col = self.c)
@@ -244,7 +244,7 @@ class Pane_Location(wx.Panel, _Pane_auto):
         self.sz = rcs.RowColSizer()
         sz = self.sz
 
-        self._pre(['street', 'city', 'state', 'zip', 
+        self._pre(['address', 'city', 'state', 'zip', 
             'original_from_country_code', 
             'speaking_language_1', 'speaking_language_2', 'speaking_language_3',
             'timezone', 'local_time'])
@@ -253,7 +253,7 @@ class Pane_Location(wx.Panel, _Pane_auto):
         self.c = 1
         self.r = 1
         sz.Add(wx.StaticText(self, -1, 'Street:'), row = self.r, col = self.c)
-        g('street')
+        g('address')
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'City:'), row = self.r, col = self.c)
@@ -269,7 +269,7 @@ class Pane_Location(wx.Panel, _Pane_auto):
         self.r += 1
 
         sz.Add(wx.StaticText(self, -1, 'Country:'), row = self.r, col = self.c)
-        g('original_from_country_code')
+        g('original_from_country_code', proc = _conv_country)
         self.r += 1
 
         self.c = 4

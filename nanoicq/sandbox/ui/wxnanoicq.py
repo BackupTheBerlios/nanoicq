@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.140 2006/11/24 13:35:19 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.141 2006/11/24 14:05:27 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.140 2006/11/24 13:35:19 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.141 2006/11/24 14:05:27 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -479,9 +479,10 @@ class TopFrame(wx.Frame, PersistenceMixin):
         evt.Skip()
         b = self.connector['icq'].getBuddy(name)
 
-        rc = wx.MessageBox("Delete user %s?" % b.name, "Delete user", wx.YES_NO)
-        if rc != wx.YES:
-            return
+        if self.xmlConfig.getBool("./Options/General/ContactList/AskBeforeDeleting"):
+            rc = wx.MessageBox("Delete user %s?" % b.name, "Delete user", wx.YES_NO)
+            if rc != wx.YES:
+                return
 
         try:
             self.connector['icq'].deleteBuddy(b)
