@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #
-# $Id: wxnanoicq.py,v 1.139 2006/11/23 16:36:56 lightdruid Exp $
+# $Id: wxnanoicq.py,v 1.140 2006/11/24 13:35:19 lightdruid Exp $
 #
 
-_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.139 2006/11/23 16:36:56 lightdruid Exp $"[20:-37]
+_INTERNAL_VERSION = "$Id: wxnanoicq.py,v 1.140 2006/11/24 13:35:19 lightdruid Exp $"[20:-37]
 
 import sys
 import traceback
@@ -28,7 +28,7 @@ import icq
 from icq import log
 
 from StatusBar import *
-from config import Config
+from xmlconfig import XmlConfig
 
 import guidebug
 import HistoryDirection
@@ -174,12 +174,12 @@ class ICQThreaded(icq.Protocol):
 class Connector:
     _protocols = {}
 
-    def setConfig(self, config):
-        self._config = config
+    def setConfig(self, xmlConfig):
+        self._xmlConfig = xmlConfig
 
     def registerProtocol(self, name, protocol):
         self._protocols[name] = protocol
-        self._protocols[name].readConfig(self._config)
+        self._protocols[name].readConfig(self._xmlConfig)
 
     def __getitem__(self, attr):
         return self._protocols[attr]
@@ -201,8 +201,8 @@ class TopFrame(wx.Frame, PersistenceMixin):
         # ---
         self._dialogs = []
 
-        self.config = Config()
-        self.config.read('nanoicq.config')
+        self.xmlConfig = XmlConfig()
+        self.xmlConfig.read("options.xml")
 
         # FIXME: strange effect
         #if self.config.safeGetBool('ui', 'show.window.in.taskbar') == False:
@@ -211,18 +211,18 @@ class TopFrame(wx.Frame, PersistenceMixin):
         #    self.SetWindowStyle(style)
         #    pass
 
-        self._easyMove = self.config.safeGetBool('ui', 'easy.move')
+        self._easyMove = self.xmlConfig.getBool("./Options/General/EasyMove")
 
-        if self.config.safeGetBool('ui', 'show.window.titlebar') == False:
+        if self.xmlConfig.getBool("./Options/General/ShowWindowTitleBar") == False:
             self.SetWindowStyle(self.GetWindowStyle() & wx.RESIZE_BORDER)
 
-        if self.config.has_option('ui', 'icon.blink.timeout'):
-             self._BLINK_TIMEOUT = self.config.getint('ui', 'icon.blink.timeout')
+        if self.xmlConfig.getInt("./Options/General/IconBlinkTimeOut"):
+             self._BLINK_TIMEOUT = self.xmlConfig.getInt("./Options/General/IconBlinkTimeOut")
 
-        if self.config.has_option('ui', 'title'):
-            self.SetTitle(self.config.get('ui', 'title'))
+        if self.xmlConfig.get("./Options/General/Title"):
+            self.SetTitle(self.xmlConfig.get("./Options/General/Title"))
 
-        iconSetName = self.config.get('ui', 'iconset')
+        iconSetName = self.xmlConfig.get("./Options/General/IconSet")
         self.iconSet = IconSet()
         self.iconSet.addPath('icons/' + iconSetName)
         self.iconSet.loadIcons()
@@ -235,11 +235,11 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
         self._showMenuBar = True
         self.createTopMenuBar()
-        mbFlag = self.config.safeGetBool('ui', 'show.window.menu') == True
+        mbFlag = self.xmlConfig.getBool("./Options/General/ShowMainMenu") 
         self.showMenuBar(mbFlag)
 
         self.makeStatusbar()
-        sbFlag = self.config.safeGetBool('ui', 'show.window.statusbar') == True
+        sbFlag = self.xmlConfig.getBool("./Options/General/ShowWindowStatusBar") 
         self.showStatusBar(sbFlag)
 
         #---
@@ -256,7 +256,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.trayIcon = TrayIcon(self, self.mainIcon, self.iconSet)
 
         self.connector = Connector()
-        self.connector.setConfig(self.config)
+        self.connector.setConfig(self.xmlConfig)
         self.connector.registerProtocol('icq', ICQThreaded(gui = self))
 
         self.updateStatusBar('Disconnected')
@@ -299,12 +299,14 @@ class TopFrame(wx.Frame, PersistenceMixin):
         self.Bind(wx.EVT_TIMER, self.onNQueueTimer, self._nqueueTimer)
         self._nqueueTimer.Start(10)
 
-        if self.config.has_option('icq', 'keep.alive.interval'):
+        if self.xmlConfig.safeGetInt("./Options/Network/KeepAliveInterval"):
             try:
-                self.keepAliveTimerVal = self.config.getint('icq', 'keep.alive.interval')
+                self.keepAliveTimerVal = self.xmlConfig.getInt("./Options/Network/KeepAliveInterval")
                 self.Bind(wx.EVT_TIMER, self.onKeepAliveTimer, self._keepAliveTimer)
             except Exception, exc:
                 log().log('Unable to get information about keep alive timer: ' + str(exc))
+        else:
+            log().log('No information about keep alive timer')
 
         #self.Bind(EVT_RESULT_BY_UIN, self.onResultByUin)
 
@@ -469,7 +471,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         if type(b) in types.StringTypes:
             b = self.connector['icq'].getBuddy(b)
 
-        self.connector['icq'].getFullUserInfo(self.config.get("icq", "uin"), b.uin)
+        self.connector['icq'].getFullUserInfo(self.xmlConfig.get("./Options/Network/ICQ/ICQNumber"), b.uin)
         self._userInfoRequested = True
 
     def onUserDelete(self, evt):
@@ -569,25 +571,25 @@ class TopFrame(wx.Frame, PersistenceMixin):
 
     def onNewUser(self, evt):
 
-        self.registerFrame = RegisterFrame(self, -1, self.connector["icq"], self.iconSet, self.config)
+        self.registerFrame = RegisterFrame(self, -1, self.connector["icq"], self.iconSet, self.xmlConfig)
         self.registerFrame.CentreOnParent(wx.BOTH)
         self.registerFrame.Show()
 
     def onSearchByUin(self, evt):
         print 'onSearchByUin'
-        ownerUin = self.config.get("icq", "uin")
+        ownerUin = self.xmlConfig.get("./Options/Network/ICQ/ICQNumber")
         uin = evt.getVal()
         self.connector["icq"].searchByUin(ownerUin, uin)
 
     def onSearchByEmail(self, evt):
         print 'onSearchByEmail'
-        ownerUin = self.config.get("icq", "uin")
+        ownerUin = self.xmlConfig.get("./Options/Network/ICQ/ICQNumber")
         email = evt.getVal()
         self.connector["icq"].searchByEmail(ownerUin, email)
 
     def onSearchByName(self, evt):
         print 'onSearchByName'
-        ownerUin = self.config.get("icq", "uin")
+        ownerUin = self.xmlConfig.get("./Options/Network/ICQ/ICQNumber")
         nick, first, last = evt.getVal()
         self.connector["icq"].searchByName(ownerUin, nick, first, last)
 
@@ -605,7 +607,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
             dlg.Destroy()
 
     def onIconify(self, evt):
-        if self.config.getboolean('ui', 'minimize.to.tray'):
+        if self.xmlConfig.getBool("./Options/General/MinimizeToTray"):
             self.Hide()
         evt.Skip()
 
@@ -803,8 +805,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
                 d.addToHistory(m)
 
             flag = False
-            if self.config.has_option('ui', 'raise.incoming.message'):
-                flag = self.config.getboolean('ui', 'raise.incoming.message')
+            flag = self.xmlConfig.getBool("./Options/General/RaiseIncomingMessage")
 
             if flag or m is None:
                 print 'flag or m is None'
@@ -1007,8 +1008,7 @@ class TopFrame(wx.Frame, PersistenceMixin):
         if not hide:
 
             flag = False
-            if self.config.has_option('ui', 'raise.incoming.message'):
-                flag = self.config.getboolean('ui', 'raise.incoming.message')
+            flag = self.xmlConfig.getBool("./Options/General/RaiseIncomingMessage")
 
             print 'pass #2'
             we_have_dialog = False

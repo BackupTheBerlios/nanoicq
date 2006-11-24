@@ -1,6 +1,6 @@
 
 #
-# $Id: Register.py,v 1.9 2006/03/01 16:40:26 lightdruid Exp $
+# $Id: Register.py,v 1.10 2006/11/24 13:35:19 lightdruid Exp $
 #
 
 import sys
@@ -16,12 +16,12 @@ from Captcha import CaptchaPanel
 
 class RegisterFrame(wx.Frame):
     def __init__(self, parentFrame, ID, connector, iconSet,
-        config, title = 'New UIN registration'):
+        xmlConfig, title = 'New UIN registration'):
 
         wx.Frame.__init__(self, None, ID, title = title, size = (300, 490))
 
         self.connector = connector
-        self.config = config
+        self._xmlConfig = xmlConfig
 
         self.iconSet = iconSet
         self.mainIcon = wx.EmptyIcon()
@@ -39,9 +39,9 @@ class RegisterFrame(wx.Frame):
         rc = wx.MessageBox("Save this UIN and password in your config file?",
             "Save", wx.YES_NO)
         if rc == wx.YES:
-            self.config.set('icq', 'uin', self.cp.newUin.GetValue())
-            self.config.set('icq', 'password', self.cp.newPassword.GetValue())
-            self.config.write()
+            self._xmlConfig.set("./Options/Network/ICQ/ICQNumber", self.cp.newUin.GetValue())
+            self._xmlConfig.set("./Options/Network/ICQ/ICQPassword", self.cp.newPassword.GetValue())
+            self._xmlConfig.save()
         self.Close()
 
     def onGotNewUin(self, evt):

@@ -1,7 +1,7 @@
 #!/bin/env python2.4
 
 #
-# $Id: icq.py,v 1.105 2006/11/23 16:25:56 lightdruid Exp $
+# $Id: icq.py,v 1.106 2006/11/24 13:35:19 lightdruid Exp $
 #
 
 import sys
@@ -324,10 +324,10 @@ class Protocol:
         #if self._gui is not None:
         #    self._gui.dispatch(kw, kws)
 
-    def readConfig(self, config):
-        self._config = config
-        self._host, self._port = self._config.get('icq', 'host').split(':')
-        self._port = int(self._port)
+    def readConfig(self, xmlConfig):
+        self._xmlConfig = xmlConfig
+        self._host = self._xmlConfig.get("./Options/Network/ICQ/LoginServer")
+        self._port = self._xmlConfig.getInt("./Options/Network/ICQ/Port")
 
     def getColorSet(self):
         '''
@@ -337,11 +337,12 @@ class Protocol:
         Returns 4-list, bg/fg for incoming messages and
         bg/fg for outgoing messages
         '''
-        ibg = self._config.get('icq', 'incoming.bg')
-        ifg = self._config.get('icq', 'incoming.fg')
 
-        obg = self._config.get('icq', 'outgoing.bg')
-        ofg = self._config.get('icq', 'outgoing.fg')
+        ibg = self._xmlConfig.get("./Options/IncomingBackground")
+        ifg = self._xmlConfig.get("./Options/IncomingForeground")
+
+        obg = self._xmlConfig.get("./Options/OutgoingBackground")
+        ofg = self._xmlConfig.get("./Options/OutgoingForeground")
 
         return [ibg, ifg, obg, ofg]
 
@@ -353,19 +354,19 @@ class Protocol:
 
         self.default_charset = None
         try:
-            self.default_charset = self._config.get('icq', 'default_charset')
+            self.default_charset = self._xmlConfig.get("./Options/Network/ICQ/DefaultCharset")
         except AttributeError, msg:
             # We don't have config, use default values
             pass
 
         log().log("Connecting to %s:%d" % (host, port))
 
-        if hasattr(self, '_config') and self._config.has_option('icq', 'proxy.server'):
-            junk = self._config.get('icq', 'proxy.server').split(':')
+        if hasattr(self, 'xmlConfig') and self._xmlConfig.get("./Options/Network/ICQ/ProxyServer"):
+            junk = self._xmlConfig.get("./Options/Network/ICQ/ProxyServer")
             proxyHost = junk[0]
             proxyPort = int(junk[1])
 
-            proxyType = self._config.get('icq', 'proxy.type').capitalize()
+            proxyType = self._xmlConfig.get("./Options/Network/ICQ/ProxyType").capitalize()
             print 'Using: ', proxyType
             self._sock = eval("%sProxy(proxyHost, proxyPort, self.default_charset)" % proxyType)
             self._sock.connect(host, port)
@@ -453,14 +454,10 @@ class Protocol:
 
     def sendAuth(self, username = None):
         if username is None:
-            username = self._config.get('icq', 'uin')
+            username = self._xmlConfig.get("./Options/Network/ICQ/ICQNumber")
         self.username = username
 
-        if 0:
-            encpass = encryptPasswordICQ(os.getenv("TEST_ICQ_PASS"))
-        else:
-            encpass = encryptPasswordICQ(self._config.get('icq', 'password'))
-            print "[%s] [%s] " % (self.username, self._config.get('icq', 'password'))
+        encpass = encryptPasswordICQ(self._xmlConfig.get("./Options/Network/ICQ/ICQPassword"))
 
         self.sendFLAP(0x01, '\000\000\000\001'+
             tlv(0x01, self.username)+
@@ -1022,7 +1019,7 @@ class Protocol:
         self.sendIdleTime(0)
 
         log().log('{SKIPPED} Getting offline messages...')
-        self.getOfflineMessages(self._config.get('icq', 'uin'))
+        self.getOfflineMessages(self._xmlConfig.get("./Options/Network/ICQ/ICQNumber"))
 
     def sendClientReady(self):
         '''
@@ -2667,7 +2664,7 @@ class Protocol:
 
         log().log('Post login, getting meta information about ourselfs')
 
-        myUin = self._config.get('icq', 'uin')
+        myUin = self._xmlConfig.get("./Options/Network/ICQ/ICQNumber")
         self._currentUser = Buddy()
         self._currentUser.uin = myUin
 

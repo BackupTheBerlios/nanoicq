@@ -1,3 +1,7 @@
+
+<!-- $Id: options.xml,v 1.10 2006/11/24 13:36:03 lightdruid Exp $
+-->
+
 <Nanoicq>
     <Options>
         <Network Internal="1">
